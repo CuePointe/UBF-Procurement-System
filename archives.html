@@ -25,7 +25,7 @@
 <body>
 <nav class="navbar">
   <a class="navbar-brand" href="dashboard.html">
-    <div class="navbar-logo"><img src="ubf-logo.jpg" alt="UBF" onerror="this.style.display='none';this.parentElement.setAttribute('data-fallback','true');"/></div>
+    <div class="navbar-logo"><img src="ubf-logo.png" alt="UBF" onerror="this.style.display='none';this.parentElement.setAttribute('data-fallback','true');"/></div>
     <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
   </a>
   <ul class="navbar-nav">
@@ -68,7 +68,35 @@
     <input type="search" id="archives-search" placeholder="Search files by name, staff, type&hellip;"/>
     <button class="btn btn-primary" id="btn-create-folder">+ New Folder</button>
     <button class="btn btn-secondary" id="btn-archive-refresh">Refresh</button>
+    <div style="display:flex;gap:0.25rem;margin-left:auto;">
+      <button id="btn-view-list" onclick="setArchiveView('list')" title="List view"
+        style="background:#3A6B2A;color:#fff;border:none;border-radius:4px;padding:0.35rem 0.65rem;cursor:pointer;font-size:0.85rem;">&#9776; List</button>
+      <button id="btn-view-grid" onclick="setArchiveView('grid')" title="Grid view"
+        style="background:#fff;color:#3A6B2A;border:1.5px solid #3A6B2A;border-radius:4px;padding:0.35rem 0.65rem;cursor:pointer;font-size:0.85rem;">&#9635; Grid</button>
+    </div>
   </div>
+  <script>
+  function setArchiveView(v){
+    var list=document.getElementById('archives-list');
+    var btnL=document.getElementById('btn-view-list');
+    var btnG=document.getElementById('btn-view-grid');
+    if(!list)return;
+    if(v==='grid'){
+      list.style.display='grid';list.style.gridTemplateColumns='repeat(auto-fill,minmax(280px,1fr))';list.style.gap='1rem';
+      if(btnG){btnG.style.background='#3A6B2A';btnG.style.color='#fff';}
+      if(btnL){btnL.style.background='#fff';btnL.style.color='#3A6B2A';}
+    } else {
+      list.style.display='block';list.style.gridTemplateColumns='';list.style.gap='';
+      if(btnL){btnL.style.background='#3A6B2A';btnL.style.color='#fff';}
+      if(btnG){btnG.style.background='#fff';btnG.style.color='#3A6B2A';}
+    }
+    localStorage.setItem('ubf_archive_view',v);
+  }
+  document.addEventListener('DOMContentLoaded',function(){
+    var saved=localStorage.getItem('ubf_archive_view')||'list';
+    setArchiveView(saved);
+  });
+  </script>
 
   <!-- Loading -->
   <div id="archives-loading" class="loading-state">

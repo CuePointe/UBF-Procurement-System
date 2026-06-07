@@ -65,7 +65,7 @@ function newExpiryDate(){var d=new Date();d.setDate(d.getDate()+CONFIG.PASS_EXPI
 
 function getToken(){return localStorage.getItem(CONFIG.TOKEN_KEY)||'';}
 function buildApiUrl(p){return CONFIG.API_BASE+'/repos/'+CONFIG.OWNER+'/'+CONFIG.REPO+'/contents/'+p;}
-function buildHeaders(){return{'Authorization':'token '+getToken(),'Content-Type':'application/json','Accept':'application/vnd.github.v3+json','X-GitHub-Api-Version':'2022-11-28'};}
+function buildHeaders(){return{'Authorization':'Bearer '+getToken(),'Content-Type':'application/json','Accept':'application/vnd.github.v3+json','X-GitHub-Api-Version':'2022-11-28'};}
 function encodeB64(obj){return btoa(unescape(encodeURIComponent(JSON.stringify(obj,null,2))));}
 function decodeB64(b64){return JSON.parse(decodeURIComponent(escape(atob(b64.replace(/[\n\r]/g,'')))));}
 function generateId(){

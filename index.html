@@ -146,10 +146,11 @@
         <strong>One-time system setup</strong>
         Enter the GitHub Access Key (token) given to you by the system administrator. It is saved only on this device and never stored in any file.
       </div>
-      <label class="field-label" for="setup-token">GitHub Access Key</label>
-      <input class="field-input" type="password" id="setup-token"
-             placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off"/>
-      <button class="btn-green" onclick="doSaveToken()">Save Key &amp; Continue to Login</button>
+        <label class="field-label" for="setup-token">GitHub Access Key</label>
+      <input class="field-input" type="text" id="setup-token"
+             placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off"
+             style="font-family:monospace;font-size:0.82rem;letter-spacing:0.02em;"/>
+      <button class="btn-green" id="btn-test-token" onclick="doTestAndSaveToken()">Verify &amp; Save Key</button>
     </div>
 
     <!-- ============================================
@@ -274,17 +275,58 @@ function doForgot(){
 ============================================ */
 function doSaveToken(){
   var val = (document.getElementById('setup-token').value || '').trim();
-  if(!val){
-    showError('Please enter the Access Key.');
-    return;
-  }
-  if(val.indexOf('ghp_') !== 0 && val.indexOf('github_pat_') !== 0){
-    showError('Invalid key. It must start with ghp_ or github_pat_');
-    return;
-  }
+  if(!val){ showError('Please enter the Access Key.'); return; }
   localStorage.setItem(TOKEN_KEY, val);
-  showInfo('Access Key saved. Please log in below.');
+  showInfo('Key saved. Please log in.');
   showSection('sec-login');
+}
+
+async function doTestAndSaveToken(){
+  var val = (document.getElementById('setup-token').value || '').trim();
+  if(!val){ showError('Please paste your GitHub token first.'); return; }
+
+  var btn = document.getElementById('btn-test-token');
+  btn.disabled = true;
+  btn.textContent = 'Verifying...';
+  clearAlerts();
+
+  try{
+    /* Test token by calling GitHub API to verify it works */
+    var OWNER = 'CuePointe';
+    var REPO  = 'UBF-Request-Portal';
+    var url   = 'https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/data/users.json';
+    var res   = await fetch(url, {
+      method:'GET',
+      headers:{
+        'Authorization':'Bearer '+val,
+        'Accept':'application/vnd.github.v3+json'
+      }
+    });
+
+    if(res.status === 200){
+      /* Token works AND users.json exists */
+      localStorage.setItem(TOKEN_KEY, val);
+      showInfo('Token verified. Please log in below.');
+      showSection('sec-login');
+    } else if(res.status === 401){
+      showError('Token rejected by GitHub (401). Please generate a NEW token at github.com/settings/tokens and try again.');
+      btn.disabled = false; btn.textContent = 'Verify & Save Key';
+    } else if(res.status === 404){
+      /* Token works but users.json missing */
+      localStorage.setItem(TOKEN_KEY, val);
+      showError('Token is valid but data/users.json is missing from your GitHub repo. Please upload users.json to the data/ folder, then try logging in.');
+      btn.disabled = false; btn.textContent = 'Verify & Save Key';
+    } else if(res.status === 403){
+      showError('Token does not have permission (403). When generating the token, make sure to tick the "repo" checkbox under Scopes.');
+      btn.disabled = false; btn.textContent = 'Verify & Save Key';
+    } else {
+      showError('Unexpected response ('+res.status+'). Please try again or contact Tom Otieno.');
+      btn.disabled = false; btn.textContent = 'Verify & Save Key';
+    }
+  } catch(err){
+    showError('Network error: '+err.message+'. Please check your internet connection.');
+    btn.disabled = false; btn.textContent = 'Verify & Save Key';
+  }
 }
 
 /* Reset token — forces user back to setup */

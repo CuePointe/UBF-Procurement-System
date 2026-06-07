@@ -79,8 +79,8 @@ function openModal(html){
   var o=$id('modal-overlay'),c=$id('modal-content');
   if(!o||!c)return;
   c.innerHTML=html;o.style.display='flex';document.body.style.overflow='hidden';
-  /* Wire inline form panels every time modal opens */
-  setTimeout(wireInlinePanels,0);
+  /* Wire pkg panels every time modal opens */
+  setTimeout(wirePkgPanels,0);
   /* Populate archive folder dropdown if present */
   setTimeout(function(){
     var sel=document.querySelector('[id^="archive-folder-sel-"]');
@@ -590,6 +590,151 @@ async function saveInlineForm(btn){
   }
 }
 
+
+/* ── Inline package form panels ── */
+function buildPkgPanel(panelId, recId, formType){
+  var titles={travel:'Travel Business Plan',accountability:'Accountability & Expense Report',
+    evaluation:'Procurement Evaluation Report',lpo:'Local Purchase Order',
+    grn:'Goods Received Note',invoice:'Cheque Payment Voucher'};
+  var rows={travel:3,accountability:4,evaluation:3,lpo:3,grn:3,invoice:4};
+  var th='background:#EBF3FA;color:#2D5A7E;font-weight:700;font-size:0.72rem;padding:0.35rem 0.5rem;border:1px solid #d1d1d1;text-align:left;';
+  var td='border:1px solid #d1d1d1;padding:0.2rem 0.4rem;';
+  var inp='width:100%;border:none;outline:none;font-family:inherit;font-size:0.82rem;background:transparent;';
+  var inpFocus='';
+
+  function tableRow(n,cols){
+    var cells='<td style="'+td+'text-align:center;color:#888;font-size:0.75rem;">'+n+'</td>';
+    cols.forEach(function(c){
+      cells+='<td style="'+td+'"><input data-col="'+c.key+'" type="'+(c.type||'text')+'" placeholder="'+(c.ph||'')+'" style="'+inp+'" '+(c.cls?'class="'+c.cls+'"':'')+'/></td>';
+    });
+    cells+='<td style="'+td+'text-align:center;"><button type="button" class="del-pkg-row" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:0.85rem;">x</button></td>';
+    return cells;
+  }
+
+  var tableHtml='';
+  var n=rows[formType]||3;
+
+  if(formType==='travel'){
+    var cols=[{key:'route',ph:'From - To'},{key:'date',type:'date'},{key:'perDiem',type:'number',ph:'0',cls:'pkg-cost'},{key:'accommodation',type:'number',ph:'0',cls:'pkg-cost'},{key:'others',type:'number',ph:'0',cls:'pkg-cost'},{key:'total',type:'number',ph:'0'}];
+    tableHtml='<div style="overflow-x:auto;margin-top:0.5rem;"><table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'+
+      '<thead><tr><th style="'+th+'width:28px;">#</th><th style="'+th+'">Route</th><th style="'+th+'width:90px;">Date</th><th style="'+th+'width:80px;">Per Diem</th><th style="'+th+'width:90px;">Accommodation</th><th style="'+th+'width:70px;">Others</th><th style="'+th+'width:80px;">Total (UGX)</th><th style="'+th+'width:26px;"></th></tr></thead>'+
+      '<tbody id="tb-'+panelId+'"></tbody></table></div>'+
+      '<button type="button" class="btn-add-pkg-row" data-tbody="tb-'+panelId+'" data-type="travel" style="font-size:0.72rem;color:#2D5A7E;background:#EBF3FA;border:1px dashed #6B9AC4;border-radius:4px;padding:0.2rem 0.6rem;cursor:pointer;margin-top:3px;">+ Add Route</button>'+
+      '<div style="text-align:right;font-size:0.82rem;font-weight:700;color:#2D5A7E;margin-top:0.35rem;">Grand Total: <span id="gt-'+panelId+'">0</span></div>';
+  }
+  if(formType==='accountability'){
+    var cols=[{key:'explanation',ph:'Brief explanation'},{key:'date',type:'date'},{key:'budgeted',type:'number',ph:'0',cls:'pkg-budgeted'},{key:'actual',type:'number',ph:'0',cls:'pkg-actual'}];
+    tableHtml='<div style="overflow-x:auto;margin-top:0.5rem;"><table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'+
+      '<thead><tr><th style="'+th+'width:28px;">#</th><th style="'+th+'">Explanation</th><th style="'+th+'width:90px;">Date</th><th style="'+th+'width:90px;">Budgeted</th><th style="'+th+'width:90px;">Actual</th><th style="'+th+'width:26px;"></th></tr></thead>'+
+      '<tbody id="tb-'+panelId+'"></tbody></table></div>'+
+      '<button type="button" class="btn-add-pkg-row" data-tbody="tb-'+panelId+'" data-type="accountability" style="font-size:0.72rem;color:#2D5A7E;background:#EBF3FA;border:1px dashed #6B9AC4;border-radius:4px;padding:0.2rem 0.6rem;cursor:pointer;margin-top:3px;">+ Add Row</button>';
+  }
+  if(formType==='evaluation'){
+    tableHtml='<div style="overflow-x:auto;margin-top:0.5rem;"><table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'+
+      '<thead><tr><th style="'+th+'width:28px;">#</th><th style="'+th+'">Item Description</th><th style="'+th+'width:60px;">Qty</th><th style="'+th+'width:90px;">Supplier 1</th><th style="'+th+'width:90px;">Supplier 2</th><th style="'+th+'width:90px;">Supplier 3</th><th style="'+th+'width:26px;"></th></tr></thead>'+
+      '<tbody id="tb-'+panelId+'"></tbody></table></div>'+
+      '<button type="button" class="btn-add-pkg-row" data-tbody="tb-'+panelId+'" data-type="evaluation" style="font-size:0.72rem;color:#2D5A7E;background:#EBF3FA;border:1px dashed #6B9AC4;border-radius:4px;padding:0.2rem 0.6rem;cursor:pointer;margin-top:3px;">+ Add Item</button>';
+  }
+  if(formType==='lpo'){
+    tableHtml='<div style="overflow-x:auto;margin-top:0.5rem;"><table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'+
+      '<thead><tr><th style="'+th+'width:28px;">#</th><th style="'+th+'">Description</th><th style="'+th+'width:55px;">Qty</th><th style="'+th+'width:55px;">Unit</th><th style="'+th+'width:90px;">Unit Price</th><th style="'+th+'width:90px;">Total</th><th style="'+th+'width:26px;"></th></tr></thead>'+
+      '<tbody id="tb-'+panelId+'"></tbody></table></div>'+
+      '<button type="button" class="btn-add-pkg-row" data-tbody="tb-'+panelId+'" data-type="lpo" style="font-size:0.72rem;color:#2D5A7E;background:#EBF3FA;border:1px dashed #6B9AC4;border-radius:4px;padding:0.2rem 0.6rem;cursor:pointer;margin-top:3px;">+ Add Item</button>'+
+      '<div style="text-align:right;font-size:0.82rem;font-weight:700;color:#2D5A7E;margin-top:0.35rem;">Total: <span id="gt-'+panelId+'">0</span></div>';
+  }
+  if(formType==='grn'){
+    tableHtml='<div style="overflow-x:auto;margin-top:0.5rem;"><table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'+
+      '<thead><tr><th style="'+th+'width:28px;">#</th><th style="'+th+'">Description</th><th style="'+th+'width:60px;">Qty</th><th style="'+th+'width:60px;">Unit</th><th style="'+th+'width:90px;">Condition</th><th style="'+th+'width:26px;"></th></tr></thead>'+
+      '<tbody id="tb-'+panelId+'"></tbody></table></div>'+
+      '<button type="button" class="btn-add-pkg-row" data-tbody="tb-'+panelId+'" data-type="grn" style="font-size:0.72rem;color:#2D5A7E;background:#EBF3FA;border:1px dashed #6B9AC4;border-radius:4px;padding:0.2rem 0.6rem;cursor:pointer;margin-top:3px;">+ Add Item</button>';
+  }
+  if(formType==='invoice'){
+    tableHtml='<div style="overflow-x:auto;margin-top:0.5rem;"><table style="width:100%;border-collapse:collapse;font-size:0.82rem;">'+
+      '<thead><tr><th style="'+th+'width:28px;">#</th><th style="'+th+'">Payment Particulars</th><th style="'+th+'width:90px;">Acc Code</th><th style="'+th+'width:100px;">Amount (UGX)</th><th style="'+th+'width:26px;"></th></tr></thead>'+
+      '<tbody id="tb-'+panelId+'"></tbody></table></div>'+
+      '<button type="button" class="btn-add-pkg-row" data-tbody="tb-'+panelId+'" data-type="invoice" style="font-size:0.72rem;color:#2D5A7E;background:#EBF3FA;border:1px dashed #6B9AC4;border-radius:4px;padding:0.2rem 0.6rem;cursor:pointer;margin-top:3px;">+ Add Row</button>'+
+      '<div style="text-align:right;font-size:0.82rem;font-weight:700;color:#2D5A7E;margin-top:0.35rem;">Total: <span id="gt-'+panelId+'">0</span></div>';
+  }
+
+  /* Common fields per form type */
+  var fields='';
+  var g='display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.6rem;';
+  var lbl='display:block;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#555;margin-bottom:0.2rem;';
+  var fi='width:100%;padding:0.42rem 0.65rem;border:1.5px solid #d1d1d1;border-radius:4px;font-family:inherit;font-size:0.85rem;';
+  var ta='width:100%;padding:0.42rem 0.65rem;border:1.5px solid #d1d1d1;border-radius:4px;font-family:inherit;font-size:0.85rem;resize:vertical;';
+  function f(lbl2,inp2){return'<div><label style="'+lbl+'">'+lbl2+'</label>'+inp2+'</div>';}
+  function ii(id2,type2,ph2){return'<input id="pf-'+panelId+'-'+id2+'" type="'+(type2||'text')+'" placeholder="'+(ph2||'')+'" style="'+fi+'"/>';}
+  function tarea(id2,rows2,ph2){return'<textarea id="pf-'+panelId+'-'+id2+'" rows="'+(rows2||2)+'" placeholder="'+(ph2||'')+'" style="'+ta+'"></textarea>';}
+
+  if(formType==='travel'){
+    fields='<div style="'+g+'">'+
+      f('Traveller Name *',ii('name','text','Full name'))+
+      f('Position/Grade',ii('position','text','Title'))+
+      f('Departure Date *',ii('dep','date',''))+
+      f('Return Date *',ii('ret','date',''))+
+    '</div>'+
+    f('Business Reason / Purpose *',tarea('reason',2,'Purpose of the trip'));
+  }
+  if(formType==='accountability'){
+    fields='<div style="'+g+'">'+
+      f('Employee Name *',ii('name','text','Full name'))+
+      f('Date',ii('date','date',''))+
+    '</div>'+
+    f('Dates of Travel / Activity *',ii('dates','text','e.g. 15th to 19th May 2026'))+
+    f('Purpose *',tarea('purpose',2,'Purpose of the trip or activity'));
+  }
+  if(formType==='evaluation'){
+    fields='<div style="'+g+'">'+
+      f('Item Description *',tarea('desc',2,'What is being evaluated'))+
+      f('Procurement Method *','<select id="pf-'+panelId+'-method" style="'+fi+'"><option value="">Select...</option><option>Direct Procurement</option><option>Request for Quotations (RFQ)</option><option>Request for Proposals (RFP)</option><option>Open Tender</option></select>')+
+    '</div>'+
+    f('Suppliers Who Responded *',ii('suppliers','text','List suppliers'))+
+    f('Recommendations *',tarea('rec',2,'Recommended supplier and reason'));
+  }
+  if(formType==='lpo'){
+    fields='<div style="'+g+'">'+
+      f('Vendor Name *',ii('vendor','text','Supplier name'))+
+      f('Date',ii('date','date',''))+
+      f('Deliver At',ii('deliver','text','Delivery location'))+
+      f('Payment Terms',ii('terms','text','e.g. 30 days'))+
+    '</div>';
+  }
+  if(formType==='grn'){
+    fields='<div style="'+g+'">'+
+      f('Vendor Name *',ii('vendor','text','Supplier name'))+
+      f('Date',ii('date','date',''))+
+      f('Delivery Note No.',ii('delivery','text','Ref number'))+
+      f('Related LPO No.',ii('lpo','text','LPO reference'))+
+    '</div>';
+  }
+  if(formType==='invoice'){
+    fields='<div style="'+g+'">'+
+      f('Payee *',ii('payee','text','Name of payee'))+
+      f('Date',ii('date','date',''))+
+      f('Cheque No.',ii('cheque','text','Cheque number'))+
+      f('Voucher No.',ii('voucher','text','Voucher number'))+
+    '</div>'+
+    f('Amount in Words',ii('words','text','e.g. Nine Hundred Thousand Uganda Shillings only'));
+  }
+
+  return '<div id="'+panelId+'" style="display:none;border:1.5px solid #3A6B2A;border-radius:var(--radius-sm);margin-bottom:0.75rem;overflow:hidden;">'+
+    '<div style="background:#2D5A1F;padding:0.45rem 0.85rem;display:flex;justify-content:space-between;align-items:center;">'+
+      '<span style="color:#fff;font-size:0.82rem;font-weight:700;">'+titles[formType]+'</span>'+
+      '<button type="button" class="btn-pkg-close" data-panel="'+panelId+'" style="background:rgba(255,255,255,0.2);border:none;color:#fff;border-radius:3px;cursor:pointer;font-size:0.75rem;padding:0.15rem 0.5rem;">Remove</button>'+
+    '</div>'+
+    '<div style="padding:0.85rem 1rem;background:#fff;">'+
+      fields+tableHtml+
+      '<div style="margin-top:0.65rem;padding-top:0.65rem;border-top:1px solid #eee;">'+
+        '<label style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#555;display:block;margin-bottom:0.25rem;">Supporting Documents (optional)</label>'+
+        '<input type="file" id="pf-'+panelId+'-files" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png" style="font-size:0.8rem;"/>'+
+        '<div id="pf-'+panelId+'-fileinfo" style="font-size:0.75rem;color:#3A6B2A;margin-top:0.15rem;"></div>'+
+      '</div>'+
+      '<button type="button" class="btn-save-pkg-form" data-panel="'+panelId+'" data-recid="'+recId+'" data-formtype="'+formType+'" style="margin-top:0.65rem;background:#3A6B2A;color:#fff;border:none;border-radius:4px;padding:0.42rem 1.1rem;font-size:0.83rem;font-weight:700;cursor:pointer;">Save &amp; Add to Package</button>'+
+      '<span id="pf-'+panelId+'-result" style="font-size:0.78rem;margin-left:0.6rem;"></span>'+
+    '</div>'+
+  '</div>';
+}
+
 /* --- Package view (record detail modal) --- */
 var _allRecs=[];
 
@@ -698,36 +843,43 @@ function buildPackageView(rec){
     ?'<ol class="history-list">'+rec.history.map(function(h){return'<li><strong>'+esc(h.action)+'</strong> by '+esc(h.byName||h.by)+' on '+fmtDT(h.at)+(h.note?' - '+esc(h.note):'')+'</li>';}).join('')+'</ol>'
     :'<p style="color:var(--gray-500);font-size:0.85rem;">No history.</p>';
 
-  /* Add Form to Package — horizontal buttons, all roles, all stages */
+  /* GREEN horizontal bar — Add Forms to Package (same page, inline) */
   var addFormHtml='';
   if(rec.status!=='Approved'&&rec.status!=='Rejected'){
-    addFormHtml='<div style="margin-bottom:1rem;background:var(--ubf-green-pale);border:1px solid var(--ubf-green-light);border-radius:var(--radius-sm);padding:0.85rem 1rem;">'+
-      '<div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;color:var(--ubf-green-dark);letter-spacing:0.05em;margin-bottom:0.5rem;">Add Forms to This Package</div>'+
-      '<p style="font-size:0.78rem;color:var(--gray-500);margin-bottom:0.6rem;">Click a form below to open it. After filling and submitting it will be automatically attached to this package.</p>'+
-      '<div style="display:flex;flex-wrap:wrap;gap:0.5rem;">'+
-        '<a href="travel-plan.html?package='+esc(rec.id)+'" class="btn btn-secondary btn-sm">+ Travel Business Plan</a>'+
-        '<a href="accountability.html?package='+esc(rec.id)+'" class="btn btn-secondary btn-sm">+ Accountability Form</a>'+
-        '<a href="evaluation.html?package='+esc(rec.id)+'" class="btn btn-secondary btn-sm">+ Evaluation Report</a>'+
-        '<a href="lpo.html?package='+esc(rec.id)+'" class="btn btn-secondary btn-sm">+ Local Purchase Order</a>'+
-        '<a href="grn.html?package='+esc(rec.id)+'" class="btn btn-secondary btn-sm">+ Goods Received Note</a>'+
-        '<a href="invoice.html?package='+esc(rec.id)+'" class="btn btn-secondary btn-sm">+ Payment Voucher</a>'+
+    var rid=esc(rec.id);
+    addFormHtml=
+    /* GREEN BAR */
+    '<div style="margin-bottom:1rem;background:#3A6B2A;border-radius:var(--radius-sm);padding:0.6rem 1rem;">'+
+      '<div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;color:#fff;letter-spacing:0.05em;margin-bottom:0.5rem;">Attach Forms to This Package</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:0.4rem;">'+
+        '<button class="btn-pkg-toggle" data-panel="pkg-travel-'+rid+'"    style="background:#fff;color:#3A6B2A;border:none;border-radius:4px;padding:0.28rem 0.7rem;font-size:0.78rem;font-weight:700;cursor:pointer;">+ Travel Business Plan</button>'+
+        '<button class="btn-pkg-toggle" data-panel="pkg-acc-'+rid+'"       style="background:#fff;color:#3A6B2A;border:none;border-radius:4px;padding:0.28rem 0.7rem;font-size:0.78rem;font-weight:700;cursor:pointer;">+ Accountability</button>'+
+        '<button class="btn-pkg-toggle" data-panel="pkg-eval-'+rid+'"      style="background:#fff;color:#3A6B2A;border:none;border-radius:4px;padding:0.28rem 0.7rem;font-size:0.78rem;font-weight:700;cursor:pointer;">+ Evaluation Report</button>'+
+        '<button class="btn-pkg-toggle" data-panel="pkg-lpo-'+rid+'"       style="background:#fff;color:#3A6B2A;border:none;border-radius:4px;padding:0.28rem 0.7rem;font-size:0.78rem;font-weight:700;cursor:pointer;">+ Local Purchase Order</button>'+
+        '<button class="btn-pkg-toggle" data-panel="pkg-grn-'+rid+'"       style="background:#fff;color:#3A6B2A;border:none;border-radius:4px;padding:0.28rem 0.7rem;font-size:0.78rem;font-weight:700;cursor:pointer;">+ Goods Received Note</button>'+
+        '<button class="btn-pkg-toggle" data-panel="pkg-invoice-'+rid+'"   style="background:#fff;color:#3A6B2A;border:none;border-radius:4px;padding:0.28rem 0.7rem;font-size:0.78rem;font-weight:700;cursor:pointer;">+ Payment Voucher</button>'+
       '</div>'+
-    '</div>';
+    '</div>'+
+
+    /* INLINE FORM PANELS — hidden until toggled */
+    buildPkgPanel('pkg-travel-'+rid, rid, 'travel')+
+    buildPkgPanel('pkg-acc-'+rid, rid, 'accountability')+
+    buildPkgPanel('pkg-eval-'+rid, rid, 'evaluation')+
+    buildPkgPanel('pkg-lpo-'+rid, rid, 'lpo')+
+    buildPkgPanel('pkg-grn-'+rid, rid, 'grn')+
+    buildPkgPanel('pkg-invoice-'+rid, rid, 'invoice');
   }
 
-  /* Save to Archive Folder (for approved records, FAM/ED only) */
+  /* File in Archive Folder (approved records — FAM/ED only) */
   if(rec.status==='Approved'&&(session.role==='FAM'||session.role==='ED')){
-    addFormHtml='<div style="margin-bottom:1rem;background:var(--ubf-green-pale);border:1px solid var(--ubf-green-light);border-radius:var(--radius-sm);padding:0.85rem 1rem;">'+
-      '<div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;color:var(--ubf-green-dark);letter-spacing:0.05em;margin-bottom:0.5rem;">File in Archive</div>'+
-      '<p style="font-size:0.78rem;color:var(--gray-500);margin-bottom:0.6rem;">Move this approved package to a named folder in the Document Archive.</p>'+
-      '<div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;">'+
-        '<select id="archive-folder-sel-'+esc(rec.id)+'" style="padding:0.4rem 0.75rem;border:1.5px solid var(--gray-300);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.85rem;min-width:200px;">'+
-          '<option value="">-- Select a folder --</option>'+
-        '</select>'+
-        '<button class="btn btn-primary btn-sm btn-do-move-folder" data-id="'+esc(rec.id)+'" style="white-space:nowrap;">Save to Folder</button>'+
-        '<a href="archives.html" class="btn btn-secondary btn-sm">Manage Folders</a>'+
-      '</div>'+
-      '<div id="folder-move-result-'+esc(rec.id)+'" style="font-size:0.78rem;margin-top:0.35rem;"></div>'+
+    addFormHtml='<div style="margin-bottom:1rem;background:#3A6B2A;border-radius:var(--radius-sm);padding:0.65rem 1rem;display:flex;flex-wrap:wrap;align-items:center;gap:0.6rem;">'+
+      '<span style="font-size:0.78rem;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.05em;white-space:nowrap;">File in Archive:</span>'+
+      '<select id="archive-folder-sel-'+esc(rec.id)+'" style="padding:0.38rem 0.65rem;border:none;border-radius:4px;font-family:var(--font-body);font-size:0.83rem;min-width:180px;">'+
+        '<option value="">-- Select a folder --</option>'+
+      '</select>'+
+      '<button class="btn btn-sm btn-do-move-folder" data-id="'+esc(rec.id)+'" style="background:#fff;color:#3A6B2A;font-weight:700;border:none;border-radius:4px;padding:0.35rem 0.85rem;cursor:pointer;font-size:0.8rem;">Save to Folder</button>'+
+      '<a href="archives.html" style="color:rgba(255,255,255,0.8);font-size:0.75rem;text-decoration:underline;">Manage Folders</a>'+
+      '<div id="folder-move-result-'+esc(rec.id)+'" style="font-size:0.78rem;color:#fff;width:100%;"></div>'+
     '</div>';
   }
 
@@ -1583,6 +1735,246 @@ async function initArchives(){
   if(rb)rb.addEventListener('click',async function(){rb.textContent='Refreshing...';await reload();rb.textContent='Refresh';});
 
   await reload();
+}
+
+/* ====================================
+   PKG PANEL WIRING
+==================================== */
+var _pkgPanelsWired=false;
+function wirePkgPanels(){
+  var o=$id('modal-overlay');if(!o||_pkgPanelsWired)return;
+  _pkgPanelsWired=true;
+
+  o.addEventListener('click',function(e){
+    var t=e.target;
+
+    /* Toggle panel open/close */
+    if(t.classList.contains('btn-pkg-toggle')){
+      var panelId=t.getAttribute('data-panel');
+      var panel=$id(panelId);if(!panel)return;
+      var open=panel.style.display!=='none';
+      panel.style.display=open?'none':'block';
+      /* Seed initial rows if empty */
+      if(!open){seedPkgRows(panelId,t.getAttribute('data-panel').split('-').slice(1,-1).join('-'));}
+      return;
+    }
+
+    /* Close panel */
+    if(t.classList.contains('btn-pkg-close')){
+      var panel=$id(t.getAttribute('data-panel'));
+      if(panel)panel.style.display='none';return;
+    }
+
+    /* Add row */
+    if(t.classList.contains('btn-add-pkg-row')){
+      var tbodyId=t.getAttribute('data-tbody');
+      var type=t.getAttribute('data-type');
+      var tbody=$id(tbodyId);if(!tbody)return;
+      var n=tbody.querySelectorAll('tr').length+1;
+      var tr=document.createElement('tr');
+      tr.innerHTML=makePkgRow(type,n);
+      tbody.appendChild(tr);
+      return;
+    }
+
+    /* Delete row */
+    if(t.classList.contains('del-pkg-row')){
+      t.closest('tr').remove();return;
+    }
+
+    /* Save pkg form */
+    if(t.classList.contains('btn-save-pkg-form')){
+      savePkgForm(t);return;
+    }
+  });
+
+  /* File input count display */
+  o.addEventListener('change',function(e){
+    var t=e.target;
+    if(t.tagName==='INPUT'&&t.type==='file'&&t.id&&t.id.indexOf('pf-')===0){
+      var infoId=t.id.replace('-files','-fileinfo');
+      var el=$id(infoId);
+      if(el)el.textContent=t.files.length+' file(s) selected';
+    }
+    /* Inline calc */
+    if(t.classList.contains('pkg-cost')){
+      var row=t.closest('tr');var tbody=t.closest('tbody');
+      if(!row||!tbody)return;
+      /* Travel total */
+      var costs=row.querySelectorAll('.pkg-cost');
+      var total=0;costs.forEach(function(i){total+=parseFloat(i.value)||0;});
+      var tCell=row.querySelector('[data-col="total"]');
+      if(tCell)tCell.value=total>0?total.toFixed(2):'';
+      /* Grand total */
+      var grand=0;
+      tbody.querySelectorAll('[data-col="total"]').forEach(function(i){grand+=parseFloat(i.value)||0;});
+      var panelId=tbody.id.replace('tb-','');
+      var gtEl=$id('gt-'+panelId);if(gtEl)gtEl.textContent='UGX '+grand.toLocaleString('en-UG');
+    }
+    /* LPO line total */
+    if(t.getAttribute&&t.getAttribute('data-col')==='unitPrice'||
+       t.getAttribute&&t.getAttribute('data-col')==='qty'){
+      var row=t.closest('tr');if(!row)return;
+      var q=parseFloat((row.querySelector('[data-col="qty"]')||{}).value)||0;
+      var p=parseFloat((row.querySelector('[data-col="unitPrice"]')||{}).value)||0;
+      var tc=row.querySelector('[data-col="total"]');if(tc)tc.value=q*p>0?(q*p).toFixed(2):'';
+    }
+  });
+
+  /* Populate archive folder dropdown */
+  setTimeout(function(){
+    var sel=document.querySelector('[id^="archive-folder-sel-"]');
+    if(!sel||sel.options.length>1)return;
+    DS.readArchives().then(function(ar){
+      var arch=ar.data&&typeof ar.data==='object'&&!Array.isArray(ar.data)?ar.data:{folders:[],unfiled:[]};
+      (arch.folders||[]).forEach(function(f){
+        var opt=document.createElement('option');
+        opt.value=f.id;opt.textContent=f.name;
+        sel.appendChild(opt);
+      });
+      if((arch.folders||[]).length===0){
+        var opt=document.createElement('option');
+        opt.disabled=true;opt.textContent='No folders yet - go to Archive to create one';
+        sel.appendChild(opt);
+      }
+    }).catch(function(){});
+  },200);
+}
+
+function seedPkgRows(panelId,formType){
+  var tbodyId='tb-'+panelId;
+  var tbody=$id(tbodyId);if(!tbody||tbody.querySelectorAll('tr').length>0)return;
+  var types=['travel','accountability','evaluation','lpo','grn','invoice'];
+  var type=formType;
+  if(types.indexOf(type)===-1){
+    /* derive from panelId */
+    types.forEach(function(tp){if(panelId.indexOf(tp)!==-1)type=tp;});
+  }
+  for(var i=1;i<=3;i++){
+    var tr=document.createElement('tr');
+    tr.innerHTML=makePkgRow(type,i);
+    tbody.appendChild(tr);
+  }
+}
+
+function makePkgRow(type,n){
+  var td='border:1px solid #d1d1d1;padding:0.2rem 0.4rem;';
+  var inp='width:100%;border:none;outline:none;font-family:inherit;font-size:0.8rem;background:transparent;';
+  var num='<td style="'+td+'text-align:center;color:#888;font-size:0.75rem;">'+n+'</td>';
+  var del='<td style="'+td+'text-align:center;"><button type="button" class="del-pkg-row" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:0.85rem;">x</button></td>';
+  if(type==='travel'){
+    return num+
+      '<td style="'+td+'"><input data-col="route" style="'+inp+'" placeholder="From - To"/></td>'+
+      '<td style="'+td+'"><input data-col="date" type="date" style="'+inp+'"/></td>'+
+      '<td style="'+td+'"><input data-col="perDiem" type="number" class="pkg-cost" step="0.01" min="0" placeholder="0" style="'+inp+'"/></td>'+
+      '<td style="'+td+'"><input data-col="accommodation" type="number" class="pkg-cost" step="0.01" min="0" placeholder="0" style="'+inp+'"/></td>'+
+      '<td style="'+td+'"><input data-col="others" type="number" class="pkg-cost" step="0.01" min="0" placeholder="0" style="'+inp+'"/></td>'+
+      '<td style="'+td+'"><input data-col="total" type="number" readonly style="'+inp+'font-weight:600;"/></td>'+del;
+  }
+  if(type==='accountability'){
+    return num+
+      '<td style="'+td+'"><input data-col="explanation" style="'+inp+'" placeholder="Brief explanation"/></td>'+
+      '<td style="'+td+'"><input data-col="date" type="date" style="'+inp+'"/></td>'+
+      '<td style="'+td+'"><input data-col="budgeted" type="number" class="pkg-budgeted pkg-cost" step="0.01" min="0" placeholder="0" style="'+inp+'"/></td>'+
+      '<td style="'+td+'"><input data-col="actual" type="number" class="pkg-actual pkg-cost" step="0.01" min="0" placeholder="0" style="'+inp+'"/></td>'+del;
+  }
+  if(type==='evaluation'){
+    return num+
+      '<td style="'+td+'"><input data-col="item" style="'+inp+'" placeholder="Item description"/></td>'+
+      '<td style="'+td+'"><input data-col="qty" type="number" step="1" min="0" placeholder="0" style="'+inp+'"/></td>'+
+      '<td style="'+td+'"><input data-col="s1" type="number" step="0.01" min="0" placeholder="0" style="'+inp+'"/></td>'+
+      '<td style="'+td+'"><input data-col="s2" type="number" step="0.01" min="0" placeholder="0" style="'+inp+'"/></td>'+
+      '<td style="'+td+'"><input data-col="s3" type="number" step="0.01" min="0" placeholder="0" style="'+inp+'"/></td>'+del;
+  }
+  if(type==='lpo'){
+    return num+
+      '<td style="'+td+'"><input data-col="desc" style="'+inp+'" placeholder="Item description"/></td>'+
+      '<td style="'+td+'"><input data-col="qty" type="number" step="1" min="0" placeholder="0" style="'+inp+'"/></td>'+
+      '<td style="'+td+'"><input data-col="unit" style="'+inp+'" placeholder="pcs"/></td>'+
+      '<td style="'+td+'"><input data-col="unitPrice" type="number" step="0.01" min="0" placeholder="0" style="'+inp+'"/></td>'+
+      '<td style="'+td+'"><input data-col="total" type="number" readonly style="'+inp+'font-weight:600;"/></td>'+del;
+  }
+  if(type==='grn'){
+    return num+
+      '<td style="'+td+'"><input data-col="desc" style="'+inp+'" placeholder="Item description"/></td>'+
+      '<td style="'+td+'"><input data-col="qty" type="number" step="0.01" min="0" placeholder="0" style="'+inp+'"/></td>'+
+      '<td style="'+td+'"><input data-col="unit" style="'+inp+'" placeholder="pcs"/></td>'+
+      '<td style="'+td+'"><input data-col="condition" style="'+inp+'" placeholder="Good/Damaged"/></td>'+del;
+  }
+  if(type==='invoice'){
+    return num+
+      '<td style="'+td+'"><input data-col="particulars" style="'+inp+'" placeholder="Payment particulars"/></td>'+
+      '<td style="'+td+'"><input data-col="accCode" style="'+inp+'" placeholder="Code"/></td>'+
+      '<td style="'+td+'"><input data-col="amount" type="number" class="pkg-cost" step="0.01" min="0" placeholder="0" style="'+inp+'"/></td>'+del;
+  }
+  return '';
+}
+
+async function savePkgForm(btn){
+  var panelId=btn.getAttribute('data-panel');
+  var recId=btn.getAttribute('data-recid');
+  var formType=btn.getAttribute('data-formtype');
+  var resultEl=$id('pf-'+panelId+'-result');
+  function setRes(msg,ok){if(resultEl){resultEl.textContent=msg;resultEl.style.color=ok?'#3A6B2A':'#c0392b';}}
+
+  function gv(fieldId){var el=$id('pf-'+panelId+'-'+fieldId);return el?el.value.trim():'';}
+  function getRows(tbodyId){
+    var tbody=$id('tb-'+panelId);
+    if(!tbody)return[];
+    var rows=[];
+    tbody.querySelectorAll('tr').forEach(function(row){
+      var obj={};
+      row.querySelectorAll('[data-col]').forEach(function(c){obj[c.getAttribute('data-col')]=c.value||'';});
+      /* Only include non-empty rows */
+      var vals=Object.values(obj).filter(function(v){return v&&v.trim&&v.trim();});
+      if(vals.length)rows.push(obj);
+    });
+    return rows;
+  }
+
+  var formData={};
+  if(formType==='travel'){
+    var reason=gv('reason');if(!reason){setRes('Please enter the business reason.','error');return;}
+    formData={description:'Travel Plan: '+reason,travellerName:gv('name'),position:gv('position'),departureDate:gv('dep'),returnDate:gv('ret'),businessReason:reason,routes:JSON.stringify(getRows('tb-'+panelId))};
+  }
+  if(formType==='accountability'){
+    var purpose=gv('purpose');if(!purpose){setRes('Please enter the purpose.','error');return;}
+    formData={description:'Accountability: '+purpose,employeeName:gv('name'),date:gv('date'),travelDates:gv('dates'),purpose:purpose,expenses:JSON.stringify(getRows('tb-'+panelId))};
+  }
+  if(formType==='evaluation'){
+    var desc=gv('desc');if(!desc){setRes('Please enter item description.','error');return;}
+    formData={description:desc,evalMethod:gv('method'),suppliers:gv('suppliers'),recommendations:gv('rec'),items:JSON.stringify(getRows('tb-'+panelId))};
+  }
+  if(formType==='lpo'){
+    var vendor=gv('vendor');if(!vendor){setRes('Please enter vendor name.','error');return;}
+    formData={description:'LPO: '+vendor,vendorName:vendor,lpoDate:gv('date'),deliverAt:gv('deliver'),paymentTerms:gv('terms'),items:JSON.stringify(getRows('tb-'+panelId))};
+  }
+  if(formType==='grn'){
+    var vendor=gv('vendor');if(!vendor){setRes('Please enter vendor name.','error');return;}
+    formData={description:'GRN: '+vendor,vendorName:vendor,grnDate:gv('date'),deliveryNoteNo:gv('delivery'),lpoRef:gv('lpo'),items:JSON.stringify(getRows('tb-'+panelId))};
+  }
+  if(formType==='invoice'){
+    var payee=gv('payee');if(!payee){setRes('Please enter payee name.','error');return;}
+    formData={description:'Payment Voucher: '+payee,payee:payee,invDate:gv('date'),chequeNo:gv('cheque'),voucherNo:gv('voucher'),amountWords:gv('words'),particulars:JSON.stringify(getRows('tb-'+panelId))};
+  }
+
+  btn.disabled=true;btn.textContent='Saving...';setRes('Saving...','ok');
+  try{
+    var fi=$id('pf-'+panelId+'-files');
+    await DS.submitAndLinkToPackage(formData,fi?fi.files:null,formType,recId);
+    var db=await DS.readDatabase();
+    var updated=db.records.find(function(r){return r.id===recId;});
+    if(updated){
+      var idx=_allRecs.findIndex(function(r){return r.id===recId;});
+      if(idx>=0)_allRecs[idx]=updated;
+      _pkgPanelsWired=false;
+      openModal(buildPackageView(updated));
+    }
+    showBanner(formType+' saved and added to package '+recId,'success');
+  }catch(err){
+    setRes('Failed: '+err.message,'error');
+    btn.disabled=false;btn.textContent='Save & Add to Package';
+  }
 }
 
 /* ====================================

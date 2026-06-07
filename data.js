@@ -102,17 +102,30 @@ async function writeUsers(users,sha,msg){return writeGHFile(CONFIG.USERS_PATH,us
 
 /* ── Archives ── */
 async function readArchives(){
-  try{var r=await readGHFile(CONFIG.ARCHIVES_PATH);return{data:Array.isArray(r.data)?r.data:[],sha:r.sha};}
-  catch(_){return{data:[],sha:null};}
+  try{
+    var r=await readGHFile(CONFIG.ARCHIVES_PATH);
+    /* Ensure data is always the correct {folders,unfiled} object */
+    var d=r.data;
+    if(!d||Array.isArray(d)||typeof d!=='object'){d={folders:[],unfiled:[]};}
+    if(!d.folders)d.folders=[];
+    if(!d.unfiled)d.unfiled=[];
+    return{data:d,sha:r.sha};
+  }catch(_){
+    return{data:{folders:[],unfiled:[]},sha:null};
+  }
 }
 async function writeArchives(data,sha,msg){
-  if(!sha){
-    var res=await fetch(buildApiUrl(CONFIG.ARCHIVES_PATH),{method:'PUT',headers:buildHeaders(),
-      body:JSON.stringify({message:msg||'Create archives',content:encodeB64(data),branch:CONFIG.BRANCH})});
-    if(!res.ok){var e={};try{e=await res.json();}catch(_){}throw new Error(apiErr(res.status,e.message));}
-    return await res.json();
-  }
-  return writeGHFile(CONFIG.ARCHIVES_PATH,data,sha,msg);
+  /* Always re-read current sha before writing to avoid conflicts */
+  try{
+    var current=await readGHFile(CONFIG.ARCHIVES_PATH);
+    sha=current.sha;
+  }catch(_){sha=null;}
+  var url=buildApiUrl(CONFIG.ARCHIVES_PATH);
+  var body={message:msg||'Update archives',content:encodeB64(data),branch:CONFIG.BRANCH};
+  if(sha)body.sha=sha;
+  var res=await fetch(url,{method:'PUT',headers:buildHeaders(),body:JSON.stringify(body)});
+  if(!res.ok){var e={};try{e=await res.json();}catch(_){}throw new Error(apiErr(res.status,e.message));}
+  return await res.json();
 }
 
 /* Archives structure: {folders:[{id,name,createdBy,createdAt,files:[{recordId,name,addedAt}]}], unfiled:[{recordId,name,addedAt}]} */

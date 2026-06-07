@@ -175,6 +175,12 @@
           <button type="button" class="btn-plain" onclick="doForgot()">Forgot password?</button>
           <button type="button" class="btn-plain" onclick="doResetToken()" style="color:#888;">Reset Access Key</button>
         </div>
+        <div style="margin-bottom:0.85rem;">
+          <button type="button" onclick="runDiagnostic()" style="width:100%;padding:0.45rem;background:#f0fdf4;color:#14532d;border:1px solid #86efac;border-radius:6px;font-family:inherit;font-size:0.8rem;cursor:pointer;">
+            &#128270; Check System Files (click if login fails)
+          </button>
+          <div id="diag-result" style="font-size:0.78rem;margin-top:0.4rem;line-height:1.6;"></div>
+        </div>
 
         <button type="submit" id="btn-login" class="btn-green">Log In</button>
       </form>
@@ -268,6 +274,36 @@ function togglePwd(){
 
 function doForgot(){
   alert('Please contact the system administrator:\nt.otieno@ugandabiodiversityfund.org');
+}
+
+async function runDiagnostic(){
+  var el=document.getElementById('diag-result');
+  var token=localStorage.getItem('ubf_gatekeeper_token');
+  if(!token){el.innerHTML='<span style="color:#c0392b;">No token stored. Please reset and enter your Access Key first.</span>';return;}
+  el.innerHTML='Checking files...';
+  var OWNER='CuePointe';
+  var REPO='UBF-Request-Portal';
+  var files=['data/users.json','data/requisitions.json'];
+  var results=[];
+  for(var i=0;i<files.length;i++){
+    var f=files[i];
+    try{
+      var res=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+f,{
+        headers:{'Authorization':'Bearer '+token,'Accept':'application/vnd.github.v3+json'}
+      });
+      if(res.status===200){
+        results.push('<span style="color:#14532d;">&#10003; '+f+' — EXISTS</span>');
+      } else if(res.status===404){
+        var createUrl='https://github.com/'+OWNER+'/'+REPO+'/new/main?filename='+encodeURIComponent(f);
+        results.push('<span style="color:#c0392b;">&#10007; '+f+' — MISSING</span> <a href="'+createUrl+'" target="_blank" style="color:#2D5A7E;font-weight:700;">Click here to create it</a>');
+      } else {
+        results.push('<span style="color:#d97706;">? '+f+' — Status: '+res.status+'</span>');
+      }
+    }catch(e){
+      results.push('<span style="color:#c0392b;">&#10007; '+f+' — Network error</span>');
+    }
+  }
+  el.innerHTML=results.join('<br/>');
 }
 
 /* ============================================

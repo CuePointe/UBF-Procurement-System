@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UBF &mdash; Document Archive</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .folder-card{background:var(--white);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);margin-bottom:1rem;overflow:hidden;border-left:5px solid var(--ubf-green);}
+    .folder-header{padding:0.85rem 1.1rem;background:var(--ubf-green-pale);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;cursor:pointer;border-bottom:1px solid var(--ubf-green-light);user-select:none;}
+    .folder-header:hover{background:var(--ubf-green-light);}
+    .folder-title{font-weight:700;color:var(--ubf-green-dark);display:flex;align-items:center;gap:0.5rem;font-size:0.95rem;}
+    .folder-body{padding:0.5rem;display:none;}
+    .folder-body.open{display:block;}
+    .folder-file-item{display:flex;align-items:flex-start;justify-content:space-between;padding:0.55rem 0.75rem;border-radius:var(--radius-sm);margin-bottom:0.3rem;background:var(--gray-100);flex-wrap:wrap;gap:0.5rem;}
+    .folder-file-item:hover{background:var(--ubf-blue-pale);}
+    .folder-file-name{font-size:0.85rem;font-weight:600;color:var(--ubf-blue-darker);}
+    .folder-file-meta{font-size:0.72rem;color:var(--gray-500);margin-top:0.15rem;}
+    .arc-toolbar{background:var(--white);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);padding:0.85rem 1.1rem;margin-bottom:1.25rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;}
+    .arc-toolbar input{flex:1;min-width:200px;padding:0.45rem 0.75rem;border:1.5px solid var(--gray-300);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.875rem;}
+    .arc-toolbar input:focus{outline:none;border-color:var(--ubf-blue);}
+    .stat-pill{display:inline-flex;align-items:center;gap:0.3rem;background:var(--ubf-blue-light);color:var(--ubf-blue-darker);padding:0.22rem 0.65rem;border-radius:999px;font-size:0.75rem;font-weight:600;}
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a class="navbar-brand" href="dashboard.html">
+    <div class="navbar-logo"><img src="ubf-logo.jpg" alt="UBF" onerror="this.style.display='none';this.parentElement.setAttribute('data-fallback','true');"/></div>
+    <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="form.html">Request</a></li>
+    <li><a href="travel-plan.html">Travel</a></li>
+    <li><a href="accountability.html">Accountability</a></li>
+    <li><a href="evaluation.html">Evaluation</a></li>
+    <li><a href="lpo.html">LPO</a></li>
+    <li><a href="grn.html">GRN</a></li>
+    <li><a href="invoice.html">Invoice</a></li>
+    <li><a href="archives.html" class="active">Archive</a></li>
+    <li><a href="expenditure-report.html">Report</a></li>
+    <li><a href="history.html">History</a></li>
+    <li><a href="help.html">Help Guide</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info">
+      <span class="user-email" id="nav-user-name">Loading&hellip;</span>
+      <span class="role-badge" id="nav-user-role">&mdash;</span>
+    </div>
+    <button id="btn-logout">Logout</button>
+  </div>
+</nav>
+
+<div id="archives-container" class="page-wrapper">
+  <div id="global-error-banner" class="banner"></div>
+  <div id="global-success-banner" class="banner"></div>
+
+  <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+    <div>
+      <h1>Document Archive</h1>
+      <p>All approved procurement packages &mdash; stored, named and organised by FAM. Auditor-ready.</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;" id="archive-stats"></div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="arc-toolbar">
+    <input type="search" id="archives-search" placeholder="Search files by name, staff, type&hellip;"/>
+    <button class="btn btn-primary" id="btn-create-folder">+ New Folder</button>
+    <button class="btn btn-secondary" id="btn-archive-refresh">Refresh</button>
+  </div>
+
+  <!-- Loading -->
+  <div id="archives-loading" class="loading-state">
+    <div class="spinner"></div>
+    Loading archive&hellip;
+  </div>
+
+  <!-- Archive list rendered by script.js -->
+  <div id="archives-list"></div>
+
+</div>
+
+<!-- Modal for viewing records -->
+<div id="modal-overlay">
+  <div class="modal-box">
+    <button class="modal-close-btn" id="btn-modal-close">&times;</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="form-renderer.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UBF — Cheque Payment Voucher</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .cpv-wrap{background:var(--white);border-radius:var(--radius-md);box-shadow:var(--shadow-md);max-width:860px;margin:0 auto;overflow:hidden;}
+    .cpv-title{text-align:center;font-size:1.15rem;font-weight:700;letter-spacing:0.1em;padding:0.85rem 1.5rem 0.4rem;text-transform:uppercase;font-family:var(--font-body);border-bottom:2px solid var(--gray-300);color:var(--ubf-blue-darker);}
+    .cpv-table{width:100%;border-collapse:collapse;}
+    .cpv-table td,.cpv-table th{border:1px solid var(--gray-300);padding:0.42rem 0.7rem;font-size:0.875rem;vertical-align:middle;}
+    .cpv-table th{background:var(--ubf-blue-light);color:var(--ubf-blue-darker);font-weight:700;font-size:0.78rem;white-space:nowrap;}
+    .cpv-table td.label-cell{background:var(--gray-100);font-weight:600;font-size:0.82rem;color:var(--gray-700);white-space:nowrap;width:1%;}
+    .cpv-table td input,.cpv-table td select,.cpv-table td textarea{width:100%;border:none;outline:none;font-family:var(--font-body);font-size:0.875rem;background:transparent;color:var(--gray-900);}
+    .cpv-table td input:focus,.cpv-table td select:focus{background:#fffde7;border-radius:2px;}
+    .cpv-table .total-row td{background:var(--ubf-blue-light);font-weight:700;}
+    .cpv-table .words-row td{font-style:italic;background:#fefce8;}
+    .sig-table{width:100%;border-collapse:collapse;}
+    .sig-table td{border:1px solid var(--gray-300);padding:0.55rem 0.85rem;vertical-align:top;font-size:0.85rem;}
+    .sig-name{font-weight:700;margin-bottom:0.15rem;}
+    .sig-title{font-size:0.78rem;color:var(--gray-500);}
+    .sig-line{margin-top:1.5rem;border-top:1px solid var(--gray-600);font-size:0.72rem;color:var(--gray-400);padding-top:0.2rem;}
+    .code-table{width:100%;border-collapse:collapse;}
+    .code-table td,.code-table th{border:1px solid var(--gray-300);padding:0.45rem 0.6rem;font-size:0.82rem;text-align:center;}
+    .code-table th{background:var(--ubf-blue-light);color:var(--ubf-blue-darker);font-weight:700;font-size:0.75rem;}
+    .code-table td.code-label{background:var(--gray-100);font-weight:600;font-size:0.78rem;text-align:left;width:50px;}
+    .code-table td input{width:100%;border:none;outline:none;font-family:var(--font-body);font-size:0.82rem;background:transparent;text-align:center;}
+    .code-table td input:focus{background:#fffde7;}
+    .vat-toggle{display:inline-flex;gap:0.3rem;align-items:center;}
+    .vat-toggle label{font-size:0.82rem;display:flex;align-items:center;gap:0.2rem;cursor:pointer;font-weight:500;}
+    .add-row-btn{font-size:0.75rem;color:var(--ubf-blue-dark);background:var(--ubf-blue-pale);border:1px dashed var(--ubf-blue-light);border-radius:4px;padding:0.25rem 0.6rem;cursor:pointer;margin:3px 0;}
+    .add-row-btn:hover{background:var(--ubf-blue-light);}
+    @media print{.navbar,.doc-footer,.page-header,.no-print{display:none!important;}.page-wrapper{padding:0;}.cpv-wrap{box-shadow:none;border-radius:0;}}
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a class="navbar-brand" href="dashboard.html">
+    <div class="navbar-logo"><img src="ubf-logo.jpg" alt="UBF" onerror="this.style.display='none';this.parentElement.setAttribute('data-fallback','true');"/></div>
+    <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="form.html">Request</a></li>
+    <li><a href="travel-plan.html">Travel</a></li>
+    <li><a href="accountability.html">Accountability</a></li>
+    <li><a href="evaluation.html">Evaluation</a></li>
+    <li><a href="lpo.html">LPO</a></li>
+    <li><a href="grn.html">GRN</a></li>
+    <li><a href="invoice.html" class="active">Invoice</a></li>
+    <li><a href="archives.html">🗄️ Archive</a></li>
+    <li><a href="history.html">History</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading…</span><span class="role-badge" id="nav-user-role">—</span></div>
+    <button id="btn-logout">Logout</button>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div id="global-error-banner" class="banner"></div>
+  <div id="global-success-banner" class="banner"></div>
+
+  <div class="page-header">
+    <h1>Cheque Payment Voucher</h1>
+    <p>Uganda Biodiversity Fund — official payment authorisation document</p>
+  </div>
+
+  <div class="cpv-wrap">
+  <form id="invoice-form" novalidate autocomplete="off">
+
+    <!-- Title Bar -->
+    <div class="cpv-title">CHEQUE PAYMENT VOUCHER</div>
+
+    <!-- Row 1: Date & Voucher No -->
+    <div style="padding:0.75rem 1.25rem 0;">
+    <table class="cpv-table">
+      <tr>
+        <td class="label-cell">Date:</td>
+        <td style="width:180px;"><input type="date" id="inv-date" name="invDate" required/></td>
+        <td class="label-cell">Voucher No:</td>
+        <td><input type="text" id="inv-voucher-no" name="voucherNo" placeholder="Enter voucher number"/></td>
+      </tr>
+      <tr>
+        <td class="label-cell">Amount:</td>
+        <td><input type="number" id="inv-amount" name="amount" step="0.01" min="0" placeholder="0.00" required/></td>
+        <td class="label-cell">Cheque No:</td>
+        <td><input type="text" id="inv-cheque-no" name="chequeNo" placeholder="Enter cheque number"/></td>
+      </tr>
+      <tr>
+        <td class="label-cell">Payee:</td>
+        <td colspan="3"><input type="text" id="inv-payee" name="payee" placeholder="Name of payee or company" required/></td>
+      </tr>
+    </table>
+    </div>
+
+    <!-- Payment Particulars Table -->
+    <div style="padding:0.5rem 1.25rem 0;">
+    <table class="cpv-table">
+      <thead>
+        <tr>
+          <th style="width:38px;">#</th>
+          <th>Payment Particulars</th>
+          <th style="width:110px;">Acc Code</th>
+          <th style="width:130px;">Amount &mdash; UGX</th>
+        </tr>
+      </thead>
+      <tbody id="inv-items-body"></tbody>
+    </table>
+    <div class="no-print" style="margin-top:3px;">
+      <button type="button" class="add-row-btn" id="btn-add-row-inv">➕ Add Row</button>
+    </div>
+    </div>
+
+    <!-- VAT / WHT / Total -->
+    <div style="padding:0.4rem 1.25rem 0;">
+    <table class="cpv-table">
+      <tr>
+        <td style="width:55%;">
+          <span style="font-size:0.85rem;">VAT at 18%&nbsp;</span>
+          <span class="vat-toggle">
+            <label><input type="radio" name="vatYesNo" id="vat-yes" value="YES"/> YES</label>
+            <label><input type="radio" name="vatYesNo" id="vat-no" value="NO" checked/> NO</label>
+          </span>
+        </td>
+        <td class="label-cell" style="text-align:right;font-size:0.82rem;">VAT Amount:</td>
+        <td style="width:130px;"><input type="number" id="inv-vat-amount" step="0.01" readonly placeholder="0.00" style="font-weight:600;"/></td>
+      </tr>
+      <tr>
+        <td colspan="2" style="text-align:right;font-size:0.85rem;">
+          Less: With Holding Tax&nbsp;
+          <span class="vat-toggle">
+            <label><input type="radio" name="whtYesNo" id="wht-yes" value="YES"/> YES</label>
+            <label><input type="radio" name="whtYesNo" id="wht-no" value="NO" checked/> NO</label>
+          </span>
+        </td>
+        <td><input type="number" id="inv-wht" name="wht" step="0.01" min="0" placeholder="0.00"/></td>
+      </tr>
+      <tr class="words-row">
+        <td colspan="3" style="font-size:0.82rem;">
+          <span style="font-weight:600;">(Amount in Words)</span>
+          <input type="text" id="inv-amount-words" name="amountWords"
+                 placeholder="e.g. Nine Hundred and Ninety One Thousand Two Hundred Uganda Shillings only"
+                 style="margin-top:2px;font-style:italic;"/>
+        </td>
+      </tr>
+      <tr class="total-row">
+        <td style="font-weight:700;font-size:0.9rem;">Total</td>
+        <td style="font-style:italic;font-size:0.78rem;" id="inv-words-display"></td>
+        <td><input type="number" id="inv-total" step="0.01" readonly style="font-weight:700;font-size:1rem;"/></td>
+      </tr>
+    </table>
+    </div>
+
+    <!-- Signature Block -->
+    <div style="padding:0.75rem 1.25rem 0;">
+    <table class="sig-table">
+      <tr>
+        <td style="width:33%;">
+          <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:var(--ubf-blue-darker);margin-bottom:4px;">Prepared By:</div>
+          <div class="sig-name">Susan Abonyo</div>
+          <div class="sig-title">Administration Officer</div>
+          <div style="display:flex;gap:1rem;font-size:0.78rem;margin-top:0.4rem;flex-wrap:wrap;">
+            <span>Title: <strong>Administration Officer</strong></span>
+          </div>
+          <div class="sig-line">Signature &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date</div>
+        </td>
+        <td style="width:33%;">
+          <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:var(--ubf-blue-darker);margin-bottom:4px;">Reviewed By:</div>
+          <div class="sig-name">Winnie Nabatanzi</div>
+          <div class="sig-title">Finance and Administration Manager.</div>
+          <div class="sig-line">Signature &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date</div>
+        </td>
+        <td style="width:33%;">
+          <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:var(--ubf-blue-darker);margin-bottom:4px;">Authorised By;</div>
+          <div class="sig-name">Ivan Amanigaruhanga</div>
+          <div class="sig-title">Executive Director</div>
+          <div class="sig-line">Signature &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Date</div>
+        </td>
+      </tr>
+    </table>
+    </div>
+
+    <!-- Account Coding -->
+    <div style="padding:0.6rem 1.25rem 0;">
+    <table class="code-table">
+      <thead>
+        <tr>
+          <td class="code-label"></td>
+          <th>Donor</th>
+          <th>Project</th>
+          <th>Budget</th>
+          <th>Staff</th>
+          <th>Partner</th>
+          <th>Supplier</th>
+          <th>Budget Category</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="code-label">Code</td>
+          <td><input type="text" id="inv-donor" name="donor" placeholder="Code"/></td>
+          <td><input type="text" id="inv-project" name="project" placeholder="Code"/></td>
+          <td><input type="text" id="inv-budget" name="budget" placeholder="Code"/></td>
+          <td><input type="text" id="inv-staff" name="staff" placeholder="Code"/></td>
+          <td><input type="text" id="inv-partner" name="partner" placeholder="Code"/></td>
+          <td><input type="text" id="inv-supplier" name="supplier" placeholder="Code"/></td>
+          <td><input type="text" id="inv-budget-cat" name="budgetCategory" placeholder="Description"/></td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+
+    <!-- References -->
+    <div style="padding:0.6rem 1.25rem 0;">
+    <table class="cpv-table">
+      <tr>
+        <td class="label-cell">Related Requisition No.</td>
+        <td><input type="text" id="inv-req-ref" name="reqRef" placeholder="UBF-YYYYMMDD-XXXXXX"/></td>
+        <td class="label-cell">Related LPO No.</td>
+        <td><input type="text" id="inv-lpo-ref" name="lpoRef" placeholder="LPO reference number"/></td>
+      </tr>
+    </table>
+    </div>
+
+    <!-- Package Builder -->
+    <div class="form-section no-print" style="margin:0.75rem 1.25rem 0;padding:0;border:none;">
+      <div style="background:var(--ubf-blue-pale);border:1px solid var(--ubf-blue-light);border-radius:var(--radius-sm);padding:0.85rem 1rem;">
+        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;color:var(--ubf-blue-darker);margin-bottom:0.5rem;letter-spacing:0.05em;">📦 Build Package — Attach Other System Forms</div>
+        <p style="font-size:0.78rem;color:var(--gray-500);margin-bottom:0.5rem;">Select existing forms (e.g. Requisition, Evaluation, LPO) to bundle into this package before submitting.</p>
+        <div id="pkg-builder-container"><div style="color:var(--gray-500);font-size:0.82rem;">Loading…</div></div>
+      </div>
+    </div>
+
+    <!-- Attachments -->
+    <div style="padding:0.6rem 1.25rem 0;" class="no-print">
+    <table class="cpv-table">
+      <tr>
+        <td class="label-cell">Supporting Documents</td>
+        <td>
+          <input type="file" id="inv-attachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"/>
+          <div class="file-info" id="inv-attach-info"></div>
+        </td>
+      </tr>
+    </table>
+    </div>
+
+    <!-- Footer -->
+    <div class="doc-footer no-print" style="margin-top:0.75rem;">
+      <div id="invoice-loading" style="display:none;"><div class="spinner" style="width:18px;height:18px;border-width:2px;margin:0 8px 0 0;display:inline-block;vertical-align:middle;"></div><span style="font-size:0.85rem;">Saving…</span></div>
+      <button type="button" id="btn-invoice-preview-pdf" class="btn btn-secondary">📄 Preview PDF</button>
+      <button type="button" onclick="window.print()" class="btn btn-secondary">🖨️ Print</button>
+      <a href="dashboard.html" class="btn btn-secondary">Cancel</a>
+      <button type="submit" id="btn-submit-invoice" class="btn btn-primary btn-lg">Submit Payment Voucher</button>
+    </div>
+
+  </form>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="form-renderer.js"></script>
+<script src="script.js"></script>
+<script>
+(function(){
+  /* Build initial 5 rows */
+  var tbody=document.getElementById('inv-items-body');
+  function makeRow(n){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td style="text-align:center;color:var(--gray-500);font-size:0.78rem;">'+n+'</td>'+
+      '<td><input type="text" name="particulars_'+n+'" placeholder="Payment particulars description"/></td>'+
+      '<td><input type="text" name="accCode_'+n+'" placeholder="Code"/></td>'+
+      '<td><input type="number" class="inv-line" name="lineAmt_'+n+'" step="0.01" min="0" placeholder="0.00"/></td>';
+    return tr;
+  }
+  for(var i=1;i<=5;i++) tbody.appendChild(makeRow(i));
+  var rowCount=5;
+
+  /* Add row */
+  document.getElementById('btn-add-row-inv').addEventListener('click',function(){
+    rowCount++;tbody.appendChild(makeRow(rowCount));
+  });
+
+  /* Calculations */
+  function recalc(){
+    var sub=0;
+    document.querySelectorAll('.inv-line').forEach(function(el){sub+=parseFloat(el.value)||0;});
+    var vatYes=document.getElementById('vat-yes').checked;
+    var wht=parseFloat(document.getElementById('inv-wht').value)||0;
+    var vat=vatYes?sub*0.18:0;
+    var total=sub+vat-wht;
+    document.getElementById('inv-vat-amount').value=vat>0?vat.toFixed(2):'';
+    document.getElementById('inv-total').value=total>0?total.toFixed(2):'';
+    var words=document.getElementById('inv-amount-words').value;
+    document.getElementById('inv-words-display').textContent=words||'';
+  }
+  document.getElementById('inv-items-body').addEventListener('input',recalc);
+  document.getElementById('vat-yes').addEventListener('change',recalc);
+  document.getElementById('vat-no').addEventListener('change',recalc);
+  document.getElementById('inv-wht').addEventListener('input',recalc);
+  document.getElementById('inv-amount-words').addEventListener('input',function(){
+    document.getElementById('inv-words-display').textContent=this.value;
+  });
+
+  /* Set today */
+  document.getElementById('inv-date').value=new Date().toISOString().split('T')[0];
+
+  /* File info */
+  document.getElementById('inv-attachments').addEventListener('change',function(){
+    var el=document.getElementById('inv-attach-info');
+    if(el)el.textContent=this.files.length+' file(s) selected';
+  });
+
+  /* Preview PDF button */
+  document.getElementById('btn-invoice-preview-pdf').addEventListener('click',function(){
+    if(!window.FormRenderer){alert('PDF renderer not loaded. Please ensure form-renderer.js is uploaded.');return;}
+    var btn=this;btn.disabled=true;btn.textContent='Generating…';
+    /* Build a preview record from current form values */
+    var parts=[];
+    document.querySelectorAll('#inv-items-body tr').forEach(function(row,i){
+      var p=(row.querySelector('[name^="particulars_"]')||{}).value||'';
+      if(p.trim())parts.push({particulars:p.trim(),accountCode:(row.querySelector('[name^="accCode_"]')||{}).value||'',amount:(row.querySelector('[name^="lineAmt_"]')||{}).value||''});
+    });
+    var previewRec={
+      id:'PREVIEW-'+Date.now(),formType:'invoice',
+      submittedByName:'Preview',submittedByTitle:'—',status:'Draft',
+      createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),
+      attachments:[],linkedForms:[],managementNotes:[],comments:[],history:[],
+      approval:{preparation:{},review:{},clearance:{},approval:{}},
+      data:{
+        invDate:document.getElementById('inv-date').value,
+        voucherNo:document.getElementById('inv-voucher-no').value,
+        chequeNo:document.getElementById('inv-cheque-no').value,
+        amount:document.getElementById('inv-amount').value,
+        payee:document.getElementById('inv-payee').value,
+        vatApplies:document.getElementById('vat-yes').checked?'YES':'NO',
+        vatAmount:document.getElementById('inv-vat-amount').value,
+        wht:document.getElementById('inv-wht').value,
+        total:document.getElementById('inv-total').value,
+        amountWords:document.getElementById('inv-amount-words').value,
+        donor:document.getElementById('inv-donor').value,
+        project:document.getElementById('inv-project').value,
+        budget:document.getElementById('inv-budget').value,
+        staff:document.getElementById('inv-staff').value,
+        partner:document.getElementById('inv-partner').value,
+        supplier:document.getElementById('inv-supplier').value,
+        budgetCategory:document.getElementById('inv-budget-cat').value,
+        reqRef:document.getElementById('inv-req-ref').value,
+        lpoRef:document.getElementById('inv-lpo-ref').value,
+        particulars:JSON.stringify(parts)
+      }
+    };
+    window.FormRenderer.downloadFormPDF(previewRec,function(){btn.disabled=false;btn.textContent='📄 Preview PDF';});
+  });
+})();
+</script>
+</body>
+</html>

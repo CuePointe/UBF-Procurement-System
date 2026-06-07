@@ -1,0 +1,72 @@
+[
+  {
+    "email": "i.amani@ugandabiodiversityfund.org",
+    "name": "Ivan Amanigaruhanga",
+    "role": "ED",
+    "title": "Executive Director",
+    "passwordHash": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+    "passwordExpiry": "2027-12-31",
+    "mustChangePassword": true,
+    "active": true
+  },
+  {
+    "email": "w.nabatanzi@ugandabiodiversityfund.org",
+    "name": "Winnie Nabatanzi",
+    "role": "FAM",
+    "title": "Finance and Administration Manager",
+    "passwordHash": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+    "passwordExpiry": "2027-12-31",
+    "mustChangePassword": true,
+    "active": true
+  },
+  {
+    "email": "s.abonyo@ugandabiodiversityfund.org",
+    "name": "Susan Abonyo",
+    "role": "Admin Officer",
+    "title": "Administration Officer",
+    "passwordHash": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+    "passwordExpiry": "2027-12-31",
+    "mustChangePassword": true,
+    "active": true
+  },
+  {
+    "email": "d.okullu@ugandabiodiversityfund.org",
+    "name": "David Okullu",
+    "role": "Staff",
+    "title": "M&E Officer",
+    "passwordHash": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+    "passwordExpiry": "2027-12-31",
+    "mustChangePassword": true,
+    "active": true
+  },
+  {
+    "email": "p.musiime@ugandabiodiversityfund.org",
+    "name": "Posiano Musiime",
+    "role": "Staff",
+    "title": "Programs Officer",
+    "passwordHash": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+    "passwordExpiry": "2027-12-31",
+    "mustChangePassword": true,
+    "active": true
+  },
+  {
+    "email": "o.atuhaire@ugandabiodiversityfund.org",
+    "name": "Owen Atuhaire",
+    "role": "Staff",
+    "title": "Project Officer",
+    "passwordHash": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+    "passwordExpiry": "2027-12-31",
+    "mustChangePassword": true,
+    "active": true
+  },
+  {
+    "email": "t.otieno@ugandabiodiversityfund.org",
+    "name": "Tom Otieno",
+    "role": "Staff",
+    "title": "Office Assistant",
+    "passwordHash": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+    "passwordExpiry": "2027-12-31",
+    "mustChangePassword": false,
+    "active": true
+  }
+]

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UBF — Travel Business Plan</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .travel-table input{width:100%;border:none;outline:none;font-family:var(--font-body);font-size:0.82rem;background:transparent;}
+    .travel-table input:focus{background:#fffde7;}
+    .travel-table td,.travel-table th{border:1px solid var(--gray-300);padding:0.35rem 0.5rem;font-size:0.82rem;}
+    .travel-table th{background:var(--ubf-blue-light);color:var(--ubf-blue-darker);font-weight:700;font-size:0.75rem;}
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a class="navbar-brand" href="dashboard.html">
+    <div class="navbar-logo"><img src="ubf-logo.jpg" alt="UBF" onerror="this.style.display='none';this.parentElement.setAttribute('data-fallback','true');"/></div>
+    <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="form.html">Request</a></li>
+    <li><a href="travel-plan.html" class="active">Travel</a></li>
+    <li><a href="accountability.html">Accountability</a></li>
+    <li><a href="evaluation.html">Evaluation</a></li>
+    <li><a href="lpo.html">LPO</a></li>
+    <li><a href="grn.html">GRN</a></li>
+    <li><a href="invoice.html">Invoice</a></li>
+    <li><a href="archives.html">🗄️ Archive</a></li>
+    <li><a href="history.html">History</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading…</span><span class="role-badge" id="nav-user-role">—</span></div>
+    <button id="btn-logout">Logout</button>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div id="global-error-banner" class="banner"></div>
+  <div id="global-success-banner" class="banner"></div>
+
+  <div class="page-header">
+    <h1>Travel Business Plan</h1>
+    <p>Complete before any official UBF travel. Attach accountability form upon return.</p>
+  </div>
+
+  <div class="form-card">
+  <form id="travel-form" novalidate autocomplete="off">
+
+    <!-- Traveller Info -->
+    <div class="form-section">
+      <div class="form-section-title">Traveller Details</div>
+      <div class="submitter-box" style="margin-bottom:1rem;">
+        <div><div class="sub-label">Submitted By</div><div class="sub-value" id="travel-submitter-name">—</div></div>
+        <div><div class="sub-label">Title</div><div class="sub-value" id="travel-submitter-title">—</div></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Traveller's Name <span class="required">*</span></label>
+          <input type="text" id="t-traveller-name" name="travellerName" required/>
+        </div>
+        <div class="form-group">
+          <label>Position / Grade <span class="required">*</span></label>
+          <input type="text" id="t-position" name="position" required/>
+        </div>
+        <div class="form-group">
+          <label>Staff Number</label>
+          <input type="text" id="t-staff-number" name="staffNumber" placeholder="Optional"/>
+        </div>
+        <div class="form-group">
+          <label>Date of Request</label>
+          <input type="date" id="t-request-date" name="requestDate"/>
+        </div>
+        <div class="form-group">
+          <label>Departure Date <span class="required">*</span></label>
+          <input type="date" id="t-departure-date" name="departureDate" required/>
+        </div>
+        <div class="form-group">
+          <label>Return Date <span class="required">*</span></label>
+          <input type="date" id="t-return-date" name="returnDate" required/>
+        </div>
+        <div class="form-group">
+          <label>Total Days</label>
+          <input type="number" id="t-total-days" name="totalDays" min="1" readonly placeholder="Auto-calculated"/>
+        </div>
+        <div class="form-group">
+          <label>Number of Business Nights</label>
+          <input type="number" id="t-business-nights" name="businessNights" min="0"/>
+        </div>
+        <div class="form-group full-width">
+          <label>Business Reason / Purpose of Travel <span class="required">*</span></label>
+          <textarea id="t-business-reason" name="businessReason" rows="2"
+                    placeholder="Describe the purpose of this trip in detail" required></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Routes & Costs -->
+    <div class="form-section">
+      <div class="form-section-title">Route &amp; Cost Breakdown</div>
+      <div style="overflow-x:auto;">
+        <table class="travel-table" style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="width:36px;">#</th>
+              <th>Route (From — To)</th>
+              <th style="width:100px;">Date</th>
+              <th style="width:90px;">Per Diem</th>
+              <th style="width:100px;">Accommodation</th>
+              <th style="width:80px;">SDA</th>
+              <th style="width:90px;">Others</th>
+              <th style="width:100px;">Total (UGX)</th>
+              <th style="width:30px;" class="no-print"></th>
+            </tr>
+          </thead>
+          <tbody id="route-table-body"></tbody>
+          <tfoot>
+            <tr style="background:var(--ubf-blue-light);font-weight:700;">
+              <td colspan="7" style="text-align:right;padding:0.4rem 0.5rem;font-size:0.85rem;border:1px solid var(--gray-300);">Grand Total Advance Requested (UGX)</td>
+              <td style="border:1px solid var(--gray-300);padding:0.35rem 0.5rem;">
+                <input type="number" id="t-grand-total" name="grandTotal" step="0.01" readonly
+                       style="width:100%;border:none;outline:none;font-weight:700;font-size:0.9rem;background:transparent;font-family:var(--font-body);"/>
+              </td>
+              <td style="border:1px solid var(--gray-300);" class="no-print"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <button type="button" id="btn-add-route" style="margin-top:6px;font-size:0.75rem;color:var(--ubf-blue-dark);background:var(--ubf-blue-pale);border:1px dashed var(--ubf-blue-light);border-radius:4px;padding:0.25rem 0.7rem;cursor:pointer;" class="no-print">
+        ➕ Add Route
+      </button>
+    </div>
+
+    <!-- Package Builder -->
+    <div class="form-section">
+      <div class="form-section-title">📦 Build Package — Attach Other System Forms</div>
+      <p style="font-size:0.82rem;color:var(--gray-500);margin-bottom:0.75rem;">Attach related forms (e.g. Request, Accountability) to include in this travel package.</p>
+      <div id="pkg-builder-container"></div>
+    </div>
+
+    <!-- Attachments -->
+    <div class="form-section">
+      <div class="form-section-title">Supporting Documents</div>
+      <p style="font-size:0.82rem;color:var(--gray-500);margin-bottom:0.5rem;">Attach invitation letters, event programmes, or any supporting documents.</p>
+      <input type="file" id="travel-attachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"/>
+      <div class="file-info" id="travel-attach-info"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="form-footer">
+      <div id="travel-loading" style="display:none;"><div class="spinner" style="width:18px;height:18px;border-width:2px;margin:0 8px 0 0;display:inline-block;vertical-align:middle;"></div><span style="font-size:0.85rem;">Submitting…</span></div>
+      <button type="button" id="btn-travel-preview-pdf" class="btn btn-secondary">📄 Preview PDF</button>
+      <button type="button" onclick="window.print()" class="btn btn-secondary">🖨️ Print</button>
+      <a href="dashboard.html" class="btn btn-secondary">Cancel</a>
+      <button type="submit" id="btn-submit-travel" class="btn btn-primary btn-lg">Submit Travel Plan</button>
+    </div>
+
+  </form>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="form-renderer.js"></script>
+<script src="script.js"></script>
+<script>
+(function(){
+  var tbody=document.getElementById('route-table-body');
+  var rowCount=0;
+
+  function makeRouteRow(n){
+    var tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td style="text-align:center;color:var(--gray-500);font-size:0.78rem;border:1px solid var(--gray-300);padding:0.35rem 0.3rem;">'+n+'</td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="text" data-col="route" placeholder="e.g. Kampala — Entebbe"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="date" data-col="date"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" data-col="perDiem" class="route-cost" step="0.01" min="0" placeholder="0.00"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" data-col="accommodation" class="route-cost" step="0.01" min="0" placeholder="0.00"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" data-col="sda" class="route-cost" step="0.01" min="0" placeholder="0.00"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" data-col="others" class="route-cost" step="0.01" min="0" placeholder="0.00"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" data-col="total" class="route-total" step="0.01" readonly style="font-weight:600;"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.3rem;text-align:center;" class="no-print"><button type="button" class="del-route" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.85rem;" title="Remove">✕</button></td>';
+    return tr;
+  }
+
+  function recalc(){
+    var grand=0;
+    tbody.querySelectorAll('tr').forEach(function(row){
+      var rowTotal=0;
+      row.querySelectorAll('.route-cost').forEach(function(inp){rowTotal+=parseFloat(inp.value)||0;});
+      var tf=row.querySelector('.route-total');if(tf){tf.value=rowTotal>0?rowTotal.toFixed(2):'';grand+=rowTotal;}
+    });
+    var gt=document.getElementById('t-grand-total');if(gt)gt.value=grand>0?grand.toFixed(2):'';
+  }
+
+  function addRoute(){rowCount++;tbody.appendChild(makeRouteRow(rowCount));}
+  for(var i=0;i<3;i++) addRoute();
+
+  tbody.addEventListener('input',recalc);
+  tbody.addEventListener('click',function(e){if(e.target.classList.contains('del-route')){e.target.closest('tr').remove();recalc();}});
+  document.getElementById('btn-add-route').addEventListener('click',addRoute);
+
+  /* Auto-calculate days */
+  function calcDays(){
+    var dep=document.getElementById('t-departure-date').value;
+    var ret=document.getElementById('t-return-date').value;
+    if(dep&&ret){
+      var diff=Math.ceil((new Date(ret)-new Date(dep))/(1000*60*60*24));
+      var td=document.getElementById('t-total-days');
+      if(td&&diff>=0)td.value=diff;
+    }
+  }
+  document.getElementById('t-departure-date').addEventListener('change',calcDays);
+  document.getElementById('t-return-date').addEventListener('change',calcDays);
+
+  /* File info */
+  document.getElementById('travel-attachments').addEventListener('change',function(){
+    var el=document.getElementById('travel-attach-info');if(el)el.textContent=this.files.length+' file(s) selected';
+  });
+
+  /* Preview PDF */
+  document.getElementById('btn-travel-preview-pdf').addEventListener('click',function(){
+    if(!window.FormRenderer){alert('PDF renderer not loaded.');return;}
+    var btn=this;btn.disabled=true;btn.textContent='Generating…';
+    var routes=[];
+    tbody.querySelectorAll('tr').forEach(function(row){
+      var r=(row.querySelector('[data-col="route"]')||{}).value||'';
+      if(r.trim())routes.push({route:r,date:(row.querySelector('[data-col="date"]')||{}).value||'',perDiem:(row.querySelector('[data-col="perDiem"]')||{}).value||'',accommodation:(row.querySelector('[data-col="accommodation"]')||{}).value||'',sda:(row.querySelector('[data-col="sda"]')||{}).value||'',others:(row.querySelector('[data-col="others"]')||{}).value||'',total:(row.querySelector('[data-col="total"]')||{}).value||''});
+    });
+    var previewRec={
+      id:'PREVIEW-'+Date.now(),formType:'travel',
+      submittedByName:(document.getElementById('travel-submitter-name')||{}).textContent||'—',
+      submittedByTitle:(document.getElementById('travel-submitter-title')||{}).textContent||'—',
+      status:'Draft',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),
+      attachments:[],linkedForms:[],managementNotes:[],comments:[],history:[],
+      approval:{preparation:{},review:{},clearance:{},approval:{}},
+      data:{
+        description:'Travel Plan: '+(document.getElementById('t-business-reason').value||''),
+        travellerName:document.getElementById('t-traveller-name').value||'',
+        position:document.getElementById('t-position').value||'',
+        departureDate:document.getElementById('t-departure-date').value||'',
+        returnDate:document.getElementById('t-return-date').value||'',
+        totalDays:document.getElementById('t-total-days').value||'',
+        businessNights:document.getElementById('t-business-nights').value||'',
+        businessReason:document.getElementById('t-business-reason').value||'',
+        grandTotal:document.getElementById('t-grand-total').value||'',
+        routes:JSON.stringify(routes)
+      }
+    };
+    window.FormRenderer.downloadFormPDF(previewRec,function(){btn.disabled=false;btn.textContent='📄 Preview PDF';});
+  });
+})();
+</script>
+</body>
+</html>

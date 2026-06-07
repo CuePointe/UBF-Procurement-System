@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UBF — Executive Expenditure Report</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* ── Report Layout ── */
+    .rpt-page{max-width:1200px;margin:0 auto;}
+
+    /* Summary KPI Cards */
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin-bottom:1.75rem;}
+    .kpi-card{background:var(--white);border-radius:var(--radius-md);padding:1.25rem 1.5rem;box-shadow:var(--shadow-sm);border-left:5px solid var(--ubf-blue);}
+    .kpi-card.green{border-color:var(--ubf-green);}
+    .kpi-card.red{border-color:var(--red);}
+    .kpi-card.amber{border-color:var(--amber);}
+    .kpi-card.purple{border-color:#7c3aed;}
+    .kpi-value{font-family:var(--font-display);font-size:1.85rem;font-weight:700;color:var(--gray-900);line-height:1;}
+    .kpi-label{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gray-500);font-weight:600;margin-top:0.35rem;}
+    .kpi-sub{font-size:0.78rem;color:var(--gray-500);margin-top:0.25rem;}
+
+    /* Section Cards */
+    .rpt-card{background:var(--white);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);margin-bottom:1.5rem;overflow:hidden;}
+    .rpt-card-header{background:var(--ubf-blue-darker);color:var(--white);padding:0.75rem 1.25rem;font-weight:700;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.05em;display:flex;align-items:center;justify-content:space-between;}
+    .rpt-card-body{padding:1.25rem;}
+
+    /* Report Table */
+    .rpt-table{width:100%;border-collapse:collapse;font-size:0.84rem;}
+    .rpt-table th{background:var(--ubf-blue-light);color:var(--ubf-blue-darker);font-weight:700;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.04em;padding:0.55rem 0.85rem;text-align:left;border-bottom:2px solid var(--ubf-blue);}
+    .rpt-table td{padding:0.55rem 0.85rem;border-bottom:1px solid var(--gray-200);vertical-align:middle;}
+    .rpt-table tr:last-child td{border-bottom:none;}
+    .rpt-table tr:hover td{background:var(--ubf-blue-pale);}
+    .rpt-table .total-row td{background:var(--ubf-blue-light);font-weight:700;border-top:2px solid var(--ubf-blue);}
+    .rpt-table .num{text-align:right;font-family:monospace;}
+
+    /* Filter Bar */
+    .filter-bar{background:var(--white);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+    .filter-bar label{font-size:0.78rem;font-weight:700;color:var(--ubf-blue-darker);text-transform:uppercase;}
+    .filter-bar input,.filter-bar select{padding:0.4rem 0.75rem;border:1.5px solid var(--gray-300);border-radius:var(--radius-sm);font-size:0.85rem;font-family:var(--font-body);}
+    .filter-bar input:focus,.filter-bar select:focus{outline:none;border-color:var(--ubf-blue);}
+
+    /* Report Header (for print) */
+    .rpt-print-header{display:none;}
+
+    /* Status pill */
+    .pill{display:inline-block;padding:0.15rem 0.55rem;border-radius:999px;font-size:0.68rem;font-weight:700;text-transform:uppercase;}
+    .pill-pending{background:var(--amber-light);color:#92400e;}
+    .pill-approved{background:#dcfce7;color:#14532d;}
+    .pill-rejected{background:var(--red-light);color:#7f1d1d;}
+    .pill-other{background:var(--ubf-blue-light);color:var(--ubf-blue-darker);}
+
+    /* Mini bar chart */
+    .bar-wrap{display:flex;align-items:center;gap:0.5rem;}
+    .bar-bg{flex:1;height:8px;background:var(--gray-200);border-radius:4px;overflow:hidden;}
+    .bar-fill{height:100%;background:var(--ubf-blue);border-radius:4px;transition:width 0.4s;}
+
+    /* Loading */
+    .rpt-loading{text-align:center;padding:3rem;color:var(--gray-500);}
+
+    @media print{
+      .navbar,.filter-bar,.doc-footer,.page-header,.btn,.no-print{display:none!important;}
+      .rpt-print-header{display:block!important;text-align:center;margin-bottom:1.5rem;}
+      .rpt-print-header h1{font-size:1.4rem;color:var(--ubf-blue-darker);}
+      .rpt-print-header p{font-size:0.85rem;color:var(--gray-500);}
+      .page-wrapper{padding:0;}
+      .rpt-card{box-shadow:none;border:1px solid var(--gray-300);page-break-inside:avoid;}
+      .kpi-card{box-shadow:none;border:1px solid var(--gray-300);}
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="dashboard.html">
+    <div class="navbar-logo"><img src="ubf-logo.jpg" alt="UBF" onerror="this.style.display='none';this.parentElement.setAttribute('data-fallback','true');"/></div>
+    <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="form.html">Request</a></li>
+    <li><a href="evaluation.html">Evaluation</a></li>
+    <li><a href="lpo.html">LPO</a></li>
+    <li><a href="grn.html">GRN</a></li>
+    <li><a href="invoice.html">Invoice</a></li>
+    <li><a href="expenditure-report.html" class="active">Exp. Report</a></li>
+    <li><a href="history.html">History</a></li>
+    <li><a href="help.html">Help Guide</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading…</span><span class="role-badge" id="nav-user-role">—</span></div>
+    <button id="btn-logout">Logout</button>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div id="global-error-banner" class="banner"></div>
+
+  <!-- Print-only header -->
+  <div class="rpt-print-header">
+    <img src="ubf-logo.jpg" alt="UBF" style="height:60px;margin:0 auto 0.75rem;display:block;"/>
+    <h1>Uganda Biodiversity Fund</h1>
+    <h2 style="font-size:1rem;font-weight:400;">Executive Logistics &amp; Procurement Expenditure Report</h2>
+    <p id="rpt-print-period"></p>
+  </div>
+
+  <div class="page-header">
+    <h1>Executive Expenditure Report</h1>
+    <p>Live data drawn automatically from all procurement submissions in the system</p>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar no-print">
+    <div>
+      <label>From</label><br/>
+      <input type="date" id="filter-from"/>
+    </div>
+    <div>
+      <label>To</label><br/>
+      <input type="date" id="filter-to"/>
+    </div>
+    <div>
+      <label>Form Type</label><br/>
+      <select id="filter-type">
+        <option value="">All Types</option>
+        <option value="request">Request for Goods/Services</option>
+        <option value="travel">Travel Business Plan</option>
+        <option value="accountability">Accountability</option>
+        <option value="evaluation">Evaluation Report</option>
+        <option value="lpo">Local Purchase Order</option>
+        <option value="grn">Goods Received Note</option>
+        <option value="invoice">Payment Voucher</option>
+      </select>
+    </div>
+    <div>
+      <label>Status</label><br/>
+      <select id="filter-status-rpt">
+        <option value="">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Prepared">Prepared</option>
+        <option value="Reviewed">Reviewed</option>
+        <option value="Cleared">Cleared</option>
+        <option value="Approved">Approved</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+    </div>
+    <div>
+      <label>Department</label><br/>
+      <input type="text" id="filter-dept" placeholder="e.g. Finance" style="width:140px;"/>
+    </div>
+    <div style="display:flex;gap:0.5rem;align-items:flex-end;">
+      <button class="btn btn-primary btn-sm" id="btn-apply-filter">Apply</button>
+      <button class="btn btn-secondary btn-sm" id="btn-reset-filter">Reset</button>
+      <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ Print</button>
+    </div>
+  </div>
+
+  <div class="rpt-page" id="rpt-container">
+    <div class="rpt-loading" id="rpt-loading">
+      <div class="spinner"></div>
+      <p>Loading expenditure data from system…</p>
+    </div>
+  </div>
+
+</div>
+
+<script src="data.js"></script>
+<script src="script.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* ── Helpers ── */
+function fmtUGX(n){
+  if(!n||isNaN(n))return'UGX 0';
+  return'UGX '+Number(n).toLocaleString('en-UG',{minimumFractionDigits:0,maximumFractionDigits:0});
+}
+function fmtDate(iso){
+  if(!iso)return'—';
+  try{return new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}catch(_){return iso;}
+}
+function pillClass(st){
+  var s=(st||'').toLowerCase();
+  if(s==='approved')return'pill-approved';
+  if(s==='rejected')return'pill-rejected';
+  if(s==='pending')return'pill-pending';
+  return'pill-other';
+}
+function ftLabel(t){
+  var m={request:'Request for Goods/Services',travel:'Travel Business Plan',accountability:'Accountability',
+    evaluation:'Evaluation Report',lpo:'Local Purchase Order',grn:'Goods Received Note',invoice:'Payment Voucher'};
+  return m[t]||t||'—';
+}
+
+/* Extract monetary value from a record regardless of form type */
+function extractAmount(rec){
+  if(!rec||!rec.data) return 0;
+  var d=rec.data;
+  /* Payment voucher */
+  if(rec.formType==='invoice')   return parseFloat(d.amount||d['inv-total']||0);
+  /* LPO */
+  if(rec.formType==='lpo')       return parseFloat(d.lpoTotal||d.total||0);
+  /* Travel */
+  if(rec.formType==='travel')    return parseFloat(d.grandTotal||0);
+  /* Accountability */
+  if(rec.formType==='accountability') return parseFloat(d.advanceReceived||d.totalActual||0);
+  /* Request / Evaluation */
+  return parseFloat(d.estimatedCost||d.amount||d.total||0);
+}
+
+function extractDept(rec){
+  if(!rec||!rec.data) return '—';
+  return rec.data.department||rec.data.dept||'—';
+}
+function extractDonor(rec){
+  if(!rec||!rec.data) return '—';
+  return rec.data.donorName||rec.data.donor||'—';
+}
+function extractProject(rec){
+  if(!rec||!rec.data) return '—';
+  return rec.data.projectCode||rec.data.project||rec.data.activityCode||'—';
+}
+function extractBudget(rec){
+  if(!rec||!rec.data) return '—';
+  return rec.data.budgetCode||rec.data.budget||'—';
+}
+
+/* ── Apply filters ── */
+var _allRecords=[];
+function applyFilters(){
+  var fromVal=document.getElementById('filter-from').value;
+  var toVal  =document.getElementById('filter-to').value;
+  var typeVal=document.getElementById('filter-type').value;
+  var stVal  =document.getElementById('filter-status-rpt').value;
+  var deptVal=(document.getElementById('filter-dept').value||'').toLowerCase();
+
+  return _allRecords.filter(function(r){
+    if(typeVal&&r.formType!==typeVal) return false;
+    if(stVal  &&r.status!==stVal)     return false;
+    if(fromVal&&r.createdAt<fromVal)  return false;
+    if(toVal  &&r.createdAt>toVal+'T23:59:59') return false;
+    if(deptVal&&extractDept(r).toLowerCase().indexOf(deptVal)===-1) return false;
+    return true;
+  });
+}
+
+/* ── Render full report ── */
+function renderReport(records){
+  var container=document.getElementById('rpt-container');
+  if(!records||records.length===0){
+    container.innerHTML='<div style="text-align:center;padding:3rem;color:var(--gray-500);"><p>No records match the selected filters.</p></div>';
+    return;
+  }
+
+  /* ── Aggregate totals ── */
+  var totalCommitted=0,totalApproved=0,totalPending=0,totalRejected=0,txCount=records.length;
+  var byType={},byDept={},byDonor={},byStatus={},byMonth={};
+
+  records.forEach(function(r){
+    var amt=extractAmount(r);
+    var st=(r.status||'').toLowerCase();
+    totalCommitted+=amt;
+    if(st==='approved')totalApproved+=amt;
+    else if(st==='pending'||st==='prepared'||st==='reviewed'||st==='cleared')totalPending+=amt;
+    else if(st==='rejected')totalRejected+=amt;
+
+    /* By type */
+    var tl=ftLabel(r.formType);
+    if(!byType[tl])byType[tl]={count:0,amount:0};
+    byType[tl].count++;byType[tl].amount+=amt;
+
+    /* By dept */
+    var dept=extractDept(r);
+    if(!byDept[dept])byDept[dept]={count:0,amount:0};
+    byDept[dept].count++;byDept[dept].amount+=amt;
+
+    /* By donor */
+    var donor=extractDonor(r);
+    if(!byDonor[donor])byDonor[donor]={count:0,amount:0};
+    byDonor[donor].count++;byDonor[donor].amount+=amt;
+
+    /* By status */
+    var status=r.status||'Unknown';
+    if(!byStatus[status])byStatus[status]={count:0,amount:0};
+    byStatus[status].count++;byStatus[status].amount+=amt;
+
+    /* By month */
+    var mkey=r.createdAt?r.createdAt.substring(0,7):'Unknown';
+    if(!byMonth[mkey])byMonth[mkey]={count:0,amount:0};
+    byMonth[mkey].count++;byMonth[mkey].amount+=amt;
+  });
+
+  /* ── KPI Cards ── */
+  var kpiHtml=
+    '<div class="kpi-grid">'+
+      '<div class="kpi-card">'+
+        '<div class="kpi-value">'+txCount+'</div>'+
+        '<div class="kpi-label">Total Submissions</div>'+
+        '<div class="kpi-sub">All form types</div>'+
+      '</div>'+
+      '<div class="kpi-card green">'+
+        '<div class="kpi-value" style="font-size:1.3rem;">'+fmtUGX(totalApproved)+'</div>'+
+        '<div class="kpi-label">Approved Expenditure</div>'+
+        '<div class="kpi-sub">Fully authorised</div>'+
+      '</div>'+
+      '<div class="kpi-card amber">'+
+        '<div class="kpi-value" style="font-size:1.3rem;">'+fmtUGX(totalPending)+'</div>'+
+        '<div class="kpi-label">Pending / In Review</div>'+
+        '<div class="kpi-sub">Awaiting approval</div>'+
+      '</div>'+
+      '<div class="kpi-card red">'+
+        '<div class="kpi-value" style="font-size:1.3rem;">'+fmtUGX(totalRejected)+'</div>'+
+        '<div class="kpi-label">Rejected</div>'+
+        '<div class="kpi-sub">Not approved</div>'+
+      '</div>'+
+      '<div class="kpi-card purple">'+
+        '<div class="kpi-value" style="font-size:1.3rem;">'+fmtUGX(totalCommitted)+'</div>'+
+        '<div class="kpi-label">Total Committed</div>'+
+        '<div class="kpi-sub">All statuses combined</div>'+
+      '</div>'+
+    '</div>';
+
+  /* ── Helper: breakdown table ── */
+  function breakdownTable(data,label1,maxAmt){
+    var keys=Object.keys(data).sort(function(a,b){return data[b].amount-data[a].amount;});
+    if(keys.length===0) return'<p class="text-muted">No data.</p>';
+    var rows=keys.map(function(k){
+      var pct=maxAmt>0?Math.round(data[k].amount/maxAmt*100):0;
+      return'<tr>'+
+        '<td>'+k+'</td>'+
+        '<td class="num">'+data[k].count+'</td>'+
+        '<td class="num">'+fmtUGX(data[k].amount)+'</td>'+
+        '<td style="width:160px;">'+
+          '<div class="bar-wrap">'+
+            '<div class="bar-bg"><div class="bar-fill" style="width:'+pct+'%;"></div></div>'+
+            '<span style="font-size:0.72rem;color:var(--gray-500);min-width:30px;">'+pct+'%</span>'+
+          '</div>'+
+        '</td>'+
+      '</tr>';
+    }).join('');
+    return'<table class="rpt-table">'+
+      '<thead><tr><th>'+label1+'</th><th class="num">Count</th><th class="num">Amount (UGX)</th><th>Share</th></tr></thead>'+
+      '<tbody>'+rows+'</tbody>'+
+      '<tfoot><tr class="total-row"><td><strong>Total</strong></td><td class="num"><strong>'+txCount+'</strong></td>'+
+      '<td class="num"><strong>'+fmtUGX(totalCommitted)+'</strong></td><td></td></tr></tfoot>'+
+    '</table>';
+  }
+
+  /* ── Monthly Trend ── */
+  var months=Object.keys(byMonth).sort();
+  var monthMaxAmt=Math.max.apply(null,months.map(function(m){return byMonth[m].amount;}));
+  var monthRows=months.map(function(m){
+    var d=byMonth[m];
+    var pct=monthMaxAmt>0?Math.round(d.amount/monthMaxAmt*100):0;
+    var label=m;
+    try{var p=m.split('-');label=new Date(parseInt(p[0]),parseInt(p[1])-1,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});}catch(_){}
+    return'<tr><td>'+label+'</td><td class="num">'+d.count+'</td><td class="num">'+fmtUGX(d.amount)+'</td>'+
+      '<td style="width:200px;"><div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:'+pct+'%;background:var(--ubf-green);"></div></div><span style="font-size:0.72rem;color:var(--gray-500);">'+pct+'%</span></div></td></tr>';
+  }).join('');
+  var monthTable='<table class="rpt-table">'+
+    '<thead><tr><th>Month</th><th class="num">Transactions</th><th class="num">Amount (UGX)</th><th>Trend</th></tr></thead>'+
+    '<tbody>'+(monthRows||'<tr><td colspan="4" class="text-muted">No data</td></tr>')+'</tbody>'+
+  '</table>';
+
+  /* ── Transaction Register ── */
+  var txRows=records.map(function(r){
+    var amt=extractAmount(r);
+    return'<tr>'+
+      '<td style="font-size:0.78rem;font-weight:600;color:var(--ubf-blue-darker);">'+r.id+'</td>'+
+      '<td>'+ftLabel(r.formType)+'</td>'+
+      '<td style="font-size:0.82rem;">'+((r.data&&r.data.description)||'—')+'</td>'+
+      '<td>'+r.submittedByName+'</td>'+
+      '<td>'+extractDept(r)+'</td>'+
+      '<td>'+extractDonor(r)+'</td>'+
+      '<td>'+extractProject(r)+'</td>'+
+      '<td>'+fmtDate(r.createdAt)+'</td>'+
+      '<td class="num">'+fmtUGX(amt)+'</td>'+
+      '<td><span class="pill '+pillClass(r.status)+'">'+r.status+'</span></td>'+
+      '<td style="font-size:0.78rem;">'+
+        (r.approval&&r.approval.approval&&r.approval.approval.byName?r.approval.approval.byName:'—')+
+      '</td>'+
+    '</tr>';
+  }).join('');
+
+  var txTable='<div style="overflow-x:auto;">'+
+    '<table class="rpt-table">'+
+      '<thead><tr>'+
+        '<th>Ref No</th><th>Form Type</th><th>Description</th>'+
+        '<th>Submitted By</th><th>Department</th><th>Donor</th><th>Project</th>'+
+        '<th>Date</th><th class="num">Amount (UGX)</th><th>Status</th><th>Approved By</th>'+
+      '</tr></thead>'+
+      '<tbody>'+(txRows||'<tr><td colspan="11" class="text-muted" style="text-align:center;padding:1rem;">No transactions</td></tr>')+'</tbody>'+
+    '</table>'+
+  '</div>';
+
+  /* ── Approved Payments Only ── */
+  var approvedRecs=records.filter(function(r){return(r.status||'').toLowerCase()==='approved';});
+  var approvedRows=approvedRecs.map(function(r){
+    var amt=extractAmount(r);
+    return'<tr>'+
+      '<td style="font-size:0.78rem;font-weight:600;color:var(--ubf-blue-darker);">'+r.id+'</td>'+
+      '<td>'+ftLabel(r.formType)+'</td>'+
+      '<td>'+((r.data&&r.data.description)||'—')+'</td>'+
+      '<td>'+r.submittedByName+'</td>'+
+      '<td>'+extractDept(r)+'</td>'+
+      '<td>'+extractDonor(r)+'</td>'+
+      '<td>'+fmtDate(r.approval&&r.approval.approval?r.approval.approval.at:'')+'</td>'+
+      '<td class="num" style="font-weight:700;">'+fmtUGX(amt)+'</td>'+
+    '</tr>';
+  }).join('');
+  var approvedTotal=approvedRecs.reduce(function(s,r){return s+extractAmount(r);},0);
+
+  var approvedTable=approvedRecs.length===0
+    ?'<p class="text-muted" style="padding:1rem;">No approved expenditures in selected period.</p>'
+    :'<div style="overflow-x:auto;"><table class="rpt-table">'+
+      '<thead><tr><th>Ref No</th><th>Form Type</th><th>Description</th><th>Submitted By</th><th>Department</th><th>Donor</th><th>Approved On</th><th class="num">Amount (UGX)</th></tr></thead>'+
+      '<tbody>'+approvedRows+'</tbody>'+
+      '<tfoot><tr class="total-row"><td colspan="7"><strong>Total Approved Expenditure</strong></td><td class="num"><strong>'+fmtUGX(approvedTotal)+'</strong></td></tr></tfoot>'+
+    '</table></div>';
+
+  /* ── Outstanding Advances ── */
+  var advances=records.filter(function(r){
+    return r.formType==='travel'&&(r.status||'').toLowerCase()!=='rejected';
+  });
+  var advanceRows=advances.map(function(r){
+    var amt=extractAmount(r);
+    var accounted=records.some(function(x){
+      return x.formType==='accountability'&&x.data&&x.data.description&&x.data.description.indexOf(r.id)!==-1;
+    });
+    return'<tr>'+
+      '<td style="font-size:0.78rem;font-weight:600;">'+r.id+'</td>'+
+      '<td>'+r.submittedByName+'</td>'+
+      '<td>'+((r.data&&r.data.businessReason)||'—')+'</td>'+
+      '<td>'+fmtDate(r.createdAt)+'</td>'+
+      '<td class="num">'+fmtUGX(amt)+'</td>'+
+      '<td><span class="pill '+pillClass(r.status)+'">'+r.status+'</span></td>'+
+      '<td style="font-size:0.78rem;font-weight:600;color:'+(accounted?'#14532d':'#b45309')+';">'+
+        (accounted?'✅ Accounted':'⏳ Outstanding')+
+      '</td>'+
+    '</tr>';
+  }).join('');
+
+  var advancesTable=advances.length===0
+    ?'<p class="text-muted" style="padding:1rem;">No travel advances on record.</p>'
+    :'<table class="rpt-table">'+
+      '<thead><tr><th>Ref No</th><th>Staff</th><th>Purpose</th><th>Date</th><th class="num">Advance (UGX)</th><th>Status</th><th>Accountability</th></tr></thead>'+
+      '<tbody>'+advanceRows+'</tbody>'+
+    '</table>';
+
+  /* ── Assemble Full Report ── */
+  var periodFrom=document.getElementById('filter-from').value||'All time';
+  var periodTo  =document.getElementById('filter-to').value  ||'Present';
+  document.getElementById('rpt-print-period').textContent='Period: '+periodFrom+' to '+periodTo;
+
+  container.innerHTML=
+    kpiHtml+
+
+    /* Monthly Trend */
+    '<div class="rpt-card">'+
+      '<div class="rpt-card-header">📅 Monthly Expenditure Trend</div>'+
+      '<div class="rpt-card-body">'+monthTable+'</div>'+
+    '</div>'+
+
+    /* By Form Type */
+    '<div class="rpt-card">'+
+      '<div class="rpt-card-header">📋 Expenditure by Form Type</div>'+
+      '<div class="rpt-card-body">'+breakdownTable(byType,'Form Type',totalCommitted)+'</div>'+
+    '</div>'+
+
+    /* By Department & By Donor — side by side */
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;">'+
+      '<div class="rpt-card" style="margin:0;">'+
+        '<div class="rpt-card-header">🏢 By Department</div>'+
+        '<div class="rpt-card-body">'+breakdownTable(byDept,'Department',totalCommitted)+'</div>'+
+      '</div>'+
+      '<div class="rpt-card" style="margin:0;">'+
+        '<div class="rpt-card-header">🌍 By Donor / Funding Source</div>'+
+        '<div class="rpt-card-body">'+breakdownTable(byDonor,'Donor',totalCommitted)+'</div>'+
+      '</div>'+
+    '</div>'+
+
+    /* By Status */
+    '<div class="rpt-card">'+
+      '<div class="rpt-card-header">📊 Expenditure by Approval Status</div>'+
+      '<div class="rpt-card-body">'+breakdownTable(byStatus,'Status',totalCommitted)+'</div>'+
+    '</div>'+
+
+    /* Approved Payments */
+    '<div class="rpt-card">'+
+      '<div class="rpt-card-header">✅ Approved Expenditures Register</div>'+
+      '<div class="rpt-card-body">'+approvedTable+'</div>'+
+    '</div>'+
+
+    /* Travel Advances */
+    '<div class="rpt-card">'+
+      '<div class="rpt-card-header">✈️ Travel Advances &amp; Accountability Status</div>'+
+      '<div class="rpt-card-body">'+advancesTable+'</div>'+
+    '</div>'+
+
+    /* Full Transaction Register */
+    '<div class="rpt-card">'+
+      '<div class="rpt-card-header">📜 Full Transaction Register ('+records.length+' records)'+
+        '<span style="font-size:0.72rem;opacity:0.75;font-weight:400;">All submissions matching filters</span>'+
+      '</div>'+
+      '<div class="rpt-card-body">'+txTable+'</div>'+
+    '</div>'+
+
+    /* Footer */
+    '<div style="text-align:center;font-size:0.75rem;color:var(--gray-500);padding:1rem 0 2rem;">'+
+      'Report generated on '+new Date().toLocaleString('en-GB')+
+      ' &nbsp;|&nbsp; Uganda Biodiversity Fund — Logistics &amp; Procurement System'+
+    '</div>';
+}
+
+/* ── Load Data & Initialise ── */
+async function initReport(){
+  if(!window.DataService){return;}
+  var DS=window.DataService;
+  if(!DS.isAuthenticated()){
+    var d=location.pathname;location.href=d.substring(0,d.lastIndexOf('/')+1)+'index.html';return;
+  }
+
+  /* Management only */
+  var session=DS.getSession();
+  var elevated=['Admin Officer','Finance Officer','FAM','ED'];
+  if(elevated.indexOf(session.role)===-1){
+    document.getElementById('rpt-container').innerHTML=
+      '<div style="text-align:center;padding:3rem;color:var(--red);"><h2>Access Restricted</h2><p>The Executive Expenditure Report is available to Admin Officer, FAM and ED only.</p></div>';
+    return;
+  }
+
+  /* Populate navbar */
+  var ne=document.getElementById('nav-user-name'),re=document.getElementById('nav-user-role');
+  if(ne)ne.textContent=session.name||session.email;
+  if(re){re.textContent=session.role;re.className='role-badge role-'+session.role.toLowerCase().replace(/\s+/g,'-');}
+
+  /* Logout */
+  var lb=document.getElementById('btn-logout');
+  if(lb)lb.addEventListener('click',function(){DS.clearSession();var d=location.pathname;location.href=d.substring(0,d.lastIndexOf('/')+1)+'index.html';});
+
+  /* Set default date range — current year */
+  var now=new Date();
+  document.getElementById('filter-from').value=now.getFullYear()+'-01-01';
+  document.getElementById('filter-to').value=now.toISOString().split('T')[0];
+
+  /* Load all records (use readDatabase directly to get ALL records regardless of role) */
+  try{
+    var db=await DS.readDatabase();
+    _allRecords=Array.isArray(db.records)?db.records:[];
+    document.getElementById('rpt-loading').style.display='none';
+    renderReport(applyFilters());
+  }catch(err){
+    document.getElementById('rpt-loading').innerHTML='<p style="color:var(--red);">Failed to load data: '+err.message+'</p>';
+  }
+
+  /* Filter button */
+  document.getElementById('btn-apply-filter').addEventListener('click',function(){
+    renderReport(applyFilters());
+  });
+  document.getElementById('btn-reset-filter').addEventListener('click',function(){
+    document.getElementById('filter-from').value=now.getFullYear()+'-01-01';
+    document.getElementById('filter-to').value=now.toISOString().split('T')[0];
+    document.getElementById('filter-type').value='';
+    document.getElementById('filter-status-rpt').value='';
+    document.getElementById('filter-dept').value='';
+    renderReport(applyFilters());
+  });
+}
+
+document.addEventListener('DOMContentLoaded',initReport);
+}());
+</script>
+</body>
+</html>

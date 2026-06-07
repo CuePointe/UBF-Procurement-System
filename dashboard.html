@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UBF — Dashboard</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<nav class="navbar">
+  <a class="navbar-brand" href="dashboard.html">
+    <div class="navbar-logo"><img src="ubf-logo.jpg" alt="UBF" onerror="this.style.display='none';this.parentElement.setAttribute('data-fallback','true');"/></div>
+    <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="dashboard.html" class="active">Dashboard</a></li>
+    <li><a href="form.html">Request</a></li>
+    <li><a href="travel-plan.html">Travel</a></li>
+    <li><a href="accountability.html">Accountability</a></li>
+    <li><a href="evaluation.html">Evaluation</a></li>
+    <li><a href="lpo.html">LPO</a></li>
+    <li><a href="grn.html">GRN</a></li>
+    <li><a href="invoice.html">Invoice</a></li>
+    <li><a href="archives.html">🗄️ Archive</a></li>
+    <li><a href="expenditure-report.html">Report</a></li>
+    <li><a href="history.html">History</a></li>
+    <li><a href="help.html">Help Guide</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading…</span><span class="role-badge" id="nav-user-role">—</span></div>
+    <button id="btn-logout">Logout</button>
+  </div>
+</nav>
+
+<div id="dashboard-container" class="page-wrapper">
+  <div id="global-error-banner" class="banner"></div>
+  <div id="global-success-banner" class="banner"></div>
+
+  <div class="page-header">
+    <h1>Dashboard</h1>
+    <p>Uganda Biodiversity Fund — Logistics &amp; Procurement System</p>
+  </div>
+
+  <!-- Quick Actions -->
+  <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:1.75rem;">
+    <a href="form.html" class="btn btn-primary">+ Request for Goods/Services</a>
+    <a href="travel-plan.html" class="btn btn-secondary">+ Travel Plan</a>
+    <a href="accountability.html" class="btn btn-secondary">+ Accountability</a>
+    <span id="mgmt-links" style="display:none;gap:0.5rem;flex-wrap:wrap;">
+      <a href="evaluation.html" class="btn btn-secondary">+ Evaluation</a>
+      <a href="lpo.html" class="btn btn-secondary">+ LPO</a>
+      <a href="grn.html" class="btn btn-secondary">+ GRN</a>
+      <a href="invoice.html" class="btn btn-secondary">+ Payment Voucher</a>
+      <a href="archives.html" class="btn btn-gold">🗄️ Document Archive</a>
+      <a href="expenditure-report.html" class="btn btn-gold">📊 Expenditure Report</a>
+    </span>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card total"><div class="stat-value" id="stat-total">—</div><div class="stat-label">Total</div></div>
+    <div class="stat-card pending"><div class="stat-value" id="stat-pending">—</div><div class="stat-label">Pending</div></div>
+    <div class="stat-card inreview"><div class="stat-value" id="stat-prepared">—</div><div class="stat-label">Prepared</div></div>
+    <div class="stat-card inreview" style="border-color:#7c3aed;"><div class="stat-value" id="stat-reviewed">—</div><div class="stat-label">Reviewed</div></div>
+    <div class="stat-card inreview" style="border-color:#0891b2;"><div class="stat-value" id="stat-cleared">—</div><div class="stat-label">Cleared</div></div>
+    <div class="stat-card approved"><div class="stat-value" id="stat-approved">—</div><div class="stat-label">Approved</div></div>
+    <div class="stat-card rejected"><div class="stat-value" id="stat-rejected">—</div><div class="stat-label">Rejected</div></div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <div class="table-toolbar">
+      <h2>All Submissions</h2>
+      <div class="toolbar-filters">
+        <select id="filter-status">
+          <option value="">All Statuses</option>
+          <option>Pending</option><option>Prepared</option>
+          <option>Reviewed</option><option>Cleared</option>
+          <option>Approved</option><option>Rejected</option>
+        </select>
+        <input type="search" id="filter-search" placeholder="Search ID, description, staff…" style="width:220px;"/>
+      </div>
+    </div>
+    <div id="dashboard-loading" class="loading-state"><div class="spinner"></div>Loading submissions…</div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Ref No</th><th>Form Type</th><th>Description</th>
+            <th>Submitted By</th><th>Date</th><th>Package</th>
+            <th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="dashboard-table-body"></tbody>
+      </table>
+    </div>
+    <div id="dashboard-empty" class="empty-state"><div class="empty-icon">📋</div><p><strong>No submissions found.</strong></p><p>Use the buttons above to create a new form.</p></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="modal-overlay">
+  <div class="modal-box">
+    <button class="modal-close-btn" id="btn-modal-close">&times;</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="form-renderer.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

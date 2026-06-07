@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UBF &mdash; Staff User Guide</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .guide-wrap{max-width:900px;margin:0 auto;}
+    .guide-card{background:var(--white);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);margin-bottom:1.5rem;overflow:hidden;}
+    .guide-card-header{background:var(--ubf-blue-darker);color:var(--white);padding:0.85rem 1.25rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between;user-select:none;}
+    .guide-card-header:hover{background:var(--ubf-blue-dark);}
+    .guide-card-header h2{font-size:1rem;font-family:var(--font-body);font-weight:700;margin:0;}
+    .guide-card-body{display:none;padding:1.25rem 1.5rem;}
+    .guide-card-body.open{display:block;}
+    .step{display:flex;gap:1rem;margin-bottom:1rem;align-items:flex-start;}
+    .step-num{background:var(--ubf-blue-dark);color:var(--white);border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;margin-top:0.1rem;}
+    .step-body{flex:1;}
+    .step-title{font-weight:700;color:var(--ubf-blue-darker);margin-bottom:0.2rem;font-size:0.9rem;}
+    .step-desc{font-size:0.85rem;color:var(--gray-700);line-height:1.6;}
+    .role-pill{display:inline-block;padding:0.15rem 0.55rem;border-radius:999px;font-size:0.7rem;font-weight:700;margin-right:0.3rem;text-transform:uppercase;}
+    .rp-staff{background:var(--ubf-green-light);color:var(--ubf-green-dark);}
+    .rp-admin{background:var(--gold-light);color:#7c5200;}
+    .rp-fam{background:var(--ubf-blue-light);color:var(--ubf-blue-darker);}
+    .rp-ed{background:#ede9fe;color:#4c1d95;}
+    .rp-all{background:var(--gray-200);color:var(--gray-700);}
+    .tip-box{background:var(--ubf-blue-pale);border-left:4px solid var(--ubf-blue);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.65rem 1rem;margin:0.75rem 0;font-size:0.83rem;color:var(--gray-700);}
+    .warn-box{background:var(--amber-light);border-left:4px solid var(--amber);border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:0.65rem 1rem;margin:0.75rem 0;font-size:0.83rem;color:#92400e;}
+    .workflow-flow{display:flex;align-items:center;flex-wrap:wrap;gap:0.3rem;margin:0.75rem 0;}
+    .wf-step{background:var(--ubf-blue-pale);border:1px solid var(--ubf-blue-light);border-radius:var(--radius-sm);padding:0.35rem 0.65rem;font-size:0.78rem;font-weight:600;color:var(--ubf-blue-darker);}
+    .wf-arrow{color:var(--gray-400);font-size:1rem;}
+    .wf-step.final{background:var(--ubf-green-pale);border-color:var(--ubf-green-light);color:var(--ubf-green-dark);}
+    .shortcut-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0.75rem;margin-top:0.5rem;}
+    .shortcut-item{background:var(--gray-100);border-radius:var(--radius-sm);padding:0.6rem 0.85rem;}
+    .shortcut-key{font-weight:700;color:var(--ubf-blue-darker);font-size:0.85rem;}
+    .shortcut-desc{font-size:0.78rem;color:var(--gray-500);margin-top:0.15rem;}
+    .toc{background:var(--ubf-blue-pale);border-radius:var(--radius-md);padding:1rem 1.25rem;margin-bottom:1.5rem;}
+    .toc h3{font-size:0.85rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--ubf-blue-darker);margin-bottom:0.5rem;}
+    .toc ol{padding-left:1.25rem;font-size:0.85rem;}
+    .toc li{padding:0.2rem 0;color:var(--ubf-blue-dark);}
+    .toc a{color:var(--ubf-blue-dark);text-decoration:none;}
+    .toc a:hover{text-decoration:underline;}
+    @media print{.navbar,.no-print{display:none!important;}.page-wrapper{padding:0;}.guide-card-body{display:block!important;}}
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a class="navbar-brand" href="dashboard.html">
+    <div class="navbar-logo"><img src="ubf-logo.jpg" alt="UBF" onerror="this.style.display='none';this.parentElement.setAttribute('data-fallback','true');"/></div>
+    <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="form.html">Request</a></li>
+    <li><a href="travel-plan.html">Travel</a></li>
+    <li><a href="accountability.html">Accountability</a></li>
+    <li><a href="archives.html">Archive</a></li>
+    <li><a href="history.html">History</a></li>
+    <li><a href="help.html" class="active">Help Guide</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading&hellip;</span><span class="role-badge" id="nav-user-role">&mdash;</span></div>
+    <button id="btn-logout">Logout</button>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div class="page-header">
+    <h1>Staff User Guide</h1>
+    <p>Uganda Biodiversity Fund &mdash; Logistics &amp; Procurement System. Everything you need to know.</p>
+  </div>
+  <div style="text-align:right;margin-bottom:1rem;" class="no-print">
+    <button onclick="window.print()" class="btn btn-secondary btn-sm">Print This Guide</button>
+    <button onclick="expandAll()" class="btn btn-secondary btn-sm" style="margin-left:0.4rem;">Expand All</button>
+  </div>
+
+  <div class="guide-wrap">
+
+    <!-- Table of Contents -->
+    <div class="toc">
+      <h3>Contents</h3>
+      <ol>
+        <li><a href="#sec1">Getting Started — Login &amp; First Password</a></li>
+        <li><a href="#sec2">The Dashboard</a></li>
+        <li><a href="#sec3">Submitting a Request (with Package)</a></li>
+        <li><a href="#sec4">Approval Workflow — Who Does What</a></li>
+        <li><a href="#sec5">Adding Forms to an Existing Package</a></li>
+        <li><a href="#sec6">Attaching Files &amp; Receipts</a></li>
+        <li><a href="#sec7">Downloading &amp; Printing Forms</a></li>
+        <li><a href="#sec8">Comments &amp; Communication</a></li>
+        <li><a href="#sec9">Document Archive (FAM)</a></li>
+        <li><a href="#sec10">Expenditure Report (Management)</a></li>
+        <li><a href="#sec11">All Available Forms</a></li>
+        <li><a href="#sec12">Troubleshooting</a></li>
+      </ol>
+    </div>
+
+    <!-- 1. Login -->
+    <div class="guide-card" id="sec1">
+      <div class="guide-card-header" onclick="toggle(this)">
+        <h2>1. Getting Started &mdash; Login &amp; First Password</h2>
+        <span>&#9660;</span>
+      </div>
+      <div class="guide-card-body open">
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Open the portal</div><div class="step-desc">Go to: <strong>https://cuepointe.github.io/UBF-Request-Portal/</strong><br/>Bookmark this address so you can always find it.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Enter your UBF work email</div><div class="step-desc">Use your official email address e.g. <strong>s.abonyo@ugandabiodiversityfund.org</strong></div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">First time — enter default password</div><div class="step-desc">Type <strong>admin</strong> as your password. You will be immediately asked to set your own private password.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Set your own password</div><div class="step-desc">Choose a password of at least 8 characters. You will use this every time you log in.<br/>Passwords expire every 90 days — you will be prompted to set a new one automatically.</div></div></div>
+        <div class="warn-box">Never share your password with anyone. If you forget it, contact Tom Otieno: t.otieno@ugandabiodiversityfund.org</div>
+      </div>
+    </div>
+
+    <!-- 2. Dashboard -->
+    <div class="guide-card" id="sec2">
+      <div class="guide-card-header" onclick="toggle(this)">
+        <h2>2. The Dashboard</h2>
+        <span>&#9660;</span>
+      </div>
+      <div class="guide-card-body open">
+        <div class="step-desc" style="margin-bottom:0.75rem;">After login you land on the Dashboard. This is your home page showing all your submissions.</div>
+        <div class="step"><div class="step-num">A</div><div class="step-body"><div class="step-title">Stat Cards</div><div class="step-desc">The coloured cards at the top show how many submissions are at each stage: Pending, Prepared, Reviewed, Cleared, Approved, Rejected.</div></div></div>
+        <div class="step"><div class="step-num">B</div><div class="step-body"><div class="step-title">Submissions Table</div><div class="step-desc">Every submission you can see is listed here. Click any <strong>Ref No</strong> (shown in blue) to open the full record.</div></div></div>
+        <div class="step"><div class="step-num">C</div><div class="step-body"><div class="step-title">Filters</div><div class="step-desc">Use the Status filter and Search bar to find specific records quickly.</div></div></div>
+        <div class="tip-box"><strong>Package indicator:</strong> A green <strong>pkg:2</strong> badge next to a Ref No means that record has 2 additional forms attached to its package.</div>
+      </div>
+    </div>
+
+    <!-- 3. Submitting -->
+    <div class="guide-card" id="sec3">
+      <div class="guide-card-header" onclick="toggle(this)">
+        <h2>3. Submitting a Request (with Package)</h2>
+        <span>&#9660;</span>
+      </div>
+      <div class="guide-card-body">
+        <span class="role-pill rp-all">All Staff</span>
+        <div style="margin-top:0.75rem;"></div>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Click "Request for Goods/Services" on the Dashboard</div><div class="step-desc">Fill in all required fields marked with a red asterisk *</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Add more forms if needed (Optional)</div><div class="step-desc">Scroll down to the <strong>"Add Forms to This Package"</strong> section. Click <strong>"+ Travel Business Plan"</strong> or <strong>"+ Accountability Form"</strong> to expand and fill those forms on the same page. You can add both.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Attach supporting documents</div><div class="step-desc">Use the Attachments section to upload quotations, approvals or any supporting files.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Click "Submit Package"</div><div class="step-desc">All forms are submitted together as one package. You will see a green confirmation message with your Ref No.</div></div></div>
+        <div class="tip-box">After submission the record goes to <strong>Susan Abonyo (Admin Officer)</strong> for preparation. You cannot edit it unless it is rejected back to you.</div>
+      </div>
+    </div>
+
+    <!-- 4. Approval Workflow -->
+    <div class="guide-card" id="sec4">
+      <div class="guide-card-header" onclick="toggle(this)">
+        <h2>4. Approval Workflow &mdash; Who Does What</h2>
+        <span>&#9660;</span>
+      </div>
+      <div class="guide-card-body">
+        <div class="workflow-flow">
+          <div class="wf-step">Staff Submits<br/><small>PENDING</small></div>
+          <div class="wf-arrow">&#8594;</div>
+          <div class="wf-step">Susan Prepares<br/><small>PREPARED</small></div>
+          <div class="wf-arrow">&#8594;</div>
+          <div class="wf-step">Winnie Reviews<br/><small>REVIEWED</small></div>
+          <div class="wf-arrow">&#8594;</div>
+          <div class="wf-step">Winnie Clears<br/><small>CLEARED</small></div>
+          <div class="wf-arrow">&#8594;</div>
+          <div class="wf-step final">Ivan Approves<br/><small>APPROVED</small></div>
+        </div>
+        <div style="margin-top:1rem;">
+          <div class="step"><div class="step-num" style="background:var(--ubf-green);">S</div><div class="step-body"><div class="step-title"><span class="role-pill rp-staff">Staff</span> Submit</div><div class="step-desc">Fill and submit Request, Travel Plan or Accountability Form from the Dashboard.</div></div></div>
+          <div class="step"><div class="step-num" style="background:var(--gold);">A</div><div class="step-body"><div class="step-title"><span class="role-pill rp-admin">Admin Officer</span> Susan Abonyo — Mark Prepared</div><div class="step-desc">Opens the record, reviews it, can add Evaluation Report, LPO or other forms to the package, then clicks <strong>"Mark Prepared &amp; Forward"</strong>.</div></div></div>
+          <div class="step"><div class="step-num" style="background:#7c3aed;">F</div><div class="step-body"><div class="step-title"><span class="role-pill rp-fam">FAM</span> Winnie Nabatanzi — Review then Clear</div><div class="step-desc">Reviews the full package. Can add GRN, Invoice or other forms. Clicks <strong>"Mark Reviewed"</strong> then later <strong>"Clear &amp; Forward"</strong>.</div></div></div>
+          <div class="step"><div class="step-num" style="background:#4c1d95;">E</div><div class="step-body"><div class="step-title"><span class="role-pill rp-ed">ED</span> Ivan Amanigaruhanga — Final Approval</div><div class="step-desc">Reviews the complete package with all forms. Clicks <strong>"Approve &amp; Forward"</strong>. The file automatically saves to the Document Archive.</div></div></div>
+        </div>
+        <div class="warn-box">If a submission is <strong>Rejected</strong> at any stage, the original submitter receives it back and can edit and resubmit it.</div>
+      </div>
+    </div>
+
+    <!-- 5. Adding Forms to Package -->
+    <div class="guide-card" id="sec5">
+      <div class="guide-card-header" onclick="toggle(this)">
+        <h2>5. Adding Forms to an Existing Package</h2>
+        <span>&#9660;</span>
+      </div>
+      <div class="guide-card-body">
+        <span class="role-pill rp-all">All Staff &amp; Management</span>
+        <div style="margin-top:0.75rem;"></div>
+        <div class="step-desc" style="margin-bottom:0.75rem;">Any user can add more forms to any record at any stage before final approval.</div>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Click the Ref No on the Dashboard to open the record</div><div class="step-desc">The full record opens in a popup window.</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Find "Add Forms to This Package" at the top</div><div class="step-desc">You will see 6 expandable panels: Travel, Accountability, Evaluation, LPO, GRN, Payment Voucher.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Click any panel to expand it</div><div class="step-desc">The form fields appear inline. Fill in the required information. Use <strong>"+ Add Row"</strong> buttons on tables to add more rows as needed.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Click "Save &amp; Add to Package"</div><div class="step-desc">The form is saved instantly and linked to this package. You will see it appear in the <strong>Package</strong> section below.</div></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-body"><div class="step-title">Repeat for as many forms as needed</div><div class="step-desc">There is no limit. Add all necessary forms before forwarding to the next approver.</div></div></div>
+        <div class="tip-box">All forms added to a package travel together through the entire approval chain. Every approver sees the complete package.</div>
+      </div>
+    </div>
+
+    <!-- 6. Attaching Files -->
+    <div class="guide-card" id="sec6">
+      <div class="guide-card-header" onclick="toggle(this)">
+        <h2>6. Attaching Files &amp; Receipts</h2>
+        <span>&#9660;</span>
+      </div>
+      <div class="guide-card-body">
+        <span class="role-pill rp-all">All Staff</span>
+        <div style="margin-top:0.75rem;"></div>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Open any record from the Dashboard</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Find "Attach Documents / Receipts to This Package"</div><div class="step-desc">This section is always visible at the top of every record.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Click "Choose Files" and select your documents</div><div class="step-desc">You can select multiple files at once. Accepted formats: PDF, Word, Excel, JPG, PNG.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Click "Upload &amp; Attach to Record"</div><div class="step-desc">Files are uploaded and permanently attached. They appear in the Attachments section with View and Download buttons.</div></div></div>
+        <div class="tip-box">Attached files are visible to everyone in the approval chain. Superiors can also download them directly.</div>
+      </div>
+    </div>
+
+    <!-- 7. Download & Print -->
+    <div class="guide-card" id="sec7">
+      <div class="guide-card-header" onclick="toggle(this)">
+        <h2>7. Downloading &amp; Printing Forms</h2>
+        <span>&#9660;</span>
+      </div>
+      <div class="guide-card-body">
+        <span class="role-pill rp-all">All Staff</span>
+        <div style="margin-top:0.75rem;"></div>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Open any record from the Dashboard</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Use the action buttons at the top of the record</div><div class="step-desc">
+          <strong>Download This Form (PDF)</strong> &mdash; downloads just this one form as a PDF file<br/>
+          <strong>Download Complete Package (PDF)</strong> &mdash; downloads ALL linked forms together as one PDF<br/>
+          <strong>Print</strong> &mdash; opens a print-ready view of the form
+        </div></div></div>
+        <div class="tip-box">When downloading PDF make sure your internet is stable. The PDF library loads from the internet the first time. Wait a few seconds after clicking.</div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Download individual attachments</div><div class="step-desc">In the Attachments section, each file has a <strong>View</strong> and <strong>Download</strong> button.</div></div></div>
+      </div>
+    </div>
+
+    <!-- 8. Comments -->
+    <div class="guide-card" id="sec8">
+      <div class="guide-card-header" onclick="toggle(this)">
+        <h2>8. Comments &amp; Communication</h2>
+        <span>&#9660;</span>
+      </div>
+      <div class="guide-card-body">
+        <span class="role-pill rp-all">All Staff</span>
+        <div style="margin-top:0.75rem;"></div>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Open any record and scroll to Comments</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Type your comment and click "Post Comment"</div><div class="step-desc">Your comment is permanently recorded with your name, role and timestamp.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Reply to a comment</div><div class="step-desc">Click <strong>"Reply"</strong> below any comment, type your response and click <strong>"Post Reply"</strong>.</div></div></div>
+        <div class="warn-box">Comments cannot be deleted once posted. They are part of the permanent audit trail.</div>
+        <div class="tip-box"><strong>Management Notes</strong> (Admin Officer, FAM, ED only): A separate "Add Note" section allows managers to add official instructions visible to all parties.</div>
+      </div>
+    </div>
+
+    <!-- 9. Archives -->
+    <div class="guide-card" id="sec9">
+      <div class="guide-card-header" onclick="toggle(this)">
+        <h2>9. Document Archive</h2>
+        <span>&#9660;</span>
+      </div>
+      <div class="guide-card-body">
+        <span class="role-pill rp-fam">FAM</span><span class="role-pill rp-admin">Admin Officer</span><span class="role-pill rp-ed">ED</span>
+        <div style="margin-top:0.75rem;"></div>
+        <div class="step-desc" style="margin-bottom:0.75rem;">All packages approved by the ED are automatically saved to the Archive. This is your auditor-ready file cabinet.</div>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Click "Archive" in the navigation menu</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Create folders (FAM only)</div><div class="step-desc">Click <strong>"+ New Folder"</strong>, type a name e.g. <em>"Q1 2026 Procurement"</em> and press OK. Folders help organise files by quarter, project or category.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">Move files from Unfiled to a folder (FAM only)</div><div class="step-desc">Newly approved files appear in the <strong>Unfiled</strong> section. Click <strong>"Move to Folder"</strong> on any file and select the target folder.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Rename files and folders</div><div class="step-desc">Click <strong>"Rename"</strong> next to any file or folder to give it a meaningful name for easy retrieval.</div></div></div>
+        <div class="step"><div class="step-num">5</div><div class="step-body"><div class="step-title">Download complete packages</div><div class="step-desc">Click <strong>"Download Package"</strong> on any archived file to get a PDF of all forms and documents in that package.</div></div></div>
+        <div class="tip-box">The Archive is permanent. Files are never deleted. This is what auditors will review.</div>
+      </div>
+    </div>
+
+    <!-- 10. Expenditure Report -->
+    <div class="guide-card" id="sec10">
+      <div class="guide-card-header" onclick="toggle(this)">
+        <h2>10. Expenditure Report</h2>
+        <span>&#9660;</span>
+      </div>
+      <div class="guide-card-body">
+        <span class="role-pill rp-fam">FAM</span><span class="role-pill rp-admin">Admin Officer</span><span class="role-pill rp-ed">ED</span>
+        <div style="margin-top:0.75rem;"></div>
+        <div class="step-desc" style="margin-bottom:0.75rem;">A live financial dashboard automatically generated from all system data.</div>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Click "Report" in the navigation</div></div></div>
+        <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Set your date range and filters</div><div class="step-desc">Filter by date, form type, status or department. Click <strong>Apply</strong>.</div></div></div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">The report shows</div><div class="step-desc">
+          &bull; Total approved, pending and rejected expenditure in UGX<br/>
+          &bull; Monthly trend chart<br/>
+          &bull; Breakdown by form type, department and donor<br/>
+          &bull; Approved expenditures register<br/>
+          &bull; Travel advances tracker<br/>
+          &bull; Full transaction register
+        </div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Print the report</div><div class="step-desc">Click the Print button for a clean printable version for board meetings or audits.</div></div></div>
+      </div>
+    </div>
+
+    <!-- 11. All Forms -->
+    <div class="guide-card" id="sec11">
+      <div class="guide-card-header" onclick="toggle(this)">
+        <h2>11. All Available Forms</h2>
+        <span>&#9660;</span>
+      </div>
+      <div class="guide-card-body">
+        <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+          <thead><tr><th style="background:var(--ubf-blue-light);color:var(--ubf-blue-darker);padding:0.5rem 0.75rem;text-align:left;border-bottom:2px solid var(--ubf-blue);">Form</th><th style="background:var(--ubf-blue-light);color:var(--ubf-blue-darker);padding:0.5rem 0.75rem;text-align:left;border-bottom:2px solid var(--ubf-blue);">Purpose</th><th style="background:var(--ubf-blue-light);color:var(--ubf-blue-darker);padding:0.5rem 0.75rem;text-align:left;border-bottom:2px solid var(--ubf-blue);">Who Can Submit</th></tr></thead>
+          <tbody>
+            <tr style="border-bottom:1px solid var(--gray-200);"><td style="padding:0.5rem 0.75rem;font-weight:600;">Request for Goods/Services</td><td style="padding:0.5rem 0.75rem;color:var(--gray-600);">Any procurement request</td><td style="padding:0.5rem 0.75rem;"><span class="role-pill rp-all">All Staff</span></td></tr>
+            <tr style="border-bottom:1px solid var(--gray-200);background:var(--gray-100);"><td style="padding:0.5rem 0.75rem;font-weight:600;">Travel Business Plan</td><td style="padding:0.5rem 0.75rem;color:var(--gray-600);">Travel advance request</td><td style="padding:0.5rem 0.75rem;"><span class="role-pill rp-all">All Staff</span></td></tr>
+            <tr style="border-bottom:1px solid var(--gray-200);"><td style="padding:0.5rem 0.75rem;font-weight:600;">Accountability &amp; Expense Report</td><td style="padding:0.5rem 0.75rem;color:var(--gray-600);">Post-travel expense accounting</td><td style="padding:0.5rem 0.75rem;"><span class="role-pill rp-all">All Staff</span></td></tr>
+            <tr style="border-bottom:1px solid var(--gray-200);background:var(--gray-100);"><td style="padding:0.5rem 0.75rem;font-weight:600;">Evaluation Report</td><td style="padding:0.5rem 0.75rem;color:var(--gray-600);">Supplier price comparison</td><td style="padding:0.5rem 0.75rem;"><span class="role-pill rp-admin">Admin Officer</span><span class="role-pill rp-fam">FAM</span><span class="role-pill rp-ed">ED</span></td></tr>
+            <tr style="border-bottom:1px solid var(--gray-200);"><td style="padding:0.5rem 0.75rem;font-weight:600;">Local Purchase Order (LPO)</td><td style="padding:0.5rem 0.75rem;color:var(--gray-600);">Official order to supplier</td><td style="padding:0.5rem 0.75rem;"><span class="role-pill rp-admin">Admin Officer</span><span class="role-pill rp-fam">FAM</span><span class="role-pill rp-ed">ED</span></td></tr>
+            <tr style="border-bottom:1px solid var(--gray-200);background:var(--gray-100);"><td style="padding:0.5rem 0.75rem;font-weight:600;">Goods Received Note (GRN)</td><td style="padding:0.5rem 0.75rem;color:var(--gray-600);">Confirm goods received</td><td style="padding:0.5rem 0.75rem;"><span class="role-pill rp-all">All Staff</span></td></tr>
+            <tr style="border-bottom:1px solid var(--gray-200);"><td style="padding:0.5rem 0.75rem;font-weight:600;">Payment Voucher</td><td style="padding:0.5rem 0.75rem;color:var(--gray-600);">Authorise cheque payment</td><td style="padding:0.5rem 0.75rem;"><span class="role-pill rp-admin">Admin Officer</span><span class="role-pill rp-fam">FAM</span><span class="role-pill rp-ed">ED</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 12. Troubleshooting -->
+    <div class="guide-card" id="sec12">
+      <div class="guide-card-header" onclick="toggle(this)">
+        <h2>12. Troubleshooting</h2>
+        <span>&#9660;</span>
+      </div>
+      <div class="guide-card-body">
+        <div class="step"><div class="step-num">?</div><div class="step-body"><div class="step-title">I cannot log in</div><div class="step-desc">Check your email spelling. Make sure you are using your UBF work email. If you forgot your password contact Tom Otieno.</div></div></div>
+        <div class="step"><div class="step-num">?</div><div class="step-body"><div class="step-title">I submitted a form but cannot see it</div><div class="step-desc">Refresh the page with <strong>Ctrl+Shift+R</strong>. If still not visible check the History page.</div></div></div>
+        <div class="step"><div class="step-num">?</div><div class="step-body"><div class="step-title">The PDF downloads but opens blank</div><div class="step-desc">Make sure you have a stable internet connection. The PDF library loads from the internet. Wait 3 seconds after clicking then try again.</div></div></div>
+        <div class="step"><div class="step-num">?</div><div class="step-body"><div class="step-title">I see a "Data conflict" error</div><div class="step-desc">Someone else saved data at the same moment. Refresh the page and try again.</div></div></div>
+        <div class="step"><div class="step-num">?</div><div class="step-body"><div class="step-title">My session expired</div><div class="step-desc">Sessions expire after 8 hours. Simply log in again. Your data is safe.</div></div></div>
+        <div class="step"><div class="step-num">?</div><div class="step-body"><div class="step-title">I cannot see management forms (Evaluation, LPO etc.)</div><div class="step-desc">These forms are only available to Admin Officer, FAM and ED. Contact your supervisor if you need access.</div></div></div>
+        <div style="margin-top:1rem;padding:0.85rem 1rem;background:var(--ubf-blue-pale);border-radius:var(--radius-sm);font-size:0.85rem;">
+          <strong>Technical Support:</strong><br/>
+          Tom Otieno &mdash; <a href="mailto:t.otieno@ugandabiodiversityfund.org">t.otieno@ugandabiodiversityfund.org</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="script.js"></script>
+<script>
+function toggle(header){
+  var body=header.nextElementSibling;
+  var arrow=header.querySelector('span');
+  if(body.classList.contains('open')){body.classList.remove('open');if(arrow)arrow.textContent='\u25BC';}
+  else{body.classList.add('open');if(arrow)arrow.textContent='\u25B2';}
+}
+function expandAll(){
+  document.querySelectorAll('.guide-card-body').forEach(function(b){b.classList.add('open');});
+  document.querySelectorAll('.guide-card-header span').forEach(function(s){s.textContent='\u25B2';});
+}
+</script>
+</body>
+</html>

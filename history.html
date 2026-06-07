@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UBF — Submission History</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<nav class="navbar">
+  <a class="navbar-brand" href="dashboard.html">
+    <div class="navbar-logo"><img src="ubf-logo.jpg" alt="UBF" onerror="this.style.display='none';this.parentElement.setAttribute('data-fallback','true');"/></div>
+    <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="form.html">Request</a></li>
+    <li><a href="travel-plan.html">Travel</a></li>
+    <li><a href="accountability.html">Accountability</a></li>
+    <li><a href="evaluation.html">Evaluation</a></li>
+    <li><a href="lpo.html">LPO</a></li>
+    <li><a href="grn.html">GRN</a></li>
+    <li><a href="invoice.html">Invoice</a></li>
+    <li><a href="archives.html">🗄️ Archive</a></li>
+    <li><a href="expenditure-report.html">Report</a></li>
+    <li><a href="history.html" class="active">History</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading…</span><span class="role-badge" id="nav-user-role">—</span></div>
+    <button id="btn-logout">Logout</button>
+  </div>
+</nav>
+
+<div id="history-container" class="page-wrapper">
+  <div id="global-error-banner" class="banner"></div>
+  <div id="global-success-banner" class="banner"></div>
+
+  <div class="page-header">
+    <h1>Submission History</h1>
+    <p>Full audit trail — click any Ref No to view, download, attach or forward.</p>
+  </div>
+
+  <div class="table-card">
+    <div class="table-toolbar">
+      <h2>All Records</h2>
+      <div class="toolbar-filters">
+        <select id="history-filter-status">
+          <option value="">All Statuses</option>
+          <option>Pending</option><option>Prepared</option>
+          <option>Reviewed</option><option>Cleared</option>
+          <option>Approved</option><option>Rejected</option>
+        </select>
+        <select id="history-filter-type">
+          <option value="">All Types</option>
+          <option value="request">Request</option>
+          <option value="travel">Travel Plan</option>
+          <option value="accountability">Accountability</option>
+          <option value="evaluation">Evaluation</option>
+          <option value="lpo">LPO</option>
+          <option value="grn">GRN</option>
+          <option value="invoice">Invoice</option>
+        </select>
+        <input type="search" id="history-filter-search" placeholder="Search…" style="width:200px;"/>
+      </div>
+    </div>
+    <div id="history-loading" class="loading-state"><div class="spinner"></div>Loading records…</div>
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Ref No</th>
+            <th>Form Type</th>
+            <th>Description</th>
+            <th>Submitted By</th>
+            <th>Date</th>
+            <th>Updated</th>
+            <th>Package</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="history-table-body"></tbody>
+      </table>
+    </div>
+    <div id="history-empty" class="empty-state">
+      <div class="empty-icon">🗂️</div>
+      <p><strong>No records found.</strong></p>
+      <p>No submissions match your current filter.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div id="modal-overlay">
+  <div class="modal-box">
+    <button class="modal-close-btn" id="btn-modal-close">&times;</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="form-renderer.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

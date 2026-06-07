@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UBF — Goods Received Note</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .ubf-doc{background:var(--white);border-radius:var(--radius-md);box-shadow:var(--shadow-md);overflow:hidden;max-width:960px;margin:0 auto;}
+    .doc-header{display:grid;grid-template-columns:80px 1fr 200px;align-items:center;padding:1rem 1.5rem;border-bottom:3px solid var(--ubf-blue-darker);gap:1rem;}
+    .doc-header-logo{width:68px;height:68px;object-fit:contain;}
+    .doc-header-centre{text-align:center;}
+    .doc-header-centre .org-name{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ubf-blue-darker);}
+    .doc-header-centre .form-name{font-size:1.1rem;font-weight:700;color:var(--gray-900);font-family:var(--font-body);text-transform:uppercase;letter-spacing:0.06em;}
+    .doc-table{width:100%;border-collapse:collapse;}
+    .doc-table th,.doc-table td{border:1px solid var(--gray-300);padding:0.5rem 0.75rem;vertical-align:middle;font-size:0.875rem;}
+    .doc-table th{background:var(--ubf-blue-light);color:var(--ubf-blue-darker);font-weight:700;font-size:0.75rem;font-family:var(--font-body);}
+    .doc-table td input,.doc-table td select{width:100%;border:none;outline:none;font-family:var(--font-body);font-size:0.875rem;color:var(--gray-900);background:transparent;}
+    .doc-table td input:focus{background:#fffde7;border-radius:2px;}
+    .doc-footer{padding:1.25rem 1.5rem;background:var(--gray-100);display:flex;align-items:center;justify-content:flex-end;gap:1rem;border-top:1px solid var(--gray-200);}
+
+    /* Signature blocks — all 3 now fully writable */
+    .sig-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid var(--gray-300);margin:0 1.5rem;}
+    .sig-block{padding:0.85rem 1rem;border-right:1px solid var(--gray-300);}
+    .sig-block:last-child{border-right:none;}
+    .sig-lbl{font-size:0.68rem;font-weight:700;text-transform:uppercase;color:var(--ubf-blue-darker);margin-bottom:0.6rem;display:block;}
+    .sig-row{display:flex;align-items:baseline;gap:0.4rem;margin-bottom:0.45rem;font-size:0.82rem;}
+    .sig-row label{white-space:nowrap;font-weight:600;color:var(--gray-700);min-width:70px;}
+    .sig-row input{flex:1;border:none;border-bottom:1px solid var(--gray-300);outline:none;font-family:var(--font-body);font-size:0.82rem;background:transparent;}
+    .sig-row input:focus{background:#fffde7;}
+    .sig-signature{margin-top:0.5rem;font-size:0.82rem;color:var(--gray-500);font-style:italic;padding-top:1.5rem;border-top:1px solid var(--gray-700);}
+
+    @media print{
+      .navbar,.doc-footer,.page-header{display:none!important;}
+      .page-wrapper{padding:0;}
+      .ubf-doc{box-shadow:none;border-radius:0;}
+    }
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a class="navbar-brand" href="dashboard.html">
+    <div class="navbar-logo"><img src="ubf-logo.jpg" alt="UBF" onerror="this.style.display='none';this.parentElement.setAttribute('data-fallback','true');"/></div>
+    <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="form.html">Request</a></li>
+    <li><a href="travel-plan.html">Travel</a></li>
+    <li><a href="accountability.html">Accountability</a></li>
+    <li><a href="evaluation.html">Evaluation</a></li>
+    <li><a href="lpo.html">LPO</a></li>
+    <li><a href="grn.html" class="active">GRN</a></li>
+    <li><a href="invoice.html">Invoice</a></li>
+    <li><a href="expenditure-report.html">Exp. Report</a></li>
+    <li><a href="history.html">History</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading…</span><span class="role-badge" id="nav-user-role">—</span></div>
+    <button id="btn-logout">Logout</button>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div id="global-error-banner" class="banner"></div>
+  <div id="global-success-banner" class="banner"></div>
+  <div class="page-header">
+    <h1>Goods Received Note</h1>
+    <p>Uganda Biodiversity Fund — official GRN</p>
+  </div>
+
+  <div class="ubf-doc">
+  <form id="grn-form" novalidate autocomplete="off">
+
+    <!-- Document Header -->
+    <div class="doc-header">
+      <img class="doc-header-logo" src="ubf-logo.jpg" alt="Uganda Biodiversity Fund Logo" onerror="this.style.display='none';"/>
+      <div class="doc-header-centre">
+        <div class="org-name">Uganda Biodiversity Fund</div>
+        <div class="form-name">Goods Received Note</div>
+        <div style="font-size:0.68rem;color:var(--gray-500);margin-top:0.2rem;">Plot 425 Zzimwe Road, Kisugu, Kampala | PO Box 26156 | Tel: +256-393-216-445</div>
+      </div>
+      <div style="text-align:right;font-size:0.82rem;line-height:2;">
+        Serial No: <strong id="grn-serial">Auto</strong><br/>
+        Date: <input type="date" id="grn-date" name="grnDate" style="border:none;border-bottom:1px solid var(--gray-300);font-size:0.85rem;font-weight:700;width:135px;outline:none;background:transparent;"/>
+      </div>
+    </div>
+
+    <!-- Vendor Details -->
+    <div style="padding:1rem 1.5rem 0;">
+      <div style="font-weight:700;font-size:0.82rem;text-transform:uppercase;color:var(--ubf-blue-darker);margin-bottom:0.5rem;">Details of Vendor:</div>
+      <table class="doc-table">
+        <tr>
+          <th style="width:120px;">Name <span style="color:var(--red)">*</span></th>
+          <td colspan="3"><input type="text" id="grn-vendor-name" name="vendorName" placeholder="Vendor / Supplier full name" required/></td>
+        </tr>
+        <tr>
+          <th>Address</th>
+          <td colspan="3"><input type="text" id="grn-vendor-address" name="vendorAddress" placeholder="Vendor address"/></td>
+        </tr>
+        <tr>
+          <th>Delivery Note No.</th>
+          <td><input type="text" id="grn-delivery-note" name="deliveryNoteNo" placeholder="Delivery note number"/></td>
+          <th>Added to Register</th>
+          <td>
+            <select id="grn-registered" name="addedToRegister">
+              <option value="">— Select —</option>
+              <option value="Yes">Yes</option>
+              <option value="No">No</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <th>Related LPO No.</th>
+          <td><input type="text" id="grn-lpo-ref" name="lpoRef" placeholder="LPO serial number"/></td>
+          <th>Related Requisition</th>
+          <td><input type="text" id="grn-req-ref" name="reqRef" placeholder="UBF-YYYYMMDD-XXXXXX"/></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Items Table -->
+    <div style="padding:0.75rem 1.5rem 0;">
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th style="width:36px;">No</th>
+            <th>Items Description and Specification <span style="color:var(--red)">*</span></th>
+            <th style="width:80px;">Quantity</th>
+            <th style="width:120px;">Unit of Measure</th>
+            <th style="width:110px;">Condition</th>
+          </tr>
+        </thead>
+        <tbody id="grn-items-body"></tbody>
+      </table>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SIGNATURE SECTION — ALL 3 FULLY WRITABLE
+    ══════════════════════════════════════════ -->
+    <div style="padding:1rem 1.5rem 0.5rem;">
+      <div style="font-weight:700;font-size:0.78rem;text-transform:uppercase;color:var(--ubf-blue-darker);margin-bottom:0.6rem;">Signatures</div>
+
+      <div class="sig-grid">
+
+        <!-- DELIVERED BY -->
+        <div class="sig-block">
+          <span class="sig-lbl">Delivered By:</span>
+          <div class="sig-row">
+            <label>Name:</label>
+            <input type="text" id="grn-del-name" name="deliveredByName" placeholder="Full name"/>
+          </div>
+          <div class="sig-row">
+            <label>Position:</label>
+            <input type="text" id="grn-del-position" name="deliveredByPosition" placeholder="Position / title"/>
+          </div>
+          <div class="sig-row">
+            <label>Date:</label>
+            <input type="date" id="grn-del-date" name="deliveredByDate"/>
+          </div>
+          <div class="sig-signature">Signature: _______________________</div>
+        </div>
+
+        <!-- RECEIVED BY -->
+        <div class="sig-block">
+          <span class="sig-lbl">Received By:</span>
+          <div class="sig-row">
+            <label>Name:</label>
+            <input type="text" id="grn-rec-name" name="receivedByName" placeholder="Full name"/>
+          </div>
+          <div class="sig-row">
+            <label>Position:</label>
+            <input type="text" id="grn-rec-position" name="receivedByPosition" placeholder="Position / title"/>
+          </div>
+          <div class="sig-row">
+            <label>Date:</label>
+            <input type="date" id="grn-rec-date" name="receivedByDate"/>
+          </div>
+          <div class="sig-signature">Signature: _______________________</div>
+        </div>
+
+        <!-- VERIFIED BY -->
+        <div class="sig-block">
+          <span class="sig-lbl">Verified By:</span>
+          <div class="sig-row">
+            <label>Name:</label>
+            <input type="text" id="grn-ver-name" name="verifiedByName" placeholder="Full name"/>
+          </div>
+          <div class="sig-row">
+            <label>Position:</label>
+            <input type="text" id="grn-ver-position" name="verifiedByPosition" placeholder="Position / title"/>
+          </div>
+          <div class="sig-row">
+            <label>Date:</label>
+            <input type="date" id="grn-ver-date" name="verifiedByDate"/>
+          </div>
+          <div class="sig-signature">Signature: _______________________</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Attachments -->
+    <div style="padding:0.5rem 1.5rem 0.5rem;">
+      <table class="doc-table">
+        <tr>
+          <th>Supporting Documents</th>
+          <td>
+            <input type="file" id="grn-attachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"/>
+            <div class="file-info" id="grn-attach-info"></div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="doc-footer">
+      <div id="grn-loading" style="display:none;">
+        <div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--ubf-blue-dark);">
+          <div class="spinner" style="width:18px;height:18px;border-width:2px;margin:0;border-color:var(--ubf-blue-light);border-top-color:var(--ubf-blue-dark);"></div>Saving…
+        </div>
+      </div>
+      <button type="button" onclick="window.print()" class="btn btn-secondary">🖨️ Print / Download</button>
+      <a href="dashboard.html" class="btn btn-secondary">Cancel</a>
+      <button type="submit" id="btn-submit-grn" class="btn btn-primary btn-lg">Submit GRN</button>
+    </div>
+
+  </form>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="script.js"></script>
+<script>
+(function(){
+  /* Build 15 item rows */
+  var tbody=document.getElementById('grn-items-body');
+  for(var i=1;i<=15;i++){
+    var tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td style="text-align:center;color:var(--gray-500);font-size:0.78rem;">'+i+'</td>'+
+      '<td><input type="text" name="desc_'+i+'" placeholder="Item description and specification"/></td>'+
+      '<td><input type="number" name="qty_'+i+'" min="0" step="0.01"/></td>'+
+      '<td><input type="text" name="unit_'+i+'" placeholder="pcs, litres, kgs…"/></td>'+
+      '<td><select name="cond_'+i+'"><option value="">— Condition —</option><option value="Good">Good</option><option value="Damaged">Damaged</option><option value="Partial">Partial</option><option value="Expired">Expired</option></select></td>';
+    tbody.appendChild(tr);
+  }
+  /* Default dates */
+  document.getElementById('grn-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('grn-rec-date').value=new Date().toISOString().split('T')[0];
+  /* File info */
+  document.getElementById('grn-attachments').addEventListener('change',function(){
+    var el=document.getElementById('grn-attach-info');
+    if(el)el.textContent=this.files.length+' file(s) selected';
+  });
+})();
+</script>
+</body>
+</html>

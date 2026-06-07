@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UBF — Evaluation Report</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .ubf-doc{background:var(--white);border-radius:var(--radius-md);box-shadow:var(--shadow-md);overflow:hidden;max-width:980px;margin:0 auto;}
+    .doc-header{display:grid;grid-template-columns:80px 1fr 140px;align-items:center;padding:1rem 1.5rem;border-bottom:3px solid var(--ubf-blue-darker);gap:1rem;}
+    .doc-header-logo{width:68px;height:68px;object-fit:contain;}
+    .doc-header-centre{text-align:center;}
+    .doc-header-centre .org-name{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ubf-blue-darker);}
+    .doc-header-centre .form-name{font-size:1rem;font-weight:700;color:var(--gray-900);margin:0.2rem 0 0;font-family:var(--font-body);text-transform:uppercase;}
+    .doc-table{width:100%;border-collapse:collapse;}
+    .doc-table th,.doc-table td{border:1px solid var(--gray-300);padding:0.5rem 0.75rem;vertical-align:middle;font-size:0.875rem;}
+    .doc-table th{background:var(--ubf-blue-light);color:var(--ubf-blue-darker);font-weight:700;font-size:0.75rem;white-space:nowrap;font-family:var(--font-body);}
+    .doc-table td input,.doc-table td select,.doc-table td textarea{width:100%;border:none;outline:none;font-family:var(--font-body);font-size:0.875rem;color:var(--gray-900);background:transparent;resize:vertical;}
+    .doc-table td input:focus,.doc-table td select:focus,.doc-table td textarea:focus{background:#fffde7;border-radius:2px;}
+    .section-hdr{background:var(--ubf-blue-darker);color:var(--white);font-weight:700;font-size:0.78rem;padding:0.45rem 1rem;text-transform:uppercase;letter-spacing:0.05em;}
+    .total-row{background:var(--ubf-blue-light);font-weight:700;}
+    .doc-footer{padding:1.25rem 1.5rem;background:var(--gray-100);display:flex;align-items:center;justify-content:flex-end;gap:1rem;border-top:1px solid var(--gray-200);}
+    .approval-lbl{font-size:0.7rem;font-weight:700;text-transform:uppercase;color:var(--ubf-blue-darker);margin-bottom:0.3rem;}
+    .approval-name{font-weight:700;font-size:0.875rem;}
+    .approval-title{font-size:0.75rem;color:var(--gray-500);}
+    .apv-badge{margin-top:0.5rem;display:inline-block;padding:0.18rem 0.6rem;border-radius:999px;font-size:0.68rem;font-weight:700;text-transform:uppercase;}
+    .apv-submitting{background:var(--ubf-blue-light);color:var(--ubf-blue-darker);}
+    .apv-awaiting{background:var(--amber-light);color:#92400e;}
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a class="navbar-brand" href="dashboard.html">
+    <div class="navbar-logo"><img src="ubf-logo.jpg" alt="UBF" onerror="this.style.display='none';this.parentElement.setAttribute('data-fallback','true');"/></div>
+    <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="form.html">Request Form</a></li>
+    <li><a href="travel-plan.html">Travel Plan</a></li>
+    <li><a href="accountability.html">Accountability</a></li>
+    <li><a href="evaluation.html" class="active">Evaluation</a></li>
+    <li><a href="lpo.html">LPO</a></li>
+    <li><a href="grn.html">GRN</a></li>
+    <li><a href="invoice.html">Invoice</a></li>
+    <li><a href="history.html">History</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading…</span><span class="role-badge" id="nav-user-role">—</span></div>
+    <button id="btn-logout">Logout</button>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div id="global-error-banner" class="banner"></div>
+  <div id="global-success-banner" class="banner"></div>
+  <div class="page-header"><h1>Evaluation Report</h1><p>Uganda Biodiversity Fund — procurement evaluation and supplier comparison</p></div>
+
+  <div class="ubf-doc">
+  <form id="evaluation-form" novalidate autocomplete="off">
+
+    <div class="doc-header">
+      <img class="doc-header-logo" src="ubf-logo.jpg" alt="Uganda Biodiversity Fund Logo" onerror="this.style.display='none';"/>
+      <div class="doc-header-centre">
+        <div class="org-name">Uganda Biodiversity Fund</div>
+        <div class="form-name">Procurement Evaluation Report</div>
+      </div>
+      <div style="text-align:right;font-size:0.72rem;color:var(--gray-500);">Ref No:<br/><strong id="eval-ref">Auto-assigned</strong></div>
+    </div>
+
+    <div style="padding:1.25rem 1.5rem 0;">
+    <table class="doc-table">
+      <tr>
+        <th>Date <span style="color:var(--red)">*</span></th>
+        <td><input type="date" id="eval-date" name="evalDate" required/></td>
+        <th>Procurement Method <span style="color:var(--red)">*</span></th>
+        <td>
+          <select id="eval-method" name="evalMethod" required>
+            <option value="">— Select —</option>
+            <option>Direct Procurement</option>
+            <option>Request for Quotations (RFQ)</option>
+            <option>Request for Proposals (RFP)</option>
+            <option>Open Tender</option>
+            <option>Restricted Tender</option>
+          </select>
+        </td>
+      </tr>
+      <tr>
+        <th>Item Description / Specification <span style="color:var(--red)">*</span></th>
+        <td colspan="3"><textarea id="eval-description" name="description" rows="3" placeholder="Describe the goods or services being evaluated" required></textarea></td>
+      </tr>
+      <tr>
+        <th>Quantity</th>
+        <td><input type="number" id="eval-quantity" name="quantity" min="1" placeholder="e.g. 5"/></td>
+        <th>Unit of Measure</th>
+        <td><input type="text" id="eval-unit" name="unit" placeholder="e.g. pieces, litres"/></td>
+      </tr>
+      <tr>
+        <th>Suppliers / Bidders Who Responded <span style="color:var(--red)">*</span></th>
+        <td colspan="3"><textarea id="eval-suppliers" name="suppliers" rows="2" placeholder="List all suppliers who submitted quotations/proposals" required></textarea></td>
+      </tr>
+      <tr>
+        <th>Evaluation Team Members</th>
+        <td colspan="3"><textarea id="eval-team" name="evalTeam" rows="2" placeholder="Names and titles of evaluation team members"></textarea></td>
+      </tr>
+    </table>
+    </div>
+
+    <!-- Supplier Comparison Table -->
+    <div style="padding:1rem 1.5rem 0;">
+    <div class="section-hdr">Supplier Price Comparison</div>
+    <table class="doc-table" id="eval-comparison-table">
+      <thead>
+        <tr>
+          <th style="width:40px;">#</th>
+          <th>Item Description</th>
+          <th>Qty</th>
+          <th>Supplier 1<br/><input type="text" id="sup1-name" placeholder="Name" style="font-weight:700;font-size:0.8rem;border:none;background:transparent;width:100%;color:var(--ubf-blue-darker);"/></th>
+          <th>Supplier 2<br/><input type="text" id="sup2-name" placeholder="Name" style="font-weight:700;font-size:0.8rem;border:none;background:transparent;width:100%;color:var(--ubf-blue-darker);"/></th>
+          <th>Supplier 3<br/><input type="text" id="sup3-name" placeholder="Name" style="font-weight:700;font-size:0.8rem;border:none;background:transparent;width:100%;color:var(--ubf-blue-darker);"/></th>
+          <th>Recommended Supplier</th>
+        </tr>
+      </thead>
+      <tbody id="eval-items-body"></tbody>
+      <tfoot>
+        <tr class="total-row">
+          <td colspan="3" style="text-align:right;">Sub Total</td>
+          <td><input type="number" id="eval-sub1" step="0.01" readonly style="font-weight:700;"/></td>
+          <td><input type="number" id="eval-sub2" step="0.01" readonly style="font-weight:700;"/></td>
+          <td><input type="number" id="eval-sub3" step="0.01" readonly style="font-weight:700;"/></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td colspan="3" style="text-align:right;">VAT (18%)</td>
+          <td><input type="number" id="eval-vat1" step="0.01" readonly/></td>
+          <td><input type="number" id="eval-vat2" step="0.01" readonly/></td>
+          <td><input type="number" id="eval-vat3" step="0.01" readonly/></td>
+          <td></td>
+        </tr>
+        <tr class="total-row">
+          <td colspan="3" style="text-align:right;">Total</td>
+          <td><input type="number" id="eval-total1" step="0.01" readonly style="font-weight:700;"/></td>
+          <td><input type="number" id="eval-total2" step="0.01" readonly style="font-weight:700;"/></td>
+          <td><input type="number" id="eval-total3" step="0.01" readonly style="font-weight:700;"/></td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+
+    <!-- Recommendations -->
+    <div style="padding:1rem 1.5rem 0;">
+    <table class="doc-table">
+      <tr>
+        <th>Recommendations <span style="color:var(--red)">*</span></th>
+        <td><textarea id="eval-recommendations" name="recommendations" rows="3" placeholder="State the recommended supplier and reasons for the recommendation" required></textarea></td>
+      </tr>
+      <tr>
+        <th>Remarks</th>
+        <td><textarea id="eval-remarks" name="remarks" rows="2" placeholder="Any additional remarks or conditions"></textarea></td>
+      </tr>
+    </table>
+    </div>
+
+    <!-- Approval Chain -->
+    <div style="padding:1rem 1.5rem 0;">
+    <table class="doc-table">
+      <tr>
+        <td style="width:33%;">
+          <div class="approval-lbl">Prepared by (Admin Officer):</div>
+          <div class="approval-name">Susan Abonyo</div>
+          <div class="approval-title">Administration Officer</div>
+          <span class="apv-badge apv-submitting" id="eval-preparer-status">Preparing</span>
+        </td>
+        <td style="width:33%;">
+          <div class="approval-lbl">Reviewed by (FAM):</div>
+          <div class="approval-name">Winnie Nabatanzi</div>
+          <div class="approval-title">Finance and Administration Manager</div>
+          <span class="apv-badge apv-awaiting">Awaiting</span>
+        </td>
+        <td style="width:33%;">
+          <div class="approval-lbl">Approved by (ED):</div>
+          <div class="approval-name">Ivan Amanigaruhanga</div>
+          <div class="approval-title">Executive Director</div>
+          <span class="apv-badge apv-awaiting">Awaiting</span>
+        </td>
+      </tr>
+    </table>
+    </div>
+
+    <!-- Attachments -->
+    <div style="padding:1rem 1.5rem 0;">
+    <table class="doc-table">
+      <tr>
+        <th>Supporting Documents / Quotations</th>
+        <td><input type="file" id="eval-attachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"/><div class="file-info" id="eval-attach-info"></div></td>
+      </tr>
+    </table>
+    </div>
+
+    <div class="doc-footer">
+      <div id="eval-loading" style="display:none;"><div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--ubf-blue-dark);"><div class="spinner" style="width:18px;height:18px;border-width:2px;margin:0;border-color:var(--ubf-blue-light);border-top-color:var(--ubf-blue-dark);"></div>Saving…</div></div>
+      <button type="button" onclick="window.print()" class="btn btn-secondary">🖨️ Print</button>
+      <a href="dashboard.html" class="btn btn-secondary">Cancel</a>
+      <button type="submit" id="btn-submit-evaluation" class="btn btn-primary btn-lg">Submit Evaluation Report</button>
+    </div>
+
+  </form>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="script.js"></script>
+<script>
+(function(){
+  /* Build 8 comparison rows */
+  var tbody=document.getElementById('eval-items-body');
+  for(var i=1;i<=8;i++){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td style="text-align:center;color:var(--gray-500);font-size:0.78rem;">'+i+'</td>'+
+      '<td><input type="text" name="item_'+i+'" placeholder="Item description"/></td>'+
+      '<td><input type="number" class="eval-qty" name="qty_'+i+'" min="0" step="1" style="width:60px;"/></td>'+
+      '<td><input type="number" class="eval-s1" name="s1_'+i+'" min="0" step="0.01" placeholder="Unit price"/></td>'+
+      '<td><input type="number" class="eval-s2" name="s2_'+i+'" min="0" step="0.01" placeholder="Unit price"/></td>'+
+      '<td><input type="number" class="eval-s3" name="s3_'+i+'" min="0" step="0.01" placeholder="Unit price"/></td>'+
+      '<td><select name="rec_'+i+'"><option value="">—</option><option>Supplier 1</option><option>Supplier 2</option><option>Supplier 3</option></select></td>';
+    tbody.appendChild(tr);
+  }
+  /* Auto-calculate totals */
+  function recalc(){
+    var sub1=0,sub2=0,sub3=0;
+    tbody.querySelectorAll('tr').forEach(function(row){
+      var qty=parseFloat(row.querySelector('.eval-qty')?row.querySelector('.eval-qty').value:0)||0;
+      var s1=parseFloat(row.querySelector('.eval-s1')?row.querySelector('.eval-s1').value:0)||0;
+      var s2=parseFloat(row.querySelector('.eval-s2')?row.querySelector('.eval-s2').value:0)||0;
+      var s3=parseFloat(row.querySelector('.eval-s3')?row.querySelector('.eval-s3').value:0)||0;
+      sub1+=s1*qty;sub2+=s2*qty;sub3+=s3*qty;
+    });
+    document.getElementById('eval-sub1').value=sub1.toFixed(2);
+    document.getElementById('eval-sub2').value=sub2.toFixed(2);
+    document.getElementById('eval-sub3').value=sub3.toFixed(2);
+    document.getElementById('eval-vat1').value=(sub1*0.18).toFixed(2);
+    document.getElementById('eval-vat2').value=(sub2*0.18).toFixed(2);
+    document.getElementById('eval-vat3').value=(sub3*0.18).toFixed(2);
+    document.getElementById('eval-total1').value=(sub1*1.18).toFixed(2);
+    document.getElementById('eval-total2').value=(sub2*1.18).toFixed(2);
+    document.getElementById('eval-total3').value=(sub3*1.18).toFixed(2);
+  }
+  tbody.addEventListener('input',recalc);
+  /* File info */
+  document.getElementById('eval-attachments').addEventListener('change',function(){
+    var el=document.getElementById('eval-attach-info');
+    if(el)el.textContent=this.files.length+' file(s) selected';
+  });
+})();
+</script>
+</body>
+</html>

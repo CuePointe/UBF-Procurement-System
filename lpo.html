@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UBF — Local Purchase Order</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .ubf-doc{background:var(--white);border-radius:var(--radius-md);box-shadow:var(--shadow-md);overflow:hidden;max-width:920px;margin:0 auto;}
+    .doc-header{display:grid;grid-template-columns:80px 1fr 160px;align-items:center;padding:1rem 1.5rem;border-bottom:3px solid var(--ubf-blue-darker);gap:1rem;}
+    .doc-header-logo{width:68px;height:68px;object-fit:contain;}
+    .doc-header-centre{text-align:center;}
+    .doc-header-centre .org-name{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ubf-blue-darker);}
+    .doc-header-centre .form-name{font-size:1.1rem;font-weight:700;color:var(--gray-900);font-family:var(--font-body);text-transform:uppercase;letter-spacing:0.06em;}
+    .doc-header-right{text-align:right;font-size:0.75rem;}
+    .doc-table{width:100%;border-collapse:collapse;}
+    .doc-table th,.doc-table td{border:1px solid var(--gray-300);padding:0.5rem 0.75rem;vertical-align:middle;font-size:0.875rem;}
+    .doc-table th{background:var(--ubf-blue-light);color:var(--ubf-blue-darker);font-weight:700;font-size:0.75rem;font-family:var(--font-body);}
+    .doc-table td input,.doc-table td select,.doc-table td textarea{width:100%;border:none;outline:none;font-family:var(--font-body);font-size:0.875rem;color:var(--gray-900);background:transparent;}
+    .doc-table td input:focus{background:#fffde7;border-radius:2px;}
+    .total-row{background:var(--ubf-blue-light);font-weight:700;}
+    .doc-footer{padding:1.25rem 1.5rem;background:var(--gray-100);display:flex;align-items:center;justify-content:flex-end;gap:1rem;border-top:1px solid var(--gray-200);}
+    .nb-note{font-size:0.78rem;font-style:italic;color:var(--gray-500);padding:0.5rem 1.5rem;border-top:1px solid var(--gray-200);}
+    .approval-lbl{font-size:0.7rem;font-weight:700;text-transform:uppercase;color:var(--ubf-blue-darker);margin-bottom:0.25rem;}
+    .apv-badge{display:inline-block;padding:0.18rem 0.6rem;border-radius:999px;font-size:0.68rem;font-weight:700;text-transform:uppercase;margin-top:0.4rem;}
+    .apv-awaiting{background:var(--amber-light);color:#92400e;}
+    @media print{.navbar,.doc-footer,.page-header{display:none!important;}.page-wrapper{padding:0;}.ubf-doc{box-shadow:none;border-radius:0;}}
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a class="navbar-brand" href="dashboard.html">
+    <div class="navbar-logo"><img src="ubf-logo.jpg" alt="UBF" onerror="this.style.display='none';this.parentElement.setAttribute('data-fallback','true');"/></div>
+    <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="form.html">Request Form</a></li>
+    <li><a href="travel-plan.html">Travel Plan</a></li>
+    <li><a href="accountability.html">Accountability</a></li>
+    <li><a href="evaluation.html">Evaluation</a></li>
+    <li><a href="lpo.html" class="active">LPO</a></li>
+    <li><a href="grn.html">GRN</a></li>
+    <li><a href="invoice.html">Invoice</a></li>
+    <li><a href="history.html">History</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading…</span><span class="role-badge" id="nav-user-role">—</span></div>
+    <button id="btn-logout">Logout</button>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div id="global-error-banner" class="banner"></div>
+  <div id="global-success-banner" class="banner"></div>
+  <div class="page-header"><h1>Local Purchase Order</h1><p>Uganda Biodiversity Fund — official LPO</p></div>
+
+  <div class="ubf-doc">
+  <form id="lpo-form" novalidate autocomplete="off">
+
+    <!-- Document Header -->
+    <div class="doc-header">
+      <img class="doc-header-logo" src="ubf-logo.jpg" alt="Uganda Biodiversity Fund Logo" onerror="this.style.display='none';"/>
+      <div class="doc-header-centre">
+        <div class="org-name">Uganda Biodiversity Fund</div>
+        <div class="form-name">Local Purchase Order</div>
+        <div style="font-size:0.68rem;color:var(--gray-500);margin-top:0.25rem;">Plot 425 Zzimwe Road, Kisugu, Kampala &nbsp;|&nbsp; PO Box 26156 &nbsp;|&nbsp; Tel: +256-393-216-445</div>
+      </div>
+      <div class="doc-header-right">
+        Serial No: <strong id="lpo-serial">Auto</strong><br/>
+        Date: <input type="date" id="lpo-date" name="lpoDate" style="border:none;font-size:0.85rem;font-weight:700;width:120px;outline:none;background:transparent;"/>
+      </div>
+    </div>
+
+    <!-- Vendor Details -->
+    <div style="padding:1rem 1.5rem 0;">
+    <div style="font-weight:700;font-size:0.82rem;text-transform:uppercase;color:var(--ubf-blue-darker);margin-bottom:0.5rem;">Details of Vendor:</div>
+    <table class="doc-table">
+      <tr>
+        <th style="width:120px;">Name <span style="color:var(--red)">*</span></th>
+        <td><input type="text" id="lpo-vendor-name" name="vendorName" placeholder="Vendor / Supplier name" required/></td>
+        <th style="width:120px;">Account Code</th>
+        <td><input type="text" id="lpo-account-code" name="accountCode" placeholder="Code"/></td>
+      </tr>
+      <tr>
+        <th>Address</th>
+        <td><input type="text" id="lpo-vendor-address" name="vendorAddress" placeholder="Vendor address"/></td>
+        <th>Vendor No</th>
+        <td><input type="text" id="lpo-vendor-no" name="vendorNo" placeholder="Vendor number"/></td>
+      </tr>
+    </table>
+    <p style="font-size:0.82rem;font-style:italic;margin:0.5rem 0 0;color:var(--gray-500);">Please supply the following goods: —</p>
+    </div>
+
+    <!-- Items Table -->
+    <div style="padding:0.75rem 1.5rem 0;">
+    <table class="doc-table">
+      <thead>
+        <tr>
+          <th style="width:36px;">No.</th>
+          <th>Item Description and Specification <span style="color:var(--red)">*</span></th>
+          <th style="width:70px;">Quantity</th>
+          <th style="width:90px;">Unit of Measure</th>
+          <th style="width:100px;">Unit Price (UGX)</th>
+          <th style="width:110px;">Total Cost (UGX)</th>
+        </tr>
+      </thead>
+      <tbody id="lpo-items-body"></tbody>
+      <tfoot>
+        <tr><td colspan="5" style="text-align:right;font-weight:600;">Sub Total</td><td><input type="number" id="lpo-subtotal" step="0.01" readonly style="font-weight:700;"/></td></tr>
+        <tr><td colspan="5" style="text-align:right;">VAT (18%)</td><td><input type="number" id="lpo-vat" step="0.01" readonly/></td></tr>
+        <tr class="total-row"><td colspan="5" style="text-align:right;font-weight:700;">TOTAL</td><td><input type="number" id="lpo-total" step="0.01" readonly style="font-weight:700;"/></td></tr>
+      </tfoot>
+    </table>
+    </div>
+
+    <!-- Terms -->
+    <div style="padding:0.75rem 1.5rem 0;">
+    <table class="doc-table">
+      <tr>
+        <th style="width:200px;">This Order is Valid For</th>
+        <td><input type="text" id="lpo-validity" name="validity" placeholder="e.g. 30 days from the above date"/></td>
+        <th style="width:100px;">Deliver At</th>
+        <td><input type="text" id="lpo-deliver-at" name="deliverAt" placeholder="Delivery location"/></td>
+      </tr>
+      <tr>
+        <th>Terms of Payment</th>
+        <td colspan="3"><input type="text" id="lpo-payment-terms" name="paymentTerms" placeholder="e.g. 30 days net, upon delivery and invoice"/></td>
+      </tr>
+    </table>
+    <p class="nb-note"><strong>NB:</strong> Goods supplied shall comply with agreed specification, standard and quality. This Order is not valid until serially numbered and Officially Stamped.</p>
+    </div>
+
+    <!-- Approval Signatures -->
+    <div style="padding:0.75rem 1.5rem 0;">
+    <table class="doc-table">
+      <tr>
+        <td style="width:33%;">
+          <div class="approval-lbl">Requisitioned by:</div>
+          <div style="font-weight:700;" id="lpo-req-name">—</div>
+          <div style="font-size:0.75rem;color:var(--gray-500);" id="lpo-req-title">—</div>
+          <div style="font-size:0.78rem;margin-top:0.4rem;">Designation: <span id="lpo-req-designation">—</span></div>
+          <div style="font-size:0.78rem;">Date: <span id="lpo-req-date">—</span></div>
+        </td>
+        <td style="width:33%;">
+          <div class="approval-lbl">Checked by (Admin Officer):</div>
+          <div style="font-weight:700;">Susan Abonyo</div>
+          <div style="font-size:0.75rem;color:var(--gray-500);">Administration Officer</div>
+          <span class="apv-badge apv-awaiting">Awaiting</span>
+        </td>
+        <td style="width:33%;">
+          <div class="approval-lbl">Authorized by (ED):</div>
+          <div style="font-weight:700;">Ivan Amanigaruhanga</div>
+          <div style="font-size:0.75rem;color:var(--gray-500);">Executive Director</div>
+          <span class="apv-badge apv-awaiting">Awaiting</span>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="3">
+          <div class="approval-lbl">Received by:</div>
+          <div style="display:flex;gap:2rem;font-size:0.85rem;margin-top:0.25rem;">
+            <span>Name: ________________________________</span>
+            <span>Designation: ________________________________</span>
+            <span>Date: ________________________________</span>
+          </div>
+        </td>
+      </tr>
+    </table>
+    </div>
+
+    <!-- Attachments -->
+    <div style="padding:0.75rem 1.5rem 0;">
+    <table class="doc-table">
+      <tr>
+        <th>Supporting Documents</th>
+        <td><input type="file" id="lpo-attachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"/><div class="file-info" id="lpo-attach-info"></div></td>
+      </tr>
+    </table>
+    </div>
+
+    <div class="doc-footer">
+      <div id="lpo-loading" style="display:none;"><div style="display:flex;align-items:center;gap:0.5rem;font-size:0.85rem;color:var(--ubf-blue-dark);"><div class="spinner" style="width:18px;height:18px;border-width:2px;margin:0;border-color:var(--ubf-blue-light);border-top-color:var(--ubf-blue-dark);"></div>Saving…</div></div>
+      <button type="button" onclick="window.print()" class="btn btn-secondary">🖨️ Print</button>
+      <a href="dashboard.html" class="btn btn-secondary">Cancel</a>
+      <button type="submit" id="btn-submit-lpo" class="btn btn-primary btn-lg">Submit LPO</button>
+    </div>
+
+  </form>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="script.js"></script>
+<script>
+(function(){
+  /* Build 12 item rows */
+  var tbody=document.getElementById('lpo-items-body');
+  for(var i=1;i<=12;i++){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td style="text-align:center;color:var(--gray-500);font-size:0.78rem;">'+i+'</td>'+
+      '<td><input type="text" class="lpo-desc" name="desc_'+i+'" placeholder="Item description and specification"/></td>'+
+      '<td><input type="number" class="lpo-qty" name="qty_'+i+'" min="0" step="1"/></td>'+
+      '<td><input type="text" class="lpo-unit" name="unit_'+i+'" placeholder="pcs"/></td>'+
+      '<td><input type="number" class="lpo-price" name="price_'+i+'" min="0" step="0.01"/></td>'+
+      '<td><input type="number" class="lpo-line-total" name="total_'+i+'" step="0.01" readonly/></td>';
+    tbody.appendChild(tr);
+  }
+  function recalc(){
+    var sub=0;
+    tbody.querySelectorAll('tr').forEach(function(row){
+      var q=parseFloat(row.querySelector('.lpo-qty').value)||0;
+      var p=parseFloat(row.querySelector('.lpo-price').value)||0;
+      var t=q*p;row.querySelector('.lpo-line-total').value=t>0?t.toFixed(2):'';sub+=t;
+    });
+    document.getElementById('lpo-subtotal').value=sub.toFixed(2);
+    document.getElementById('lpo-vat').value=(sub*0.18).toFixed(2);
+    document.getElementById('lpo-total').value=(sub*1.18).toFixed(2);
+  }
+  tbody.addEventListener('input',recalc);
+  document.getElementById('lpo-attachments').addEventListener('change',function(){
+    var el=document.getElementById('lpo-attach-info');if(el)el.textContent=this.files.length+' file(s) selected';
+  });
+  /* Set today date */
+  document.getElementById('lpo-date').value=new Date().toISOString().split('T')[0];
+})();
+</script>
+</body>
+</html>

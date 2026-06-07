@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UBF — Accountability Form</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .acc-table td,.acc-table th{border:1px solid var(--gray-300);padding:0.35rem 0.5rem;font-size:0.82rem;}
+    .acc-table th{background:var(--ubf-blue-light);color:var(--ubf-blue-darker);font-weight:700;font-size:0.75rem;}
+    .acc-table td input,.acc-table td select{width:100%;border:none;outline:none;font-family:var(--font-body);font-size:0.82rem;background:transparent;}
+    .acc-table td input:focus{background:#fffde7;}
+    .summary-box{background:var(--ubf-blue-pale);border:1px solid var(--ubf-blue-light);border-radius:var(--radius-sm);padding:1rem 1.25rem;}
+    .summary-row{display:flex;align-items:center;justify-content:space-between;padding:0.35rem 0;border-bottom:1px solid var(--ubf-blue-light);font-size:0.9rem;}
+    .summary-row:last-child{border-bottom:none;font-weight:700;font-size:1rem;}
+    .summary-label{color:var(--gray-700);font-weight:500;}
+    .summary-value{font-weight:700;color:var(--ubf-blue-darker);font-family:monospace;font-size:0.95rem;}
+    .balance-positive{color:#14532d;}
+    .balance-negative{color:var(--red);}
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a class="navbar-brand" href="dashboard.html">
+    <div class="navbar-logo"><img src="ubf-logo.jpg" alt="UBF" onerror="this.style.display='none';this.parentElement.setAttribute('data-fallback','true');"/></div>
+    <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li><a href="form.html">Request</a></li>
+    <li><a href="travel-plan.html">Travel</a></li>
+    <li><a href="accountability.html" class="active">Accountability</a></li>
+    <li><a href="evaluation.html">Evaluation</a></li>
+    <li><a href="lpo.html">LPO</a></li>
+    <li><a href="grn.html">GRN</a></li>
+    <li><a href="invoice.html">Invoice</a></li>
+    <li><a href="archives.html">🗄️ Archive</a></li>
+    <li><a href="history.html">History</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading…</span><span class="role-badge" id="nav-user-role">—</span></div>
+    <button id="btn-logout">Logout</button>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div id="global-error-banner" class="banner"></div>
+  <div id="global-success-banner" class="banner"></div>
+
+  <div class="page-header">
+    <h1>Advance Accountability &amp; Expense Report</h1>
+    <p>Complete within 7 days of returning from any trip or activity where an advance was received.</p>
+  </div>
+
+  <div class="form-card">
+  <form id="accountability-form" novalidate autocomplete="off">
+
+    <!-- Header Info -->
+    <div class="form-section">
+      <div class="form-section-title">Employee Details</div>
+      <div class="submitter-box" style="margin-bottom:1rem;">
+        <div><div class="sub-label">Submitted By</div><div class="sub-value" id="acc-submitter-name">—</div></div>
+        <div><div class="sub-label">Title</div><div class="sub-value" id="acc-submitter-title">—</div></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Employee Name <span class="required">*</span></label>
+          <input type="text" id="acc-employee-name" name="employeeName" required/>
+        </div>
+        <div class="form-group">
+          <label>Date <span class="required">*</span></label>
+          <input type="date" id="acc-date" name="date" required/>
+        </div>
+        <div class="form-group full-width">
+          <label>Dates of Travel / Activity <span class="required">*</span></label>
+          <input type="text" id="acc-travel-dates" name="travelDates"
+                 placeholder="e.g. 15th May 2026 to 19th May 2026" required/>
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <input type="text" id="acc-department" name="department" placeholder="e.g. Programs"/>
+        </div>
+        <div class="form-group full-width">
+          <label>Purpose of Travel / Activity <span class="required">*</span></label>
+          <textarea id="acc-purpose" name="purpose" rows="2"
+                    placeholder="Describe the purpose of the trip or activity" required></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expenses Table -->
+    <div class="form-section">
+      <div class="form-section-title">Details of Expenses</div>
+      <div style="overflow-x:auto;">
+        <table class="acc-table" style="width:100%;border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th style="width:36px;">#</th>
+              <th style="width:90px;">Account Code</th>
+              <th style="width:95px;">Date</th>
+              <th>Brief Explanation of Expenditure</th>
+              <th style="width:90px;">Ref No</th>
+              <th style="width:110px;">Budgeted (UGX)</th>
+              <th style="width:110px;">Actual (UGX)</th>
+              <th style="width:110px;">Balance (UGX)</th>
+              <th style="width:30px;" class="no-print"></th>
+            </tr>
+          </thead>
+          <tbody id="expenses-table-body"></tbody>
+          <tfoot>
+            <tr style="background:var(--ubf-blue-light);font-weight:700;">
+              <td colspan="5" style="text-align:right;padding:0.4rem 0.5rem;font-size:0.82rem;border:1px solid var(--gray-300);">Totals</td>
+              <td style="border:1px solid var(--gray-300);padding:0.3rem 0.5rem;">
+                <input type="number" id="acc-total-budgeted" step="0.01" readonly style="width:100%;border:none;outline:none;font-weight:700;background:transparent;font-family:var(--font-body);"/>
+              </td>
+              <td style="border:1px solid var(--gray-300);padding:0.3rem 0.5rem;">
+                <input type="number" id="acc-total-actual" step="0.01" readonly style="width:100%;border:none;outline:none;font-weight:700;background:transparent;font-family:var(--font-body);"/>
+              </td>
+              <td style="border:1px solid var(--gray-300);padding:0.3rem 0.5rem;">
+                <input type="number" id="acc-total-balance" step="0.01" readonly style="width:100%;border:none;outline:none;font-weight:700;background:transparent;font-family:var(--font-body);"/>
+              </td>
+              <td style="border:1px solid var(--gray-300);" class="no-print"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <button type="button" id="btn-add-expense" style="margin-top:6px;font-size:0.75rem;color:var(--ubf-blue-dark);background:var(--ubf-blue-pale);border:1px dashed var(--ubf-blue-light);border-radius:4px;padding:0.25rem 0.7rem;cursor:pointer;" class="no-print">
+        ➕ Add Expense Row
+      </button>
+    </div>
+
+    <!-- Summary -->
+    <div class="form-section">
+      <div class="form-section-title">Advance Summary</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Advance Received (UGX) <span class="required">*</span></label>
+          <input type="number" id="acc-advance-received" name="advanceReceived" step="0.01" min="0"
+                 placeholder="Enter advance amount received" required/>
+        </div>
+      </div>
+      <div class="summary-box" style="margin-top:1rem;">
+        <div class="summary-row">
+          <span class="summary-label">Total Actual Expenses</span>
+          <span class="summary-value" id="sum-actual">UGX 0</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Advance Received</span>
+          <span class="summary-value" id="sum-advance">UGX 0</span>
+        </div>
+        <div class="summary-row">
+          <span class="summary-label">Balance (Surplus / Deficit)</span>
+          <span class="summary-value" id="sum-balance">UGX 0</span>
+        </div>
+      </div>
+      <div style="font-size:0.78rem;color:var(--gray-500);margin-top:0.6rem;">
+        ℹ️ A <strong>positive balance</strong> means you owe money back to the organisation. A <strong>negative balance</strong> means you are owed additional reimbursement.
+      </div>
+    </div>
+
+    <!-- Package Builder -->
+    <div class="form-section">
+      <div class="form-section-title">📦 Build Package — Attach Other System Forms</div>
+      <p style="font-size:0.82rem;color:var(--gray-500);margin-bottom:0.75rem;">Attach the original Travel Business Plan and any other related forms to this accountability package.</p>
+      <div id="pkg-builder-container"></div>
+    </div>
+
+    <!-- Attachments -->
+    <div class="form-section">
+      <div class="form-section-title">Receipts &amp; Supporting Documents</div>
+      <p style="font-size:0.82rem;color:var(--gray-500);margin-bottom:0.5rem;">
+        Upload all original receipts in the order they appear in the expenses table above.
+      </p>
+      <input type="file" id="acc-attachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"/>
+      <div class="file-info" id="acc-attach-info"></div>
+    </div>
+
+    <!-- Footer -->
+    <div class="form-footer">
+      <div id="acc-loading" style="display:none;"><div class="spinner" style="width:18px;height:18px;border-width:2px;margin:0 8px 0 0;display:inline-block;vertical-align:middle;"></div><span style="font-size:0.85rem;">Submitting…</span></div>
+      <button type="button" id="btn-acc-preview-pdf" class="btn btn-secondary">📄 Preview PDF</button>
+      <button type="button" onclick="window.print()" class="btn btn-secondary">🖨️ Print</button>
+      <a href="dashboard.html" class="btn btn-secondary">Cancel</a>
+      <button type="submit" id="btn-submit-accountability" class="btn btn-primary btn-lg">Submit Accountability Form</button>
+    </div>
+
+  </form>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="form-renderer.js"></script>
+<script src="script.js"></script>
+<script>
+(function(){
+  var tbody=document.getElementById('expenses-table-body'),rowCount=0;
+  function makeRow(n){
+    var tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td style="text-align:center;color:var(--gray-500);font-size:0.78rem;border:1px solid var(--gray-300);padding:0.35rem 0.3rem;">'+n+'</td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="text" data-col="accountCode" placeholder="Code"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="date" data-col="date"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="text" data-col="explanation" placeholder="Brief explanation of expenditure"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="text" data-col="refNo" placeholder="Ref No"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" data-col="budgeted" class="exp-budgeted" step="0.01" min="0" placeholder="0.00"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" data-col="actual" class="exp-actual" step="0.01" min="0" placeholder="0.00"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" data-col="balance" class="exp-balance" step="0.01" readonly style="font-weight:600;"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.2rem 0.3rem;text-align:center;" class="no-print"><button type="button" class="del-exp" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.85rem;">✕</button></td>';
+    return tr;
+  }
+  function fmtUGX(n){return'UGX '+Number(n).toLocaleString('en-UG',{minimumFractionDigits:0});}
+  function recalc(){
+    var totB=0,totA=0,totBal=0;
+    tbody.querySelectorAll('tr').forEach(function(row){
+      var b=parseFloat((row.querySelector('.exp-budgeted')||{}).value)||0;
+      var a=parseFloat((row.querySelector('.exp-actual')||{}).value)||0;
+      var bal=b-a;totB+=b;totA+=a;totBal+=bal;
+      var bf=row.querySelector('.exp-balance');if(bf)bf.value=bal!==0?bal.toFixed(2):'';
+    });
+    var tb=document.getElementById('acc-total-budgeted');if(tb)tb.value=totB>0?totB.toFixed(2):'';
+    var ta=document.getElementById('acc-total-actual');if(ta)ta.value=totA>0?totA.toFixed(2):'';
+    var tbal=document.getElementById('acc-total-balance');if(tbal)tbal.value=totBal!==0?totBal.toFixed(2):'';
+    /* Summary */
+    var adv=parseFloat((document.getElementById('acc-advance-received')||{}).value)||0;
+    var finalBal=adv-totA;
+    document.getElementById('sum-actual').textContent=fmtUGX(totA);
+    document.getElementById('sum-advance').textContent=fmtUGX(adv);
+    var sb=document.getElementById('sum-balance');
+    sb.textContent=fmtUGX(Math.abs(finalBal))+(finalBal>0?' (to be returned)':(finalBal<0?' (to be reimbursed)':''));
+    sb.className='summary-value '+(finalBal>0?'balance-positive':(finalBal<0?'balance-negative':''));
+  }
+  function addRow(){rowCount++;tbody.appendChild(makeRow(rowCount));}
+  for(var i=0;i<5;i++) addRow();
+  tbody.addEventListener('input',recalc);
+  tbody.addEventListener('click',function(e){if(e.target.classList.contains('del-exp')){e.target.closest('tr').remove();recalc();}});
+  document.getElementById('btn-add-expense').addEventListener('click',addRow);
+  document.getElementById('acc-advance-received').addEventListener('input',recalc);
+  document.getElementById('acc-attachments').addEventListener('change',function(){var el=document.getElementById('acc-attach-info');if(el)el.textContent=this.files.length+' file(s) selected';});
+  document.getElementById('acc-date').value=new Date().toISOString().split('T')[0];
+
+  /* Preview PDF */
+  document.getElementById('btn-acc-preview-pdf').addEventListener('click',function(){
+    if(!window.FormRenderer){alert('PDF renderer not loaded.');return;}
+    var btn=this;btn.disabled=true;btn.textContent='Generating…';
+    var expenses=[];
+    tbody.querySelectorAll('tr').forEach(function(row){
+      var exp=(row.querySelector('[data-col="explanation"]')||{}).value||'';
+      if(exp.trim())expenses.push({accountCode:(row.querySelector('[data-col="accountCode"]')||{}).value||'',date:(row.querySelector('[data-col="date"]')||{}).value||'',explanation:exp,refNo:(row.querySelector('[data-col="refNo"]')||{}).value||'',budgeted:(row.querySelector('[data-col="budgeted"]')||{}).value||'',actual:(row.querySelector('[data-col="actual"]')||{}).value||'',balance:(row.querySelector('[data-col="balance"]')||{}).value||''});
+    });
+    var previewRec={
+      id:'PREVIEW-'+Date.now(),formType:'accountability',
+      submittedByName:(document.getElementById('acc-submitter-name')||{}).textContent||'—',
+      submittedByTitle:(document.getElementById('acc-submitter-title')||{}).textContent||'—',
+      status:'Draft',createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),
+      attachments:[],linkedForms:[],managementNotes:[],comments:[],history:[],
+      approval:{preparation:{},review:{},clearance:{},approval:{}},
+      data:{
+        description:'Accountability: '+(document.getElementById('acc-purpose').value||''),
+        employeeName:document.getElementById('acc-employee-name').value||'',
+        date:document.getElementById('acc-date').value||'',
+        travelDates:document.getElementById('acc-travel-dates').value||'',
+        department:document.getElementById('acc-department').value||'',
+        purpose:document.getElementById('acc-purpose').value||'',
+        totalBudgeted:document.getElementById('acc-total-budgeted').value||'',
+        totalActual:document.getElementById('acc-total-actual').value||'',
+        advanceReceived:document.getElementById('acc-advance-received').value||'',
+        expenses:JSON.stringify(expenses)
+      }
+    };
+    window.FormRenderer.downloadFormPDF(previewRec,function(){btn.disabled=false;btn.textContent='📄 Preview PDF';});
+  });
+})();
+</script>
+</body>
+</html>

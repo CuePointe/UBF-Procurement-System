@@ -2,18 +2,15 @@
  * script.js - UBF Logistics & Procurement System
  */
 
-/* Token setup — never fires on login page */
+/* Token check — no prompt ever fires from script.js
+   Token is set ONLY via the setup screen in index.html */
 (function(){
   var K='ubf_gatekeeper_token';
-  if(!localStorage.getItem(K)){
-    /* Only prompt when NOT on the login page */
-    var path=location.pathname;
-    var onLogin=path.slice(-1)==='/'||path.indexOf('index.html')!==-1||path.slice(-1)==='l'&&path.indexOf('index')!==-1;
-    if(!onLogin){
-      var t=prompt('System Setup - Enter the Access Key provided by your administrator:');
-      if(t&&t.trim().indexOf('ghp_')===0){localStorage.setItem(K,t.trim());location.reload();}
-      else if(t!==null){alert('Invalid key. Contact t.otieno@ugandabiodiversityfund.org');}
-    }
+  var path=location.pathname;
+  var isLoginPage=path.indexOf('index')===-1&&path.slice(-1)!=='/'&&path!=='';
+  /* Non-login pages: if no token, redirect to login */
+  if(!localStorage.getItem(K)&&isLoginPage){
+    location.href=path.substring(0,path.lastIndexOf('/')+1)+'index.html';
   }
 }());
 

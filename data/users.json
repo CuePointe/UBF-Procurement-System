@@ -14,9 +14,9 @@
     "name": "Winnie Nabatanzi",
     "role": "FAM",
     "title": "Finance and Administration Manager",
-    "passwordHash": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
-    "passwordExpiry": "2027-12-31",
-    "mustChangePassword": true,
+    "passwordHash": "ca9ede5a86012484747d8b2ecfe24cb19728df316b7c92f92811ff6b7265d1a1",
+    "passwordExpiry": "2026-09-06",
+    "mustChangePassword": false,
     "active": true
   },
   {

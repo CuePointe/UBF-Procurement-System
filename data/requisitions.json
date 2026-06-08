@@ -143,11 +143,18 @@
         "description": "LPO: Bilal",
         "status": "Pending",
         "submittedByName": "Susan Abonyo"
+      },
+      {
+        "id": "UBF-20260608-F4CA8F",
+        "formType": "invoice",
+        "description": "Payment Voucher: UBF",
+        "status": "Pending",
+        "submittedByName": "Winnie Nabatanzi"
       }
     ],
     "managementNotes": [],
     "createdAt": "2026-06-08T08:55:37.772Z",
-    "updatedAt": "2026-06-08T08:58:32.506Z",
+    "updatedAt": "2026-06-08T09:01:54.840Z",
     "approval": {
       "preparation": {
         "status": "Prepared",
@@ -202,6 +209,14 @@
         "byTitle": "Administration Officer",
         "at": "2026-06-08T08:58:32.506Z",
         "note": ""
+      },
+      {
+        "action": "Form Added to Package",
+        "by": "w.nabatanzi@ugandabiodiversityfund.org",
+        "byName": "Winnie Nabatanzi",
+        "byTitle": "Finance and Administration Manager",
+        "at": "2026-06-08T09:01:54.840Z",
+        "note": "invoice (UBF-20260608-F4CA8F) added by Winnie Nabatanzi"
       }
     ]
   },
@@ -265,6 +280,70 @@
         "byTitle": "Administration Officer",
         "at": "2026-06-08T08:58:08.450Z",
         "note": "Added to package UBF-20260608-F5A9C2 by Susan Abonyo"
+      }
+    ]
+  },
+  {
+    "id": "UBF-20260608-F4CA8F",
+    "formType": "invoice",
+    "data": {
+      "description": "Payment Voucher: UBF",
+      "payee": "UBF",
+      "invDate": "2026-06-10",
+      "chequeNo": "3953374675494",
+      "voucherNo": "003758",
+      "amountWords": "Twenty thousand shillings only",
+      "particulars": "[{\"particulars\":\"Weedmaster\",\"accCode\":\"UBF OI\",\"amount\":\"20000\"}]"
+    },
+    "submittedBy": "w.nabatanzi@ugandabiodiversityfund.org",
+    "submittedByName": "Winnie Nabatanzi",
+    "submittedByTitle": "Finance and Administration Manager",
+    "submittedByRole": "FAM",
+    "status": "Pending",
+    "attachments": [],
+    "comments": [],
+    "linkedForms": [],
+    "managementNotes": [],
+    "createdAt": "2026-06-08T09:01:54.840Z",
+    "updatedAt": "2026-06-08T09:01:54.840Z",
+    "approval": {
+      "preparation": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      },
+      "review": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      },
+      "clearance": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      },
+      "approval": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      }
+    },
+    "history": [
+      {
+        "action": "Submitted",
+        "by": "w.nabatanzi@ugandabiodiversityfund.org",
+        "byName": "Winnie Nabatanzi",
+        "byTitle": "Finance and Administration Manager",
+        "at": "2026-06-08T09:01:54.840Z",
+        "note": "Added to package UBF-20260608-F5A9C2 by Winnie Nabatanzi"
       }
     ]
   }

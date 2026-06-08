@@ -133,7 +133,7 @@
     "submittedByName": "Tom Otieno",
     "submittedByTitle": "Office Assistant",
     "submittedByRole": "Staff",
-    "status": "Pending",
+    "status": "Prepared",
     "attachments": [],
     "comments": [],
     "linkedForms": [
@@ -147,13 +147,13 @@
     ],
     "managementNotes": [],
     "createdAt": "2026-06-08T08:55:37.772Z",
-    "updatedAt": "2026-06-08T08:58:08.450Z",
+    "updatedAt": "2026-06-08T08:58:32.506Z",
     "approval": {
       "preparation": {
-        "status": "Pending",
-        "by": "",
-        "byName": "",
-        "at": "",
+        "status": "Prepared",
+        "by": "s.abonyo@ugandabiodiversityfund.org",
+        "byName": "Susan Abonyo",
+        "at": "2026-06-08T08:58:32.506Z",
         "note": ""
       },
       "review": {
@@ -194,6 +194,14 @@
         "byTitle": "Administration Officer",
         "at": "2026-06-08T08:58:08.450Z",
         "note": "lpo (UBF-20260608-36F0A2) added by Susan Abonyo"
+      },
+      {
+        "action": "Prepared",
+        "by": "s.abonyo@ugandabiodiversityfund.org",
+        "byName": "Susan Abonyo",
+        "byTitle": "Administration Officer",
+        "at": "2026-06-08T08:58:32.506Z",
+        "note": ""
       }
     ]
   },

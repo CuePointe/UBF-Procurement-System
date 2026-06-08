@@ -133,7 +133,7 @@
     "submittedByName": "Tom Otieno",
     "submittedByTitle": "Office Assistant",
     "submittedByRole": "Staff",
-    "status": "Cleared",
+    "status": "Approved",
     "attachments": [],
     "comments": [],
     "linkedForms": [
@@ -154,7 +154,7 @@
     ],
     "managementNotes": [],
     "createdAt": "2026-06-08T08:55:37.772Z",
-    "updatedAt": "2026-06-08T09:03:22.110Z",
+    "updatedAt": "2026-06-08T09:03:54.062Z",
     "approval": {
       "preparation": {
         "status": "Prepared",
@@ -178,10 +178,10 @@
         "note": ""
       },
       "approval": {
-        "status": "Pending",
-        "by": "",
-        "byName": "",
-        "at": "",
+        "status": "Approved",
+        "by": "i.amani@ugandabiodiversityfund.org",
+        "byName": "Ivan Amanigaruhanga",
+        "at": "2026-06-08T09:03:54.062Z",
         "note": ""
       }
     },
@@ -232,6 +232,14 @@
         "byName": "Winnie Nabatanzi",
         "byTitle": "Finance and Administration Manager",
         "at": "2026-06-08T09:03:22.110Z",
+        "note": ""
+      },
+      {
+        "action": "Approved",
+        "by": "i.amani@ugandabiodiversityfund.org",
+        "byName": "Ivan Amanigaruhanga",
+        "byTitle": "Executive Director",
+        "at": "2026-06-08T09:03:54.062Z",
         "note": ""
       }
     ]

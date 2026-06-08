@@ -110,5 +110,75 @@
         "note": ""
       }
     ]
+  },
+  {
+    "id": "UBF-20260608-F5A9C2",
+    "formType": "request",
+    "data": {
+      "activityCode": "ACT-2026",
+      "description": "Weedmaster",
+      "specification": "Liquid chemical that removes weeds in compounds",
+      "quantity": "1",
+      "dateRequired": "2026-06-08",
+      "locationOfWork": "Office",
+      "contractPeriod": "6 months",
+      "department": "Admin",
+      "accountCode": "IO",
+      "accountName": "IGF",
+      "donorCode": "UBF IGF",
+      "donorName": "UBF",
+      "budgetCode": "UBF OI"
+    },
+    "submittedBy": "t.otieno@ugandabiodiversityfund.org",
+    "submittedByName": "Tom Otieno",
+    "submittedByTitle": "Office Assistant",
+    "submittedByRole": "Staff",
+    "status": "Pending",
+    "attachments": [],
+    "comments": [],
+    "linkedForms": [],
+    "managementNotes": [],
+    "createdAt": "2026-06-08T08:55:37.772Z",
+    "updatedAt": "2026-06-08T08:55:37.772Z",
+    "approval": {
+      "preparation": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      },
+      "review": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      },
+      "clearance": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      },
+      "approval": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      }
+    },
+    "history": [
+      {
+        "action": "Submitted",
+        "by": "t.otieno@ugandabiodiversityfund.org",
+        "byName": "Tom Otieno",
+        "byTitle": "Office Assistant",
+        "at": "2026-06-08T08:55:37.772Z",
+        "note": "Initial submission"
+      }
+    ]
   }
 ]

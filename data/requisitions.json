@@ -23,11 +23,21 @@
     "submittedByRole": "Staff",
     "status": "Pending",
     "attachments": [],
-    "comments": [],
+    "comments": [
+      {
+        "id": "CMT-1780908206449",
+        "by": "s.abonyo@ugandabiodiversityfund.org",
+        "byName": "Susan Abonyo",
+        "byRole": "Admin Officer",
+        "text": "Please review the submitted request, suggest improvements where suitable.",
+        "at": "2026-06-08T08:43:26.449Z",
+        "replies": []
+      }
+    ],
     "linkedForms": [],
     "managementNotes": [],
     "createdAt": "2026-06-08T08:39:27.787Z",
-    "updatedAt": "2026-06-08T08:39:27.787Z",
+    "updatedAt": "2026-06-08T08:43:26.449Z",
     "approval": {
       "preparation": {
         "status": "Pending",

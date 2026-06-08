@@ -136,10 +136,18 @@
     "status": "Pending",
     "attachments": [],
     "comments": [],
-    "linkedForms": [],
+    "linkedForms": [
+      {
+        "id": "UBF-20260608-36F0A2",
+        "formType": "lpo",
+        "description": "LPO: Bilal",
+        "status": "Pending",
+        "submittedByName": "Susan Abonyo"
+      }
+    ],
     "managementNotes": [],
     "createdAt": "2026-06-08T08:55:37.772Z",
-    "updatedAt": "2026-06-08T08:55:37.772Z",
+    "updatedAt": "2026-06-08T08:58:08.450Z",
     "approval": {
       "preparation": {
         "status": "Pending",
@@ -178,6 +186,77 @@
         "byTitle": "Office Assistant",
         "at": "2026-06-08T08:55:37.772Z",
         "note": "Initial submission"
+      },
+      {
+        "action": "Form Added to Package",
+        "by": "s.abonyo@ugandabiodiversityfund.org",
+        "byName": "Susan Abonyo",
+        "byTitle": "Administration Officer",
+        "at": "2026-06-08T08:58:08.450Z",
+        "note": "lpo (UBF-20260608-36F0A2) added by Susan Abonyo"
+      }
+    ]
+  },
+  {
+    "id": "UBF-20260608-36F0A2",
+    "formType": "lpo",
+    "data": {
+      "description": "LPO: Bilal",
+      "vendorName": "Bilal",
+      "lpoDate": "2026-06-08",
+      "deliverAt": "Kisugu, Zzimwe road",
+      "paymentTerms": "",
+      "items": "[{\"desc\":\"Weedmaster\",\"qty\":\"1\",\"unit\":\"ltr\",\"unitPrice\":\"20000\",\"total\":\"20000.00\"}]"
+    },
+    "submittedBy": "s.abonyo@ugandabiodiversityfund.org",
+    "submittedByName": "Susan Abonyo",
+    "submittedByTitle": "Administration Officer",
+    "submittedByRole": "Admin Officer",
+    "status": "Pending",
+    "attachments": [],
+    "comments": [],
+    "linkedForms": [],
+    "managementNotes": [],
+    "createdAt": "2026-06-08T08:58:08.450Z",
+    "updatedAt": "2026-06-08T08:58:08.450Z",
+    "approval": {
+      "preparation": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      },
+      "review": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      },
+      "clearance": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      },
+      "approval": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      }
+    },
+    "history": [
+      {
+        "action": "Submitted",
+        "by": "s.abonyo@ugandabiodiversityfund.org",
+        "byName": "Susan Abonyo",
+        "byTitle": "Administration Officer",
+        "at": "2026-06-08T08:58:08.450Z",
+        "note": "Added to package UBF-20260608-F5A9C2 by Susan Abonyo"
       }
     ]
   }

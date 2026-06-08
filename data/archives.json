@@ -6,17 +6,19 @@
       "createdBy": "w.nabatanzi@ugandabiodiversityfund.org",
       "createdByName": "Winnie Nabatanzi",
       "createdAt": "2026-06-08T08:21:45.103Z",
-      "files": []
+      "files": [
+        {
+          "recordId": "UBF-20260608-ABF0D2",
+          "name": "One rake and three brooms",
+          "formType": "request",
+          "submittedByName": "Tom Otieno",
+          "approvedAt": "2026-06-08T08:48:48.662Z",
+          "addedAt": "2026-06-08T08:48:50.194Z",
+          "movedBy": "w.nabatanzi@ugandabiodiversityfund.org",
+          "movedAt": "2026-06-08T08:49:47.536Z"
+        }
+      ]
     }
   ],
-  "unfiled": [
-    {
-      "recordId": "UBF-20260608-ABF0D2",
-      "name": "One rake and three brooms",
-      "formType": "request",
-      "submittedByName": "Tom Otieno",
-      "approvedAt": "2026-06-08T08:48:48.662Z",
-      "addedAt": "2026-06-08T08:48:50.194Z"
-    }
-  ]
+  "unfiled": []
 }

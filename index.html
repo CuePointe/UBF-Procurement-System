@@ -122,9 +122,9 @@
   <!-- GREEN HEADER -->
   <div class="card-header">
     <div class="logo-ring">
-      <img src="ubf-logo.jpg" alt="UBF Logo"
-           onerror="this.style.display='none';document.getElementById('logo-fb').style.display='block';"/>
-      <span id="logo-fb" class="logo-fallback" style="display:none;">UBF</span>
+      <img id="logo-img" src="ubf-logo.png" alt="Uganda Biodiversity Fund Logo"
+           onerror="if(this.src.indexOf('.png')!==-1){this.src='ubf-logo.jpg';}else{this.style.display='none';document.getElementById('logo-fb').style.display='flex';}"/>
+      <span id="logo-fb" class="logo-fallback" style="display:none;width:100%;height:100%;align-items:center;justify-content:center;background:#3A6B2A;border-radius:50%;color:#fff;font-weight:800;font-size:1.3rem;">UBF</span>
     </div>
     <div class="org-tag">Uganda Biodiversity Fund</div>
     <h1>Logistics &amp; Procurement System</h1>
@@ -146,10 +146,11 @@
         <strong>One-time system setup</strong>
         Enter the GitHub Access Key (token) given to you by the system administrator. It is saved only on this device and never stored in any file.
       </div>
-      <label class="field-label" for="setup-token">GitHub Access Key</label>
-      <input class="field-input" type="password" id="setup-token"
-             placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off"/>
-      <button class="btn-green" onclick="doSaveToken()">Save Key &amp; Continue to Login</button>
+        <label class="field-label" for="setup-token">GitHub Access Key</label>
+      <input class="field-input" type="text" id="setup-token"
+             placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off"
+             style="font-family:monospace;font-size:0.82rem;letter-spacing:0.02em;"/>
+      <button class="btn-green" id="btn-test-token" onclick="doTestAndSaveToken()">Verify &amp; Save Key</button>
     </div>
 
     <!-- ============================================
@@ -174,6 +175,7 @@
           <button type="button" class="btn-plain" onclick="doForgot()">Forgot password?</button>
           <button type="button" class="btn-plain" onclick="doResetToken()" style="color:#888;">Reset Access Key</button>
         </div>
+
 
         <button type="submit" id="btn-login" class="btn-green">Log In</button>
       </form>
@@ -269,22 +271,187 @@ function doForgot(){
   alert('Please contact the system administrator:\nt.otieno@ugandabiodiversityfund.org');
 }
 
+/* Auto-create missing system files using the stored token */
+async function runDiagnostic(){
+  var el=document.getElementById('diag-result');
+  var token=localStorage.getItem('ubf_gatekeeper_token');
+  if(!token){
+    el.innerHTML='<span style="color:#c0392b;">No token stored. Please enter your Access Key first.</span>';
+    return;
+  }
+  el.innerHTML='<span style="color:#2D5A7E;">Detecting your repository...</span>';
+
+  var OWNER='CuePointe';
+  var REPO='UBF-Procurement-System';
+  var headers={'Authorization':'Bearer '+token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};
+
+  /* Step 1: Detect repo and default branch */
+  try{
+    var repoRes=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO,{headers:headers});
+    if(repoRes.status===404){
+      /* Try to find the repo by listing user's repos */
+      el.innerHTML='<span style="color:#d97706;">Repository not found at CuePointe/UBF-Procurement-System. Searching...</span>';
+      var reposRes=await fetch('https://api.github.com/user/repos?per_page=100',{headers:headers});
+      if(reposRes.ok){
+        var repos=await reposRes.json();
+        var ubfRepo=repos.find(function(r){return r.name.toLowerCase().indexOf('ubf')!==-1||r.name.toLowerCase().indexOf('request')!==-1||r.name.toLowerCase().indexOf('portal')!==-1||r.name.toLowerCase().indexOf('procurement')!==-1;});
+        if(ubfRepo){
+          OWNER=ubfRepo.owner.login;
+          REPO=ubfRepo.name;
+          el.innerHTML='<span style="color:#14532d;">Found your repo: <strong>'+OWNER+'/'+REPO+'</strong>. Creating files...</span>';
+        } else {
+          /* List all repos for user to choose */
+          var repoList=repos.map(function(r){return r.owner.login+'/'+r.name;}).join(', ');
+          el.innerHTML='<span style="color:#c0392b;">Could not find UBF repo automatically. Your repos: <strong>'+repoList+'</strong><br/>The code is set to look for: <strong>CuePointe/UBF-Procurement-System</strong></span>';
+          return;
+        }
+      } else {
+        el.innerHTML='<span style="color:#c0392b;">Cannot access GitHub API. Check your token has "repo" scope.</span>';
+        return;
+      }
+    } else if(!repoRes.ok){
+      el.innerHTML='<span style="color:#c0392b;">GitHub API error: '+repoRes.status+'. Check your token.</span>';
+      return;
+    }
+
+    /* Get default branch */
+    var repoData=await (await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO,{headers:headers})).json();
+    var BRANCH=repoData.default_branch||'main';
+    el.innerHTML='<span style="color:#2D5A7E;">Repo: <strong>'+OWNER+'/'+REPO+'</strong> | Branch: <strong>'+BRANCH+'</strong><br/>Creating system files...</span>';
+
+  /* Define the required files and their content */
+  var ADMIN_HASH='8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
+  var EXPIRY='2027-12-31';
+
+  var usersContent=JSON.stringify([
+    {"email":"i.amani@ugandabiodiversityfund.org","name":"Ivan Amanigaruhanga","role":"ED","title":"Executive Director","passwordHash":ADMIN_HASH,"passwordExpiry":EXPIRY,"mustChangePassword":true,"active":true},
+    {"email":"w.nabatanzi@ugandabiodiversityfund.org","name":"Winnie Nabatanzi","role":"FAM","title":"Finance and Administration Manager","passwordHash":ADMIN_HASH,"passwordExpiry":EXPIRY,"mustChangePassword":true,"active":true},
+    {"email":"s.abonyo@ugandabiodiversityfund.org","name":"Susan Abonyo","role":"Admin Officer","title":"Administration Officer","passwordHash":ADMIN_HASH,"passwordExpiry":EXPIRY,"mustChangePassword":true,"active":true},
+    {"email":"d.okullu@ugandabiodiversityfund.org","name":"David Okullu","role":"Staff","title":"M&E Officer","passwordHash":ADMIN_HASH,"passwordExpiry":EXPIRY,"mustChangePassword":true,"active":true},
+    {"email":"p.musiime@ugandabiodiversityfund.org","name":"Posiano Musiime","role":"Staff","title":"Programs Officer","passwordHash":ADMIN_HASH,"passwordExpiry":EXPIRY,"mustChangePassword":true,"active":true},
+    {"email":"o.atuhaire@ugandabiodiversityfund.org","name":"Owen Atuhaire","role":"Staff","title":"Project Officer","passwordHash":ADMIN_HASH,"passwordExpiry":EXPIRY,"mustChangePassword":true,"active":true},
+    {"email":"t.otieno@ugandabiodiversityfund.org","name":"Tom Otieno","role":"Staff","title":"Office Assistant","passwordHash":ADMIN_HASH,"passwordExpiry":EXPIRY,"mustChangePassword":false,"active":true}
+  ],null,2);
+
+  var reqContent='[]';
+  var archContent=JSON.stringify({"folders":[],"unfiled":[]},null,2);
+
+  var files=[
+    {path:'data/users.json',      content:usersContent,  label:'Staff accounts'},
+    {path:'data/requisitions.json',content:reqContent,   label:'Submissions database'},
+    {path:'data/archives.json',    content:archContent,  label:'Document archive'}
+  ];
+
+  var results=[];
+
+  for(var i=0;i<files.length;i++){
+    var f=files[i];
+    var apiUrl='https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+f.path+'?ref='+BRANCH;
+
+    /* Check if file exists */
+    var existRes=await fetch(apiUrl,{headers:headers});
+    var sha=null;
+
+    if(existRes.status===200){
+      var existData=await existRes.json();
+      sha=existData.sha;
+    }
+
+    /* Create or update the file */
+    var body={
+      message:(sha?'Update ':'Create ')+f.path,
+      content:btoa(unescape(encodeURIComponent(f.content))),
+      branch:BRANCH
+    };
+    if(sha)body.sha=sha;
+
+    var writeRes=await fetch(apiUrl,{
+      method:'PUT',
+      headers:headers,
+      body:JSON.stringify(body)
+    });
+
+    if(writeRes.status===200||writeRes.status===201){
+      results.push('<span style="color:#14532d;font-weight:600;">&#10003; '+f.path+' — '+(sha?'Updated':'Created')+' ('+f.label+')</span>');
+    } else {
+      var errData={};
+      try{errData=await writeRes.json();}catch(_){}
+      results.push('<span style="color:#c0392b;">&#10007; '+f.path+' — Failed ('+writeRes.status+'): '+(errData.message||'Unknown error')+'</span>');
+    }
+  }
+
+  el.innerHTML=results.join('<br/>');
+
+  /* If all succeeded, show login prompt */
+  var allOk=results.every(function(r){return r.indexOf('&#10003;')!==-1;});
+  if(allOk){
+    el.innerHTML+=
+      '<div style="margin-top:0.75rem;padding:0.6rem 0.85rem;background:#dcfce7;border-radius:6px;color:#14532d;font-weight:600;">'+
+      '&#10003; All system files created! Please log in now.'+
+      '</div>';
+  }
+  }catch(err){
+    el.innerHTML='<span style="color:#c0392b;">Error: '+err.message+'</span>';
+  }
+}
+
 /* ============================================
    Step 1 — Save Access Key
 ============================================ */
 function doSaveToken(){
   var val = (document.getElementById('setup-token').value || '').trim();
-  if(!val){
-    showError('Please enter the Access Key.');
-    return;
-  }
-  if(val.indexOf('ghp_') !== 0 && val.indexOf('github_pat_') !== 0){
-    showError('Invalid key. It must start with ghp_ or github_pat_');
-    return;
-  }
+  if(!val){ showError('Please enter the Access Key.'); return; }
   localStorage.setItem(TOKEN_KEY, val);
-  showInfo('Access Key saved. Please log in below.');
+  showInfo('Key saved. Please log in.');
   showSection('sec-login');
+}
+
+async function doTestAndSaveToken(){
+  var val = (document.getElementById('setup-token').value || '').trim();
+  if(!val){ showError('Please paste your GitHub token first.'); return; }
+
+  var btn = document.getElementById('btn-test-token');
+  btn.disabled = true;
+  btn.textContent = 'Verifying...';
+  clearAlerts();
+
+  try{
+    /* Test token by calling GitHub API to verify it works */
+    var OWNER = 'CuePointe';
+    var REPO  = 'UBF-Procurement-System';
+    var url   = 'https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/data/users.json';
+    var res   = await fetch(url, {
+      method:'GET',
+      headers:{
+        'Authorization':'Bearer '+val,
+        'Accept':'application/vnd.github.v3+json'
+      }
+    });
+
+    if(res.status === 200){
+      /* Token works AND users.json exists */
+      localStorage.setItem(TOKEN_KEY, val);
+      showInfo('Token verified. Please log in below.');
+      showSection('sec-login');
+    } else if(res.status === 401){
+      showError('Token rejected by GitHub (401). Please generate a NEW token at github.com/settings/tokens and try again.');
+      btn.disabled = false; btn.textContent = 'Verify & Save Key';
+    } else if(res.status === 404){
+      /* Token works but users.json missing */
+      localStorage.setItem(TOKEN_KEY, val);
+      showError('Token is valid but data/users.json is missing from your GitHub repo. Please upload users.json to the data/ folder, then try logging in.');
+      btn.disabled = false; btn.textContent = 'Verify & Save Key';
+    } else if(res.status === 403){
+      showError('Token does not have permission (403). When generating the token, make sure to tick the "repo" checkbox under Scopes.');
+      btn.disabled = false; btn.textContent = 'Verify & Save Key';
+    } else {
+      showError('Unexpected response ('+res.status+'). Please try again or contact Tom Otieno.');
+      btn.disabled = false; btn.textContent = 'Verify & Save Key';
+    }
+  } catch(err){
+    showError('Network error: '+err.message+'. Please check your internet connection.');
+    btn.disabled = false; btn.textContent = 'Verify & Save Key';
+  }
 }
 
 /* Reset token — forces user back to setup */

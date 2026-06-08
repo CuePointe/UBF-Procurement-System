@@ -4,9 +4,9 @@
     "name": "Ivan Amanigaruhanga",
     "role": "ED",
     "title": "Executive Director",
-    "passwordHash": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
-    "passwordExpiry": "2027-12-31",
-    "mustChangePassword": true,
+    "passwordHash": "3bb60288c21b798da0e1f9671503f81ba6d794b10f0e4bdc93b5f83284d82f2f",
+    "passwordExpiry": "2026-09-06",
+    "mustChangePassword": false,
     "active": true
   },
   {

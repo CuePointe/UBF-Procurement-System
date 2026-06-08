@@ -8,7 +8,7 @@
 var CONFIG={
   API_BASE        :'https://api.github.com',
   OWNER           :'CuePointe',
-  REPO            :'UBF-Request-Portal',
+  REPO            :'UBF-Procurement-System',
   DB_PATH         :'data/requisitions.json',
   USERS_PATH      :'data/users.json',
   ARCHIVES_PATH   :'data/archives.json',

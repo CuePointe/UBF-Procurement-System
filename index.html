@@ -284,11 +284,45 @@ async function runDiagnostic(){
     el.innerHTML='<span style="color:#c0392b;">No token stored. Please enter your Access Key first.</span>';
     return;
   }
-  el.innerHTML='<span style="color:#2D5A7E;">Checking and creating system files automatically...</span>';
+  el.innerHTML='<span style="color:#2D5A7E;">Detecting your repository...</span>';
 
   var OWNER='CuePointe';
-  var REPO='UBF-Request-Portal';
+  var REPO='UBF-Procurement-System';
   var headers={'Authorization':'Bearer '+token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'};
+
+  /* Step 1: Detect repo and default branch */
+  try{
+    var repoRes=await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO,{headers:headers});
+    if(repoRes.status===404){
+      /* Try to find the repo by listing user's repos */
+      el.innerHTML='<span style="color:#d97706;">Repository not found at CuePointe/UBF-Procurement-System. Searching...</span>';
+      var reposRes=await fetch('https://api.github.com/user/repos?per_page=100',{headers:headers});
+      if(reposRes.ok){
+        var repos=await reposRes.json();
+        var ubfRepo=repos.find(function(r){return r.name.toLowerCase().indexOf('ubf')!==-1||r.name.toLowerCase().indexOf('request')!==-1||r.name.toLowerCase().indexOf('portal')!==-1||r.name.toLowerCase().indexOf('procurement')!==-1;});
+        if(ubfRepo){
+          OWNER=ubfRepo.owner.login;
+          REPO=ubfRepo.name;
+          el.innerHTML='<span style="color:#14532d;">Found your repo: <strong>'+OWNER+'/'+REPO+'</strong>. Creating files...</span>';
+        } else {
+          /* List all repos for user to choose */
+          var repoList=repos.map(function(r){return r.owner.login+'/'+r.name;}).join(', ');
+          el.innerHTML='<span style="color:#c0392b;">Could not find UBF repo automatically. Your repos: <strong>'+repoList+'</strong><br/>The code is set to look for: <strong>CuePointe/UBF-Procurement-System</strong></span>';
+          return;
+        }
+      } else {
+        el.innerHTML='<span style="color:#c0392b;">Cannot access GitHub API. Check your token has "repo" scope.</span>';
+        return;
+      }
+    } else if(!repoRes.ok){
+      el.innerHTML='<span style="color:#c0392b;">GitHub API error: '+repoRes.status+'. Check your token.</span>';
+      return;
+    }
+
+    /* Get default branch */
+    var repoData=await (await fetch('https://api.github.com/repos/'+OWNER+'/'+REPO,{headers:headers})).json();
+    var BRANCH=repoData.default_branch||'main';
+    el.innerHTML='<span style="color:#2D5A7E;">Repo: <strong>'+OWNER+'/'+REPO+'</strong> | Branch: <strong>'+BRANCH+'</strong><br/>Creating system files...</span>';
 
   /* Define the required files and their content */
   var ADMIN_HASH='8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
@@ -317,7 +351,7 @@ async function runDiagnostic(){
 
   for(var i=0;i<files.length;i++){
     var f=files[i];
-    var apiUrl='https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+f.path;
+    var apiUrl='https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/'+f.path+'?ref='+BRANCH;
 
     /* Check if file exists */
     var existRes=await fetch(apiUrl,{headers:headers});
@@ -331,7 +365,8 @@ async function runDiagnostic(){
     /* Create or update the file */
     var body={
       message:(sha?'Update ':'Create ')+f.path,
-      content:btoa(unescape(encodeURIComponent(f.content)))
+      content:btoa(unescape(encodeURIComponent(f.content))),
+      branch:BRANCH
     };
     if(sha)body.sha=sha;
 
@@ -357,8 +392,11 @@ async function runDiagnostic(){
   if(allOk){
     el.innerHTML+=
       '<div style="margin-top:0.75rem;padding:0.6rem 0.85rem;background:#dcfce7;border-radius:6px;color:#14532d;font-weight:600;">'+
-      '&#10003; All system files created successfully! You can now log in.'+
+      '&#10003; All system files created! Please log in now.'+
       '</div>';
+  }
+  }catch(err){
+    el.innerHTML='<span style="color:#c0392b;">Error: '+err.message+'</span>';
   }
 }
 
@@ -385,7 +423,7 @@ async function doTestAndSaveToken(){
   try{
     /* Test token by calling GitHub API to verify it works */
     var OWNER = 'CuePointe';
-    var REPO  = 'UBF-Request-Portal';
+    var REPO  = 'UBF-Procurement-System';
     var url   = 'https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/data/users.json';
     var res   = await fetch(url, {
       method:'GET',

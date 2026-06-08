@@ -1,1 +1,72 @@
-[]
+[
+  {
+    "id": "UBF-20260608-ABF0D2",
+    "formType": "request",
+    "data": {
+      "activityCode": "ACT-2026-01",
+      "description": "One rake and three brooms",
+      "specification": "Plastic rake, and hard compound brooms",
+      "quantity": "2",
+      "dateRequired": "2026-06-08",
+      "locationOfWork": "UBF Office",
+      "contractPeriod": "3",
+      "department": "Administration",
+      "accountCode": "IG",
+      "accountName": "OI",
+      "donorCode": "#001",
+      "donorName": "UBF",
+      "budgetCode": "#01"
+    },
+    "submittedBy": "t.otieno@ugandabiodiversityfund.org",
+    "submittedByName": "Tom Otieno",
+    "submittedByTitle": "Office Assistant",
+    "submittedByRole": "Staff",
+    "status": "Pending",
+    "attachments": [],
+    "comments": [],
+    "linkedForms": [],
+    "managementNotes": [],
+    "createdAt": "2026-06-08T08:39:27.787Z",
+    "updatedAt": "2026-06-08T08:39:27.787Z",
+    "approval": {
+      "preparation": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      },
+      "review": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      },
+      "clearance": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      },
+      "approval": {
+        "status": "Pending",
+        "by": "",
+        "byName": "",
+        "at": "",
+        "note": ""
+      }
+    },
+    "history": [
+      {
+        "action": "Submitted",
+        "by": "t.otieno@ugandabiodiversityfund.org",
+        "byName": "Tom Otieno",
+        "byTitle": "Office Assistant",
+        "at": "2026-06-08T08:39:27.787Z",
+        "note": "Initial submission"
+      }
+    ]
+  }
+]

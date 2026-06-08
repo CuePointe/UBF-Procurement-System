@@ -21,7 +21,7 @@
     "submittedByName": "Tom Otieno",
     "submittedByTitle": "Office Assistant",
     "submittedByRole": "Staff",
-    "status": "Pending",
+    "status": "Prepared",
     "attachments": [],
     "comments": [
       {
@@ -37,14 +37,14 @@
     "linkedForms": [],
     "managementNotes": [],
     "createdAt": "2026-06-08T08:39:27.787Z",
-    "updatedAt": "2026-06-08T08:43:26.449Z",
+    "updatedAt": "2026-06-08T08:43:46.093Z",
     "approval": {
       "preparation": {
-        "status": "Pending",
-        "by": "",
-        "byName": "",
-        "at": "",
-        "note": ""
+        "status": "Prepared",
+        "by": "s.abonyo@ugandabiodiversityfund.org",
+        "byName": "Susan Abonyo",
+        "at": "2026-06-08T08:43:46.093Z",
+        "note": "Please review the submitted request, suggest improvements where suitable"
       },
       "review": {
         "status": "Pending",
@@ -76,6 +76,14 @@
         "byTitle": "Office Assistant",
         "at": "2026-06-08T08:39:27.787Z",
         "note": "Initial submission"
+      },
+      {
+        "action": "Prepared",
+        "by": "s.abonyo@ugandabiodiversityfund.org",
+        "byName": "Susan Abonyo",
+        "byTitle": "Administration Officer",
+        "at": "2026-06-08T08:43:46.093Z",
+        "note": "Please review the submitted request, suggest improvements where suitable"
       }
     ]
   }

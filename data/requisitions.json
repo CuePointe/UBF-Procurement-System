@@ -21,7 +21,7 @@
     "submittedByName": "Tom Otieno",
     "submittedByTitle": "Office Assistant",
     "submittedByRole": "Staff",
-    "status": "Prepared",
+    "status": "Reviewed",
     "attachments": [],
     "comments": [
       {
@@ -37,7 +37,7 @@
     "linkedForms": [],
     "managementNotes": [],
     "createdAt": "2026-06-08T08:39:27.787Z",
-    "updatedAt": "2026-06-08T08:43:46.093Z",
+    "updatedAt": "2026-06-08T08:47:46.038Z",
     "approval": {
       "preparation": {
         "status": "Prepared",
@@ -47,10 +47,10 @@
         "note": "Please review the submitted request, suggest improvements where suitable"
       },
       "review": {
-        "status": "Pending",
-        "by": "",
-        "byName": "",
-        "at": "",
+        "status": "Reviewed",
+        "by": "w.nabatanzi@ugandabiodiversityfund.org",
+        "byName": "Winnie Nabatanzi",
+        "at": "2026-06-08T08:47:46.038Z",
         "note": ""
       },
       "clearance": {
@@ -84,6 +84,14 @@
         "byTitle": "Administration Officer",
         "at": "2026-06-08T08:43:46.093Z",
         "note": "Please review the submitted request, suggest improvements where suitable"
+      },
+      {
+        "action": "Reviewed",
+        "by": "w.nabatanzi@ugandabiodiversityfund.org",
+        "byName": "Winnie Nabatanzi",
+        "byTitle": "Finance and Administration Manager",
+        "at": "2026-06-08T08:47:46.038Z",
+        "note": ""
       }
     ]
   }

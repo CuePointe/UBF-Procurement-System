@@ -73,7 +73,7 @@
 
 <nav class="navbar">
   <a class="navbar-brand" href="dashboard.html">
-    <div class="navbar-logo"><img src="ubf-logo.jpg" alt="UBF" onerror="this.style.display='none';this.parentElement.setAttribute('data-fallback','true');"/></div>
+    <div class="navbar-logo"><img src="ubf-logo.png" alt="UBF" onerror="if(this.src.indexOf('.png')!==-1){this.src='ubf-logo.jpg';}else{this.style.display='none';this.parentElement.setAttribute('data-fallback','true');}"/></div>
     <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
   </a>
   <ul class="navbar-nav">
@@ -98,7 +98,7 @@
 
   <!-- Print-only header -->
   <div class="rpt-print-header">
-    <img src="ubf-logo.jpg" alt="UBF" style="height:60px;margin:0 auto 0.75rem;display:block;"/>
+    <img src="ubf-logo.png" alt="Uganda Biodiversity Fund" style="height:60px;width:auto;margin:0 auto 0.75rem;display:block;object-fit:contain;" onerror="if(this.src.indexOf('.png')!==-1){this.src='ubf-logo.jpg';}else{this.style.display='none';}"/>
     <h1>Uganda Biodiversity Fund</h1>
     <h2 style="font-size:1rem;font-weight:400;">Executive Logistics &amp; Procurement Expenditure Report</h2>
     <p id="rpt-print-period"></p>
@@ -196,21 +196,60 @@ function ftLabel(t){
 function extractAmount(rec){
   if(!rec||!rec.data) return 0;
   var d=rec.data;
-  /* Payment voucher */
-  if(rec.formType==='invoice')   return parseFloat(d.amount||d['inv-total']||0);
-  /* LPO */
-  if(rec.formType==='lpo')       return parseFloat(d.lpoTotal||d.total||0);
-  /* Travel */
-  if(rec.formType==='travel')    return parseFloat(d.grandTotal||0);
-  /* Accountability */
-  if(rec.formType==='accountability') return parseFloat(d.advanceReceived||d.totalActual||0);
-  /* Request / Evaluation */
-  return parseFloat(d.estimatedCost||d.amount||d.total||0);
+  /* Try all known amount fields across all form types */
+  var candidates=[
+    /* Invoice / Payment Voucher */
+    d.total, d.amount, d.invTotal,
+    /* LPO */
+    d.lpoTotal, d.subtotal,
+    /* Travel */
+    d.grandTotal,
+    /* Accountability */
+    d.advanceReceived, d.totalActual, d.totalBudgeted,
+    /* Request */
+    d.estimatedCost, d.unitCost,
+    /* LPO items total - parse from JSON */
+  ];
+  for(var i=0;i<candidates.length;i++){
+    var v=parseFloat(candidates[i]);
+    if(!isNaN(v)&&v>0)return v;
+  }
+  /* Parse items/particulars JSON and sum amounts */
+  var itemFields=[d.items, d.particulars, d.expenses, d.routes];
+  for(var j=0;j<itemFields.length;j++){
+    if(!itemFields[j])continue;
+    try{
+      var rows=JSON.parse(itemFields[j]);
+      var sum=0;
+      rows.forEach(function(row){
+        /* Try explicit total first */
+        var lineTotal=parseFloat(row.total||row.amount||row.lineTotal||0);
+        if(lineTotal>0){sum+=lineTotal;return;}
+        /* Calculate from qty * price */
+        var qty=parseFloat(row.qty||row.quantity||1);
+        var price=parseFloat(row.unitPrice||row.price||row.perDiem||row.actual||row.budgeted||0);
+        if(price>0)sum+=qty*price;
+        /* Travel: sum all cost columns */
+        var travelCost=['perDiem','accommodation','sda','others'].reduce(function(s,k){return s+(parseFloat(row[k])||0);},0);
+        if(travelCost>0)sum+=travelCost;
+      });
+      if(sum>0)return sum;
+    }catch(_){}
+  }
+  return 0;
 }
 
 function extractDept(rec){
   if(!rec||!rec.data) return '—';
   return rec.data.department||rec.data.dept||'—';
+}
+function extractCurrency(rec){
+  if(!rec||!rec.data) return 'UGX';
+  return rec.data.currency||'UGX';
+}
+function fmtAmount(n, currency){
+  if(!n||isNaN(n))return(currency||'UGX')+' 0';
+  return (currency||'UGX')+' '+Number(n).toLocaleString('en-UG',{minimumFractionDigits:0,maximumFractionDigits:0});
 }
 function extractDonor(rec){
   if(!rec||!rec.data) return '—';
@@ -374,7 +413,7 @@ function renderReport(records){
       '<td>'+extractDonor(r)+'</td>'+
       '<td>'+extractProject(r)+'</td>'+
       '<td>'+fmtDate(r.createdAt)+'</td>'+
-      '<td class="num">'+fmtUGX(amt)+'</td>'+
+      '<td class="num">'+fmtAmount(amt,extractCurrency(r))+'</td>'+
       '<td><span class="pill '+pillClass(r.status)+'">'+r.status+'</span></td>'+
       '<td style="font-size:0.78rem;">'+
         (r.approval&&r.approval.approval&&r.approval.approval.byName?r.approval.approval.byName:'—')+
@@ -405,7 +444,7 @@ function renderReport(records){
       '<td>'+extractDept(r)+'</td>'+
       '<td>'+extractDonor(r)+'</td>'+
       '<td>'+fmtDate(r.approval&&r.approval.approval?r.approval.approval.at:'')+'</td>'+
-      '<td class="num" style="font-weight:700;">'+fmtUGX(amt)+'</td>'+
+      '<td class="num" style="font-weight:700;">'+fmtAmount(amt,extractCurrency(r))+'</td>'+
     '</tr>';
   }).join('');
   var approvedTotal=approvedRecs.reduce(function(s,r){return s+extractAmount(r);},0);
@@ -432,7 +471,7 @@ function renderReport(records){
       '<td>'+r.submittedByName+'</td>'+
       '<td>'+((r.data&&r.data.businessReason)||'—')+'</td>'+
       '<td>'+fmtDate(r.createdAt)+'</td>'+
-      '<td class="num">'+fmtUGX(amt)+'</td>'+
+      '<td class="num">'+fmtAmount(amt,extractCurrency(r))+'</td>'+
       '<td><span class="pill '+pillClass(r.status)+'">'+r.status+'</span></td>'+
       '<td style="font-size:0.78rem;font-weight:600;color:'+(accounted?'#14532d':'#b45309')+';">'+
         (accounted?'✅ Accounted':'⏳ Outstanding')+

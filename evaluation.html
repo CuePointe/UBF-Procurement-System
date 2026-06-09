@@ -108,7 +108,13 @@
 
     <!-- Supplier Comparison Table -->
     <div style="padding:1rem 1.5rem 0;">
-    <div class="section-hdr">Supplier Price Comparison</div>
+    <div class="section-hdr" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+      <span>Supplier Price Comparison</span>
+      <div class="no-print" style="display:flex;gap:0.4rem;">
+        <button type="button" id="btn-add-supplier-col" onclick="addSupplierColumn()" style="font-size:0.75rem;color:var(--ubf-blue-dark);background:var(--ubf-blue-pale);border:1px dashed var(--ubf-blue);border-radius:4px;padding:0.25rem 0.7rem;cursor:pointer;">+ Add Evaluator/Supplier Column</button>
+        <button type="button" id="btn-del-supplier-col" onclick="removeSupplierColumn()" style="font-size:0.75rem;color:var(--red);background:var(--red-light);border:1px dashed var(--red);border-radius:4px;padding:0.25rem 0.7rem;cursor:pointer;">- Remove Last Column</button>
+      </div>
+    </div>
     <table class="doc-table" id="eval-comparison-table">
       <thead>
         <tr>
@@ -253,6 +259,71 @@
     if(el)el.textContent=this.files.length+' file(s) selected';
   });
 })();
+
+/* ── Evaluation: dynamic supplier columns ── */
+var _evalColCount = 3; /* starts with 3 supplier columns */
+
+function addSupplierColumn(){
+  _evalColCount++;
+  var n = _evalColCount;
+  var table = document.getElementById('eval-comparison-table');
+  if(!table) return;
+
+  /* Add header cell before "Recommended Supplier" */
+  var headerRow = table.querySelector('thead tr');
+  var lastTh = headerRow.querySelector('th:last-child');
+  var newTh = document.createElement('th');
+  newTh.innerHTML = 'Supplier '+n+'<br/><input type="text" id="sup'+n+'-name" placeholder="Name" style="font-weight:700;font-size:0.8rem;border:none;background:transparent;width:100%;color:var(--ubf-blue-darker);"/>';
+  headerRow.insertBefore(newTh, lastTh);
+
+  /* Add cell to each body row */
+  var bodyRows = table.querySelectorAll('tbody tr');
+  bodyRows.forEach(function(row){
+    var lastTd = row.querySelector('td:last-child');
+    var newTd = document.createElement('td');
+    newTd.innerHTML = '<input type="number" name="s'+n+'_'+Date.now()+'" step="0.01" min="0" placeholder="0.00" style="width:100%;border:none;outline:none;font-family:var(--font-body);font-size:0.875rem;background:transparent;"/>';
+    row.insertBefore(newTd, lastTd);
+  });
+
+  /* Add sub-total cell to footer */
+  var footerRows = table.querySelectorAll('tfoot tr');
+  footerRows.forEach(function(row){
+    var cells = row.querySelectorAll('td');
+    /* Insert before last td */
+    var lastTd = row.querySelector('td:last-child');
+    if(lastTd){
+      var newTd = document.createElement('td');
+      newTd.innerHTML = '<input type="number" id="eval-sub'+n+'" step="0.01" readonly style="width:100%;border:none;outline:none;font-family:var(--font-body);font-size:0.875rem;background:transparent;font-weight:700;"/>';
+      row.insertBefore(newTd, lastTd);
+    }
+  });
+}
+
+function removeSupplierColumn(){
+  if(_evalColCount <= 1){ alert('Must keep at least one supplier column.'); return; }
+  var table = document.getElementById('eval-comparison-table');
+  if(!table) return;
+
+  /* Remove last supplier header (before "Recommended Supplier") */
+  var headerRow = table.querySelector('thead tr');
+  var ths = headerRow.querySelectorAll('th');
+  /* Remove second-to-last th */
+  if(ths.length > 2) headerRow.removeChild(ths[ths.length - 2]);
+
+  /* Remove last supplier cell from each body row */
+  table.querySelectorAll('tbody tr').forEach(function(row){
+    var tds = row.querySelectorAll('td');
+    if(tds.length > 2) row.removeChild(tds[tds.length - 2]);
+  });
+
+  /* Remove last supplier cell from footer */
+  table.querySelectorAll('tfoot tr').forEach(function(row){
+    var tds = row.querySelectorAll('td');
+    if(tds.length > 1) row.removeChild(tds[tds.length - 2]);
+  });
+
+  _evalColCount--;
+}
 </script>
 </body>
 </html>

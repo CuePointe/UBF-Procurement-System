@@ -1932,7 +1932,8 @@ async function savePkgForm(btn){
   var formData={};
   if(formType==='travel'){
     var reason=gv('reason');if(!reason){setRes('Please enter the business reason.','error');return;}
-    formData={description:'Travel Plan: '+reason,travellerName:gv('name'),position:gv('position'),departureDate:gv('dep'),returnDate:gv('ret'),businessReason:reason,routes:JSON.stringify(getRows('tb-'+panelId))};
+    var trvTot=0;getRows('tb-'+panelId).forEach(function(r){trvTot+=parseFloat(r.total)||0;});
+    formData={description:'Travel Plan: '+reason,travellerName:gv('name'),position:gv('position'),departureDate:gv('dep'),returnDate:gv('ret'),businessReason:reason,grandTotal:trvTot>0?trvTot.toFixed(2):'',routes:JSON.stringify(getRows('tb-'+panelId))};
   }
   if(formType==='accountability'){
     var purpose=gv('purpose');if(!purpose){setRes('Please enter the purpose.','error');return;}
@@ -1944,7 +1945,9 @@ async function savePkgForm(btn){
   }
   if(formType==='lpo'){
     var vendor=gv('vendor');if(!vendor){setRes('Please enter vendor name.','error');return;}
-    formData={description:'LPO: '+vendor,vendorName:vendor,lpoDate:gv('date'),deliverAt:gv('deliver'),paymentTerms:gv('terms'),items:JSON.stringify(getRows('tb-'+panelId))};
+    /* Calculate total from rows */
+    var lpoTot=0;getRows('tb-'+panelId).forEach(function(r){lpoTot+=parseFloat(r.total)||0;});
+    formData={description:'LPO: '+vendor,vendorName:vendor,lpoDate:gv('date'),deliverAt:gv('deliver'),paymentTerms:gv('terms'),total:lpoTot>0?lpoTot.toFixed(2):'',items:JSON.stringify(getRows('tb-'+panelId))};
   }
   if(formType==='grn'){
     var vendor=gv('vendor');if(!vendor){setRes('Please enter vendor name.','error');return;}
@@ -1952,7 +1955,8 @@ async function savePkgForm(btn){
   }
   if(formType==='invoice'){
     var payee=gv('payee');if(!payee){setRes('Please enter payee name.','error');return;}
-    formData={description:'Payment Voucher: '+payee,payee:payee,invDate:gv('date'),chequeNo:gv('cheque'),voucherNo:gv('voucher'),amountWords:gv('words'),particulars:JSON.stringify(getRows('tb-'+panelId))};
+    var invTot=0;getRows('tb-'+panelId).forEach(function(r){invTot+=parseFloat(r.amount)||0;});
+    formData={description:'Payment Voucher: '+payee,payee:payee,invDate:gv('date'),chequeNo:gv('cheque'),voucherNo:gv('voucher'),amountWords:gv('words'),total:invTot>0?invTot.toFixed(2):'',amount:invTot>0?invTot.toFixed(2):'',particulars:JSON.stringify(getRows('tb-'+panelId))};
   }
 
   btn.disabled=true;btn.textContent='Saving...';setRes('Saving...','ok');

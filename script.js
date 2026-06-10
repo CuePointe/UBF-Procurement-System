@@ -1413,6 +1413,10 @@ async function initGRN(){
   if(!$id('grn-form'))return;
   if(!enforceAuth())return;navbar();wireLogout();
   var s=DS.getSession();
+  if(DS.ELEVATED.indexOf(s.role)===-1){
+    showBanner('Goods Received Note is restricted to Admin Officer, FAM and ED only.','error');
+    setTimeout(function(){go('dashboard.html');},2500);return;
+  }
   var rn=$id('grn-rec-name'),rp=$id('grn-rec-position');
   if(rn)rn.value=s.name;if(rp)rp.value=s.title;
   setupMgmtForm('grn-form','btn-submit-grn','grn-loading','grn',
@@ -1493,16 +1497,21 @@ async function initAcc(){
    HISTORY
 ==================================== */
 function buildHistRow(rec){
+  var session=DS.getSession();
   var desc=(rec.data&&rec.data.description)||rec.id;
   var pkg=rec.linkedForms&&rec.linkedForms.length?'<span style="font-size:0.65rem;background:#dcfce7;color:#14532d;padding:0.1rem 0.35rem;border-radius:3px;margin-left:3px;">pkg</span>':'';
+  var linked=rec.isLinkedForm?'<span style="font-size:0.65rem;background:var(--ubf-blue-light);color:var(--ubf-blue-darker);padding:0.1rem 0.35rem;border-radius:3px;margin-left:3px;">linked</span>':'';
+  var canDel=(DS.ELEVATED.indexOf(session.role)!==-1)||
+    (rec.submittedBy===session.email&&(rec.status==='Pending'||rec.status==='Rejected'));
+  var delBtn=canDel?'<button class="btn-action btn-reject btn-del-record" data-id="'+esc(rec.id)+'" style="font-size:0.68rem;margin-left:4px;" title="Delete this record">🗑</button>':'';
   return'<tr>'+
-    '<td><a href="#" class="link-hist-detail" data-id="'+esc(rec.id)+'">'+esc(rec.id)+'</a>'+pkg+'</td>'+
+    '<td><a href="#" class="link-hist-detail" data-id="'+esc(rec.id)+'">'+esc(rec.id)+'</a>'+pkg+linked+'</td>'+
     '<td>'+esc(ftLbl(rec.formType))+'</td>'+
     '<td>'+esc(desc)+'</td>'+
     '<td>'+esc(rec.submittedByName||rec.submittedBy)+'</td>'+
     '<td>'+fmtDate(rec.createdAt)+'</td>'+
     '<td>'+fmtDate(rec.updatedAt)+'</td>'+
-    '<td><span class="status-badge '+stCls(rec.status)+'">'+esc(rec.status)+'</span></td>'+
+    '<td><span class="status-badge '+stCls(rec.status)+'">'+esc(rec.status)+'</span>'+delBtn+'</td>'+
   '</tr>';
 }
 function renderHistTable(recs){
@@ -1515,7 +1524,10 @@ function filterHist(){
   var sv=($id('history-filter-status')||{}).value||'';
   var ft=($id('history-filter-type')||{}).value||'';
   var sq=(($id('history-filter-search')||{}).value||'').toLowerCase();
+  var showLinked=($id('history-show-linked')||{}).checked;
   renderHistTable(_allRecs.filter(function(r){
+    /* Exclude linked/child forms unless user explicitly wants to see them */
+    if(r.isLinkedForm&&!showLinked)return false;
     var d=(r.data&&r.data.description)||r.id||'';
     return(!sv||r.status===sv)&&(!ft||r.formType===ft)&&(!sq||r.id.toLowerCase().indexOf(sq)!==-1||d.toLowerCase().indexOf(sq)!==-1||(r.submittedByName||'').toLowerCase().indexOf(sq)!==-1);
   }));
@@ -1530,13 +1542,34 @@ async function initHist(){
   var fs=$id('history-filter-status'),ft=$id('history-filter-type'),fq=$id('history-filter-search');
   if(fs)fs.addEventListener('change',filterHist);if(ft)ft.addEventListener('change',filterHist);if(fq)fq.addEventListener('input',filterHist);
   var tb=$id('history-table-body');
-  if(tb)tb.addEventListener('click',function(e){
-    if(e.target.classList.contains('link-hist-detail')){
+  if(tb)tb.addEventListener('click',async function(e){
+    var t=e.target;
+    if(t.classList.contains('link-hist-detail')){
       e.preventDefault();
-      var rec=_allRecs.find(function(r){return r.id===e.target.getAttribute('data-id');});
+      var rec=_allRecs.find(function(r){return r.id===t.getAttribute('data-id');});
       if(rec)openModal(buildPackageView(rec));
+      return;
+    }
+    if(t.classList.contains('btn-del-record')){
+      var id=t.getAttribute('data-id');
+      var rec=_allRecs.find(function(r){return r.id===id;});
+      var desc=rec?(rec.data&&rec.data.description)||rec.id:id;
+      if(!confirm('Delete: '+desc+' ? This cannot be undone.'))return;
+
+
+      t.disabled=true;t.textContent='...';
+      try{
+        await DS.deleteRecord(id);
+        showBanner('Record deleted.','success');
+        var recs=await DS.getAllRequisitions();
+        _allRecs=Array.isArray(recs)?recs:[];
+        filterHist();
+      }catch(err){showBanner(err.message,'error');t.disabled=false;t.textContent='🗑';}
     }
   });
+  /* Show linked toggle */
+  var sl=$id('history-show-linked');
+  if(sl)sl.addEventListener('change',filterHist);
 }
 
 /* ====================================
@@ -1579,6 +1612,7 @@ async function initArchives(){
       '<div style="display:flex;gap:0.35rem;flex-wrap:wrap;">'+
         '<button class="btn btn-secondary btn-sm btn-arc-rename-file" data-rid="'+esc(f.recordId)+'" style="font-size:0.7rem;">Rename</button>'+
         (session.role==='FAM'?'<button class="btn btn-secondary btn-sm btn-arc-move-file" data-rid="'+esc(f.recordId)+'" style="font-size:0.7rem;">Move to Folder</button>':'')+
+        (session.role==='FAM'||session.role==='ED'?'<button class="btn btn-danger btn-sm btn-arc-del-file" data-rid="'+esc(f.recordId)+'" style="font-size:0.7rem;background:var(--red-light);color:var(--red);border:1px solid var(--red);">🗑 Delete</button>':'')+
         (rec&&FR?'<button class="btn btn-primary btn-sm btn-arc-dl-pkg" data-rid="'+esc(f.recordId)+'" style="font-size:0.7rem;">Download Package</button>':'')+
         '<button class="btn btn-secondary btn-sm btn-arc-view" data-rid="'+esc(f.recordId)+'" style="font-size:0.7rem;">View</button>'+
       '</div>'+
@@ -1615,6 +1649,7 @@ async function initArchives(){
           '</div>'+
           '<div style="display:flex;gap:0.35rem;align-items:center;">'+
             (session.role==='FAM'?'<button class="btn btn-secondary btn-sm btn-rename-folder no-fold-toggle" data-fid="'+esc(folder.id)+'" style="font-size:0.7rem;">Rename</button>':'')+
+            (session.role==='FAM'||session.role==='ED'?'<button class="btn btn-danger btn-sm btn-del-folder no-fold-toggle" data-fid="'+esc(folder.id)+'" style="font-size:0.7rem;background:var(--red-light);color:var(--red);border:1px solid var(--red);">🗑 Delete Folder</button>':'')+
             '<span style="font-size:0.75rem;color:var(--gray-500);">'+fmtDate(folder.createdAt)+'</span>'+
           '</div>'+
         '</div>'+
@@ -1651,6 +1686,29 @@ async function initArchives(){
         if(!newName||!newName.trim())return;
         t.disabled=true;
         try{await DS.renameArchiveFolder(fid,newName.trim(),session);await reload();}
+        catch(err){alert('Failed: '+err.message);t.disabled=false;}
+        return;
+      }
+
+      /* Delete folder */
+      if(t.classList.contains('btn-del-folder')){
+        e.stopPropagation();
+        var fid=t.getAttribute('data-fid');
+        var folder=archData.folders.find(function(f){return f.id===fid;});
+        if(!folder)return;
+        if(!confirm('Delete folder "'+folder.name+'"? Files inside will be moved to Unfiled.'))return;
+        t.disabled=true;
+        try{await DS.deleteArchiveFolder(fid,session);await reload();showBanner('Folder deleted.','success');}
+        catch(err){alert('Failed: '+err.message);t.disabled=false;}
+        return;
+      }
+
+      /* Delete archive file */
+      if(t.classList.contains('btn-arc-del-file')){
+        var rid=t.getAttribute('data-rid');
+        if(!confirm('Remove this file from the archive? The record will not be deleted from the system.'))return;
+        t.disabled=true;
+        try{await DS.deleteArchivedFile(rid,session);await reload();showBanner('File removed from archive.','success');}
         catch(err){alert('Failed: '+err.message);t.disabled=false;}
         return;
       }
@@ -1762,6 +1820,47 @@ function wirePkgPanels(){
       if(panel)panel.style.display='none';return;
     }
 
+    /* Add supplier column to evaluation */
+    if(t.classList.contains('btn-add-eval-col')){
+      var pId=t.getAttribute('data-panel');
+      var tbl=$id('tbl-'+pId);var thead=$id('thead-'+pId);var tbody=$id('tb-'+pId);
+      if(!thead||!tbody)return;
+      /* Count current supplier cols */
+      var ths=thead.querySelectorAll('th');
+      var supCount=ths.length-4; /* #, Item, Qty, del */
+      supCount++;
+      /* Add header */
+      var newTh=document.createElement('th');
+      newTh.style.cssText='background:#EBF3FA;color:#2D5A7E;font-weight:700;font-size:0.72rem;padding:0.35rem 0.5rem;border:1px solid #d1d1d1;width:90px;';
+      newTh.textContent='Supplier '+supCount;
+      var lastTh=thead.querySelectorAll('th');
+      thead.insertBefore(newTh, lastTh[lastTh.length-1]);
+      /* Add cell to each row */
+      tbody.querySelectorAll('tr').forEach(function(row){
+        var tds=row.querySelectorAll('td');
+        var newTd=document.createElement('td');
+        newTd.style.cssText='border:1px solid #d1d1d1;padding:0.2rem 0.4rem;';
+        newTd.innerHTML='<input data-col="s'+supCount+'" type="number" step="0.01" min="0" placeholder="0" style="width:100%;border:none;outline:none;font-family:inherit;font-size:0.8rem;background:transparent;"/>';
+        row.insertBefore(newTd, tds[tds.length-1]);
+      });
+      return;
+    }
+
+    /* Remove last supplier column from evaluation */
+    if(t.classList.contains('btn-del-eval-col')){
+      var pId=t.getAttribute('data-panel');
+      var thead=$id('thead-'+pId);var tbody=$id('tb-'+pId);
+      if(!thead||!tbody)return;
+      var ths=thead.querySelectorAll('th');
+      if(ths.length<=4){alert('Must keep at least one supplier column.');return;}
+      thead.removeChild(ths[ths.length-2]);
+      tbody.querySelectorAll('tr').forEach(function(row){
+        var tds=row.querySelectorAll('td');
+        if(tds.length>2)row.removeChild(tds[tds.length-2]);
+      });
+      return;
+    }
+
     /* Add row */
     if(t.classList.contains('btn-add-pkg-row')){
       var tbodyId=t.getAttribute('data-tbody');
@@ -1769,7 +1868,14 @@ function wirePkgPanels(){
       var tbody=$id(tbodyId);if(!tbody)return;
       var n=tbody.querySelectorAll('tr').length+1;
       var tr=document.createElement('tr');
-      tr.innerHTML=makePkgRow(type,n);
+      /* For evaluation, match current column count */
+      if(type==='evaluation'){
+        var tbl=tbody.closest('table');
+        var colCount=tbl?tbl.querySelectorAll('thead th').length-4:3;
+        tr.innerHTML=makeEvalRow(n,colCount);
+      } else {
+        tr.innerHTML=makePkgRow(type,n);
+      }
       tbody.appendChild(tr);
       return;
     }
@@ -1905,6 +2011,20 @@ function makePkgRow(type,n){
       '<td style="'+td+'"><input data-col="amount" type="number" class="pkg-cost" step="0.01" min="0" placeholder="0" style="'+inp+'"/></td>'+del;
   }
   return '';
+}
+
+function makeEvalRow(n,colCount){
+  var td='border:1px solid #d1d1d1;padding:0.2rem 0.4rem;';
+  var inp='width:100%;border:none;outline:none;font-family:inherit;font-size:0.8rem;background:transparent;';
+  var del='<td style="'+td+'text-align:center;"><button type="button" class="del-pkg-row" style="background:none;border:none;color:#c0392b;cursor:pointer;font-size:0.85rem;">x</button></td>';
+  var cells='<td style="'+td+'text-align:center;color:#888;font-size:0.75rem;">'+n+'</td>'+
+    '<td style="'+td+'"><input data-col="item" style="'+inp+'" placeholder="Item description"/></td>'+
+    '<td style="'+td+'"><input data-col="qty" type="number" step="1" min="0" placeholder="0" style="'+inp+'"/></td>';
+  for(var i=1;i<=colCount;i++){
+    cells+='<td style="'+td+'"><input data-col="s'+i+'" type="number" step="0.01" min="0" placeholder="0" style="'+inp+'"/></td>';
+  }
+  cells+=del;
+  return cells;
 }
 
 async function savePkgForm(btn){

@@ -77,6 +77,12 @@
     <div style="padding:0.75rem 1.25rem 0;">
     <table class="cpv-table">
       <tr>
+        <td class="label-cell">Currency:</td>
+        <td><select id="form-currency" name="currency" style="padding:0.45rem 0.75rem;border:1.5px solid var(--gray-300);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.875rem;font-weight:600;color:var(--ubf-blue-darker);">
+              <option value="UGX">UGX — Uganda Shillings</option>
+              <option value="USD">USD — US Dollars</option>
+              <option value="EUR">EUR — Euros</option>
+            </select></td>
         <td class="label-cell">Date:</td>
         <td style="width:180px;"><input type="date" id="inv-date" name="invDate" required/></td>
         <td class="label-cell">Voucher No:</td>
@@ -84,7 +90,14 @@
       </tr>
       <tr>
         <td class="label-cell">Amount:</td>
-        <td><input type="number" id="inv-amount" name="amount" step="0.01" min="0" placeholder="0.00" required/></td>
+        <td style="display:flex;gap:0.4rem;align-items:center;">
+          <select id="inv-currency" name="currency" style="padding:0.38rem 0.5rem;border:1px solid var(--gray-300);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.85rem;width:80px;">
+            <option value="UGX" selected>UGX</option>
+            <option value="USD">USD</option>
+            <option value="EUR">EUR</option>
+          </select>
+          <input type="number" id="inv-amount" name="amount" step="0.01" min="0" placeholder="0.00" required style="flex:1;"/>
+        </td>
         <td class="label-cell">Cheque No:</td>
         <td><input type="text" id="inv-cheque-no" name="chequeNo" placeholder="Enter cheque number"/></td>
       </tr>

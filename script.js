@@ -1,5 +1,5 @@
 /**
- * script.js - UBF Logistics & Procurement System
+ * script.js - UBF Procurement & Logistics System
  */
 
 /* Token check — no prompt ever fires from script.js

@@ -1,5 +1,5 @@
 /**
- * data.js - UBF Logistics & Procurement System
+ * data.js - UBF Procurement & Logistics System
  * Token stored in localStorage key: ubf_gatekeeper_token
  */
 (function(global){

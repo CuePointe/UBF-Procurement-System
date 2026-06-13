@@ -1,4 +1,4 @@
-# Uganda Biodiversity Fund — Logistics & Procurement System
+# Uganda Biodiversity Fund — Procurement & Logistics System
 
 > **"For now & the future"**
 > 
@@ -17,7 +17,7 @@ All data is stored securely inside this GitHub repository. All approvals, submis
 ## 🔗 Live Portal
 
 ```
-https://cuepointe.github.io/UBF-Request-Portal/
+https://cuepointe.github.io/UBF-Procurement-System/
 ```
 
 ---
@@ -42,7 +42,7 @@ https://cuepointe.github.io/UBF-Request-Portal/
 
 | Role | Staff Member | Permissions |
 |---|---|---|
-| **Staff** | David Okullu, Posiano Musiime, Owen Atuhaire, Tom Otieno | Submit forms, view own submissions, comment, attach files |
+| **Staff** | David Okullu, Posiano Musiime, Owen Atuhaire, Thomas Otieno | Submit forms, view own submissions, comment, attach files |
 | **Admin Officer** | Susan Abonyo | All of the above + view all submissions + **Prepare** step |
 | **FAM** | Winnie Nabatanzi | All of the above + **Review** and **Clear** steps + Evaluation, LPO, Invoice |
 | **ED** | Ivan Amanigaruhanga | All of the above + **Final Approval** + Executive Expenditure Report |

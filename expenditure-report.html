@@ -67,6 +67,16 @@
       .rpt-card{box-shadow:none;border:1px solid var(--gray-300);page-break-inside:avoid;}
       .kpi-card{box-shadow:none;border:1px solid var(--gray-300);}
     }
+    <style>
+    .nav-dropdown{position:relative;display:inline-block;}
+    .nav-dropdown-btn{display:block;padding:0.35rem 0.7rem;border-radius:var(--radius-sm);color:rgba(255,255,255,0.8);font-size:0.8rem;font-weight:500;transition:background 0.15s,color 0.15s;text-decoration:none;white-space:nowrap;background:none;border:none;cursor:pointer;font-family:var(--font-body);}
+    .nav-dropdown-btn:hover,.nav-dropdown-btn.active{background:rgba(255,255,255,0.15);color:#fff;}
+    .nav-dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#fff;border-radius:var(--radius-sm);box-shadow:0 4px 16px rgba(0,0,0,0.18);min-width:200px;z-index:200;padding:0.3rem 0;margin-top:2px;}
+    .nav-dropdown:hover .nav-dropdown-menu,.nav-dropdown:focus-within .nav-dropdown-menu{display:block;}
+    .nav-dropdown-menu a{display:block;padding:0.4rem 1rem;font-size:0.82rem;color:var(--gray-900);text-decoration:none;white-space:nowrap;}
+    .nav-dropdown-menu a:hover{background:var(--ubf-blue-pale);color:var(--ubf-blue-darker);}
+    .nav-dropdown-menu .menu-divider{height:1px;background:var(--gray-200);margin:0.2rem 0;}
+    .nav-dropdown-menu .menu-label{padding:0.3rem 1rem;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-500);font-weight:700;}
   </style>
 </head>
 <body>
@@ -76,16 +86,28 @@
     <div class="navbar-logo"><img src="ubf-logo.png" alt="UBF" onerror="if(this.src.indexOf('.png')!==-1){this.src='ubf-logo.jpg';}else{this.style.display='none';this.parentElement.setAttribute('data-fallback','true');}"/></div>
     <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
   </a>
-  <ul class="navbar-nav">
-    <li><a href="dashboard.html">Dashboard</a></li>
-    <li><a href="form.html">Request</a></li>
-    <li><a href="evaluation.html">Evaluation</a></li>
-    <li><a href="lpo.html">LPO</a></li>
-    <li><a href="grn.html">GRN</a></li>
-    <li><a href="invoice.html">Invoice</a></li>
-    <li><a href="expenditure-report.html" class="active">Exp. Report</a></li>
-    <li><a href="history.html">History</a></li>
-    <li><a href="help.html">Help Guide</a></li>
+    <ul class="navbar-nav">
+    <li><a href="dashboard.html" class="">Dashboard</a></li>
+    <!-- Forms dropdown -->
+    <li class="nav-dropdown">
+      <button class="nav-dropdown-btn ">Forms ▾</button>
+      <div class="nav-dropdown-menu">
+        <div class="menu-label">Staff Forms</div>
+        <a href="form.html">Request for Goods/Services</a>
+        <a href="travel-plan.html">Travel Business Plan</a>
+        <a href="accountability.html">Accountability Form</a>
+        <div class="menu-divider"></div>
+        <div class="menu-label">Management Forms</div>
+        <a href="evaluation.html">Evaluation Report</a>
+        <a href="lpo.html">Local Purchase Order</a>
+        <a href="grn.html">Goods Received Note</a>
+        <a href="invoice.html">Payment Voucher</a>
+      </div>
+    </li>
+    <li><a href="archives.html" class="">Archive</a></li>
+    <li><a href="expenditure-report.html" class="active">Expenditure</a></li>
+    <li><a href="history.html" class="">History</a></li>
+    <li><a href="help.html" class="">Help</a></li>
   </ul>
   <div class="navbar-user">
     <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading…</span><span class="role-badge" id="nav-user-role">—</span></div>

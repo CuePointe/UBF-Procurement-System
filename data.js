@@ -337,8 +337,10 @@ async function submitAndLinkToPackage(formData,files,formType,parentPackageId){
   var att=[];
   if(files&&files.length>0)att=await uploadAllAttachments(Array.from(files));
 
-  /* Build new record */
+  /* Build new record — mark as linked so Exp. Report excludes it */
   var rec=buildRecord(formData,att,formType,session,now,[]);
+  rec.isLinkedForm=true;
+  rec.parentPackageId=parentPackageId;
   rec.history[0].note='Added to package '+parentPackageId+' by '+session.name;
   db.records.push(rec);
 
@@ -471,6 +473,63 @@ async function getDashboardStats(){
   return s;
 }
 
+
+/* ── Delete a record ── */
+async function deleteRecord(recId){
+  var session=requireSession();
+  var db=await readDatabase();
+  var idx=db.records.findIndex(function(r){return r.id===recId;});
+  if(idx===-1)throw new Error('Record not found.');
+  var rec=db.records[idx];
+  var isOwner=rec.submittedBy.toLowerCase()===session.email.toLowerCase();
+  var isManager=ELEVATED.indexOf(session.role)!==-1;
+  /* Staff can only delete own pending/rejected. Managers can delete anything except Approved */
+  if(!isManager&&!isOwner)throw new Error('You can only delete your own records.');
+  if(!isManager&&['Prepared','Reviewed','Cleared','Approved'].indexOf(rec.status)!==-1)
+    throw new Error('This record is in progress and cannot be deleted.');
+  if(rec.status==='Approved'&&!isManager)
+    throw new Error('Approved records cannot be deleted.');
+  /* Remove from linkedForms of any parent */
+  db.records.forEach(function(r){
+    if(r.linkedForms){
+      r.linkedForms=r.linkedForms.filter(function(lf){return lf.id!==recId;});
+    }
+  });
+  db.records.splice(idx,1);
+  await writeDatabase(db.records,db.sha,'Delete record '+recId+' by '+session.email);
+  return true;
+}
+
+/* ── Delete archive folder ── */
+async function deleteArchiveFolder(folderId,session){
+  var ar=await readArchives();
+  var arch=ar.data&&typeof ar.data==='object'&&!Array.isArray(ar.data)?ar.data:{folders:[],unfiled:[]};
+  var idx=arch.folders.findIndex(function(f){return f.id===folderId;});
+  if(idx===-1)throw new Error('Folder not found.');
+  /* Move files back to unfiled */
+  var folder=arch.folders[idx];
+  if(folder.files&&folder.files.length){
+    folder.files.forEach(function(f){arch.unfiled.push(f);});
+  }
+  arch.folders.splice(idx,1);
+  await writeArchives(arch,ar.sha,'Delete folder '+folderId+' by '+session.email);
+  return arch;
+}
+
+/* ── Delete archived file entry ── */
+async function deleteArchivedFile(recordId,session){
+  var ar=await readArchives();
+  var arch=ar.data&&typeof ar.data==='object'&&!Array.isArray(ar.data)?ar.data:{folders:[],unfiled:[]};
+  /* Remove from unfiled */
+  arch.unfiled=arch.unfiled.filter(function(f){return f.recordId!==recordId;});
+  /* Remove from all folders */
+  arch.folders.forEach(function(folder){
+    if(folder.files)folder.files=folder.files.filter(function(f){return f.recordId!==recordId;});
+  });
+  await writeArchives(arch,ar.sha,'Remove archived file '+recordId+' by '+session.email);
+  return arch;
+}
+
 global.DataService={
   CONFIG,ROLE_ACTIONS,ELEVATED,
   getStaff,getRole,getDisplayName,getTitle,
@@ -484,6 +543,7 @@ global.DataService={
   uploadAttachment,uploadAllAttachments,
   submitPackage,submitRequisition,submitAndLinkToPackage,
   updateRequisitionStatus,editRequisition,attachFilesToRecord,addManagementNote,
-  addComment,addReply,getAllRequisitions,getDashboardStats
+  addComment,addReply,getAllRequisitions,getDashboardStats,
+  deleteRecord,deleteArchiveFolder,deleteArchivedFile
 };
 }(window));

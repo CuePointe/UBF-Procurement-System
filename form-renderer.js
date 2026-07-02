@@ -1,615 +1,393 @@
-/**
- * form-renderer.js — UBF Form PDF Generator
- * Renders any filled UBF form as a proper PDF document.
- * Depends on html2pdf.js loaded from CDN when needed.
- */
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UBF &mdash; Request for Goods/Services</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .sub-form-panel{display:none;border:1.5px solid var(--green-light);border-radius:var(--radius-md);margin-top:1rem;overflow:hidden;}
+    .sub-form-panel.open{display:block;}
+    .sub-form-header{background:var(--green-pale);padding:0.7rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--green-light);}
+    .sub-form-header h4{color:var(--ubf-green-dark);font-size:0.88rem;font-weight:700;margin:0;}
+    .sub-form-body{padding:1.25rem;}
+    .sub-form-body .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;}
+    .sub-form-body .form-group{display:flex;flex-direction:column;gap:0.25rem;}
+    .sub-form-body label{font-size:0.73rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--gray-700);}
+    .sub-form-body input,.sub-form-body select,.sub-form-body textarea{padding:0.55rem 0.8rem;border:1.5px solid var(--gray-300);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.875rem;color:var(--gray-900);width:100%;transition:border-color .15s,box-shadow .15s;}
+    .sub-form-body input:focus,.sub-form-body select:focus,.sub-form-body textarea:focus{outline:none;border-color:var(--ubf-green);box-shadow:0 0 0 3px rgba(58,107,42,.14);}
+    .sub-form-body textarea{resize:vertical;min-height:70px;}
+    .inline-table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+    .inline-table th{background:var(--green-light);color:var(--ubf-green-dark);padding:0.45rem 0.5rem;border:1px solid var(--gray-300);font-size:0.72rem;font-weight:700;}
+    .inline-table td{border:1px solid var(--gray-300);padding:0.2rem 0.4rem;}
+    .inline-table td input,.inline-table td select{width:100%;border:none;outline:none;font-size:0.82rem;font-family:var(--font-body);background:transparent;}
+    .inline-table td input:focus{background:#fffde7;}
+    .add-row-btn{font-size:0.73rem;font-weight:700;color:var(--ubf-green-dark);background:var(--green-pale);border:1px dashed var(--ubf-green);border-radius:6px;padding:0.3rem 0.7rem;cursor:pointer;margin-top:6px;}
+    .add-row-btn:hover{background:var(--green-light);}
+    .pkg-toggle-btn{font-size:0.82rem;}
+    .nav-dropdown{position:relative;display:inline-block;}
+    .nav-dropdown-btn{display:block;padding:0.4rem 0.8rem;border-radius:var(--radius-sm);color:rgba(255,255,255,0.82);font-size:0.82rem;font-weight:500;transition:background 0.15s,color 0.15s;text-decoration:none;white-space:nowrap;background:none;border:none;cursor:pointer;font-family:var(--font-body);}
+    .nav-dropdown-btn:hover,.nav-dropdown-btn.active{background:rgba(255,255,255,0.18);color:#fff;}
+    .nav-dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#fff;border-radius:var(--radius-md);box-shadow:var(--shadow-lg);min-width:210px;z-index:200;padding:0.4rem 0;margin-top:6px;border:1px solid var(--gray-200);}
+    .nav-dropdown:hover .nav-dropdown-menu,.nav-dropdown:focus-within .nav-dropdown-menu{display:block;}
+    .nav-dropdown-menu a{display:block;padding:0.45rem 1rem;font-size:0.82rem;color:var(--gray-900);text-decoration:none;white-space:nowrap;}
+    .nav-dropdown-menu a:hover{background:var(--green-pale);color:var(--ubf-green-dark);}
+    .nav-dropdown-menu .menu-divider{height:1px;background:var(--gray-200);margin:0.25rem 0;}
+    .nav-dropdown-menu .menu-label{padding:0.3rem 1rem;font-size:0.66rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-500);font-weight:700;}
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a class="navbar-brand" href="dashboard.html">
+    <div class="navbar-logo"><img src="ubf-logo.png" alt="UBF" onerror="if(this.src.indexOf('.png')!==-1){this.src='ubf-logo.jpg';}else{this.style.display='none';this.parentElement.setAttribute('data-fallback','true');}"/></div>
+    <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
+  </a>
+    <ul class="navbar-nav">
+    <li><a href="dashboard.html" class="">Dashboard</a></li>
+    <!-- Forms dropdown -->
+    <li class="nav-dropdown">
+      <button class="nav-dropdown-btn active">Forms ▾</button>
+      <div class="nav-dropdown-menu">
+        <div class="menu-label">Staff Forms</div>
+        <a href="form.html">Request for Goods/Services</a>
+        <a href="travel-plan.html">Travel Business Plan</a>
+        <a href="accountability.html">Accountability Form</a>
+        <div class="menu-divider"></div>
+        <div class="menu-label">Management Forms</div>
+        <a href="evaluation.html">Evaluation Report</a>
+        <a href="lpo.html">Local Purchase Order</a>
+        <a href="grn.html">Goods Received Note</a>
+        <a href="invoice.html">Payment Voucher</a>
+      </div>
+    </li>
+    <li><a href="archives.html" class="">Archive</a></li>
+    <li><a href="expenditure-report.html" class="">Expenditure</a></li>
+    <li><a href="history.html" class="">History</a></li>
+    <li><a href="help.html" class="">Help</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading&hellip;</span><span class="role-badge" id="nav-user-role">&mdash;</span></div>
+    <button id="btn-logout">Logout</button>
+  </div>
+</nav>
 
-(function(global){
-'use strict';
+<div class="page-wrapper">
+  <div id="global-error-banner" class="banner"></div>
+  <div id="global-success-banner" class="banner"></div>
+  <div class="page-header">
+    <h1>Request for Goods / Services</h1>
+    <p>Fill the request below. You may also add a Travel Plan or Accountability Form to submit as one package.</p>
+  </div>
 
-/* ── UBF Brand ── */
-var BLUE  = '#2D5A7E';
-var BLIGHT= '#EBF3FA';
-var GREEN = '#3A6B2A';
-var DARK  = '#1A1A1A';
+  <div class="form-card">
+  <form id="requisition-form" novalidate autocomplete="off">
 
-/* ── Load html2pdf dynamically (only when needed) ── */
-function loadHtml2Pdf(cb){
-  if(global.html2pdf){cb();return;}
-  /* Check if script already appended but not yet loaded */
-  var existing=document.querySelector('script[src*="html2pdf"]');
-  if(existing){
-    existing.addEventListener('load',function(){cb();});
-    return;
-  }
-  var s=document.createElement('script');
-  s.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
-  s.onload=function(){
-    /* Small delay to ensure library fully initialises */
-    setTimeout(function(){cb();},300);
-  };
-  s.onerror=function(){
-    alert('Could not load PDF library. Please check your internet connection and try again.');
-  };
-  document.head.appendChild(s);
-}
+    <!-- Submitter info -->
+    <div class="form-section">
+      <div class="form-section-title">Submitted By</div>
+      <div class="submitter-box">
+        <div><div class="sub-label">Name</div><div class="sub-value" id="form-submitter-name">&mdash;</div></div>
+        <div><div class="sub-label">Title</div><div class="sub-value" id="form-submitter-title">&mdash;</div></div>
+        <div><div class="sub-label">Date</div><div class="sub-value" id="form-date-today">&mdash;</div></div>
+      </div>
+    </div>
 
-/* ── Shared UBF letterhead HTML ── */
-function ubfHeader(formTitle){
-  return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;'+
-    'border-bottom:3px solid '+BLUE+';margin-bottom:14px;">'+
-    '<div style="display:flex;align-items:center;gap:12px;">'+
-      '<div style="font-size:11px;line-height:1.4;">'+
-        '<div style="font-weight:700;color:'+BLUE+';font-size:12px;text-transform:uppercase;letter-spacing:1px;">Uganda Biodiversity Fund</div>'+
-        '<div style="color:#666;font-size:10px;font-style:italic;">For now &amp; the future</div>'+
-        '<div style="color:#888;font-size:9px;">Plot 425 Zzimwe Road, Kisugu, Kampala | PO Box 26156 | Tel: +256-393-216-445</div>'+
-      '</div>'+
-    '</div>'+
-    '<div style="text-align:right;">'+
-      '<div style="background:'+BLUE+';color:#fff;padding:6px 14px;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:1px;">'+formTitle+'</div>'+
-    '</div>'+
-  '</div>';
-}
+    <!-- Request details -->
+    <div class="form-section">
+      <div class="form-section-title">Request Details</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Activity Code</label>
+          <input type="text" id="form-activity-code" name="activityCode" placeholder="e.g. ACT-2026-001"/>
+        </div>
+        <div class="form-group">
+          <label>Date Required <span class="required">*</span></label>
+          <input type="date" id="form-date-required" name="dateRequired" required/>
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Description of Goods / Services Required <span class="required">*</span></label>
+          <textarea id="form-description" name="description" rows="2" placeholder="Briefly describe what is needed" required></textarea>
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Specification of Goods / Services Requested <span class="required">*</span></label>
+          <textarea id="form-specification" name="specification" rows="3" placeholder="Detailed specifications &mdash; brand, size, standard, quality requirements" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Quantity <span class="required">*</span></label>
+          <input type="number" id="form-quantity" name="quantity" min="1" step="any" placeholder="e.g. 10" required/>
+        </div>
+        <div class="form-group">
+          <label>Location of Work / Delivery Point</label>
+          <input type="text" id="form-location" name="locationOfWork" placeholder="e.g. UBF Head Office"/>
+        </div>
+        <div class="form-group">
+          <label>Contract Period</label>
+          <input type="text" id="form-contract-period" name="contractPeriod" placeholder="e.g. 3 months"/>
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <input type="text" id="form-department" name="department" placeholder="e.g. Finance"/>
+        </div>
+      </div>
+    </div>
 
-/* ── Shared table styles ── */
-var TS='border-collapse:collapse;width:100%;font-size:10px;margin-bottom:10px;';
-var TH='background:'+BLIGHT+';color:'+BLUE+';font-weight:700;padding:5px 7px;border:1px solid #ccc;font-size:9px;text-transform:uppercase;';
-var TD='padding:5px 7px;border:1px solid #ccc;';
-var TH_DARK='background:'+BLUE+';color:#fff;font-weight:700;padding:5px 7px;border:1px solid #aaa;font-size:9px;text-transform:uppercase;';
+    <!-- Account coding -->
+    <div class="form-section">
+      <div class="form-section-title">Account Coding</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Account Code</label><input type="text" id="form-account-code" name="accountCode" placeholder="Code"/></div>
+        <div class="form-group"><label>Account Name</label><input type="text" id="form-account-name" name="accountName" placeholder="Name"/></div>
+        <div class="form-group"><label>Donor Code</label><input type="text" id="form-donor-code" name="donorCode" placeholder="Code"/></div>
+        <div class="form-group"><label>Donor Name</label><input type="text" id="form-donor-name" name="donorName" placeholder="Name"/></div>
+        <div class="form-group"><label>Budget Code</label><input type="text" id="form-budget-code" name="budgetCode" placeholder="Code"/></div>
+      </div>
+    </div>
 
-function row2(label,value,label2,value2){
-  return '<tr>'+
-    '<td style="'+TH+' width:18%;">'+label+'</td>'+
-    '<td style="'+TD+' width:32%;">'+safe(value)+'</td>'+
-    '<td style="'+TH+' width:18%;">'+label2+'</td>'+
-    '<td style="'+TD+' width:32%;">'+safe(value2)+'</td>'+
-  '</tr>';
-}
-function row1(label,value){
-  return '<tr>'+
-    '<td style="'+TH+' width:18%;">'+label+'</td>'+
-    '<td style="'+TD+' width:82%;" colspan="3">'+safe(value)+'</td>'+
-  '</tr>';
-}
+    <!-- Attachments -->
+    <div class="form-section">
+      <div class="form-section-title">Attachments</div>
+      <p style="font-size:0.82rem;color:var(--gray-500);margin-bottom:0.5rem;">Upload any supporting documents (quotes, approvals, receipts).</p>
+      <input type="file" id="form-attachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"/>
+      <div class="file-info" id="form-attach-info"></div>
+    </div>
 
-function safe(v){
-  if(v===null||v===undefined||v==='')return'<span style="color:#bbb">—</span>';
-  return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+    <!-- ================================================
+         PACKAGE BUILDER — Add more forms
+    ================================================ -->
+    <div class="form-section" style="background:var(--green-pale);">
+      <div class="form-section-title" style="color:var(--ubf-green-dark);">
+        Add Forms to This Package (Optional)
+      </div>
+      <p style="font-size:0.82rem;color:var(--gray-500);margin-bottom:0.85rem;">
+        You may add a Travel Business Plan and/or an Accountability Form to submit everything together as one file.
+      </p>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
+        <button type="button" id="btn-toggle-travel" class="btn btn-secondary pkg-toggle-btn">+ Add Travel Business Plan</button>
+        <button type="button" id="btn-toggle-accountability" class="btn btn-secondary pkg-toggle-btn">+ Add Accountability Form</button>
+      </div>
 
-function approvalChain(rec){
-  function cell(label,name,title,step){
-    var a=rec.approval&&rec.approval[step];
-    var done=a&&a.byName;
-    return '<td style="border:1px solid #ccc;padding:8px;width:25%;vertical-align:top;">'+
-      '<div style="font-size:8px;font-weight:700;text-transform:uppercase;color:'+BLUE+';margin-bottom:4px;">'+label+'</div>'+
-      '<div style="font-weight:700;font-size:10px;">'+safe(name)+'</div>'+
-      '<div style="font-size:9px;color:#666;">'+safe(title)+'</div>'+
-      (done
-        ? '<div style="margin-top:6px;font-size:9px;color:#14532d;font-weight:700;">&#10003; '+safe(a.byName)+' — '+fmtDate(a.at)+'</div>'
-          +(a.note?'<div style="font-size:9px;color:#555;margin-top:2px;">'+safe(a.note)+'</div>':'')
-        : '<div style="margin-top:18px;border-top:1px solid #999;font-size:8px;color:#aaa;padding-top:4px;">Signature &amp; Date</div>'
-      )+
-    '</td>';
-  }
-  return '<table style="'+TS+'border:1px solid #ccc;">'+
-    '<tr>'+
-      '<td style="border:1px solid #ccc;padding:8px;width:25%;vertical-align:top;">'+
-        '<div style="font-size:8px;font-weight:700;text-transform:uppercase;color:'+BLUE+';margin-bottom:4px;">Submitted by</div>'+
-        '<div style="font-weight:700;font-size:10px;">'+safe(rec.submittedByName)+'</div>'+
-        '<div style="font-size:9px;color:#666;">'+safe(rec.submittedByTitle)+'</div>'+
-        '<div style="font-size:9px;color:#555;margin-top:4px;">'+fmtDate(rec.createdAt)+'</div>'+
-        '<div style="margin-top:18px;border-top:1px solid #999;font-size:8px;color:#aaa;padding-top:4px;">Signature &amp; Date</div>'+
-      '</td>'+
-      cell('Prepared by (Admin Officer)','Susan Abonyo','Administration Officer','preparation')+
-      cell('Reviewed &amp; Cleared by (FAM)','Winnie Nabatanzi','Finance &amp; Administration Manager','clearance')+
-      cell('Approved by (ED)','Ivan Amanigaruhanga','Executive Director','approval')+
-    '</tr>'+
-  '</table>';
-}
+      <!-- ─── Inline: Travel Business Plan ─── -->
+      <div id="panel-travel" class="sub-form-panel">
+        <div class="sub-form-header">
+          <h4>Travel Business Plan</h4>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('panel-travel').classList.remove('open');">Remove</button>
+        </div>
+        <div class="sub-form-body">
+          <div class="form-grid">
+            <div class="form-group"><label>Traveller Name <span class="required">*</span></label><input type="text" id="t-traveller-name" name="travellerName" placeholder="Full name"/></div>
+            <div class="form-group"><label>Position / Grade</label><input type="text" id="t-position" name="position" placeholder="Title"/></div>
+            <div class="form-group"><label>Departure Date <span class="required">*</span></label><input type="date" id="t-departure-date" name="departureDate"/></div>
+            <div class="form-group"><label>Return Date <span class="required">*</span></label><input type="date" id="t-return-date" name="returnDate"/></div>
+            <div class="form-group"><label>Total Days</label><input type="number" id="t-total-days" name="totalDays" readonly placeholder="Auto"/></div>
+            <div class="form-group"><label>Business Nights</label><input type="number" id="t-business-nights" name="businessNights" min="0"/></div>
+            <div class="form-group" style="grid-column:1/-1;"><label>Business Reason / Purpose of Travel <span class="required">*</span></label><textarea id="t-business-reason" name="businessReason" rows="2" placeholder="Purpose of the trip"></textarea></div>
+          </div>
+          <div style="margin-top:1rem;overflow-x:auto;">
+            <table class="inline-table">
+              <thead>
+                <tr>
+                  <th style="width:32px;">#</th>
+                  <th>Route (From &mdash; To)</th>
+                  <th style="width:95px;">Date</th>
+                  <th style="width:85px;">Per Diem</th>
+                  <th style="width:100px;">Accommodation</th>
+                  <th style="width:70px;">SDA</th>
+                  <th style="width:80px;">Others</th>
+                  <th style="width:90px;">Total (UGX)</th>
+                  <th style="width:28px;"></th>
+                </tr>
+              </thead>
+              <tbody id="t-route-body"></tbody>
+              <tfoot>
+                <tr style="background:var(--green-light);font-weight:700;">
+                  <td colspan="7" style="text-align:right;padding:0.35rem 0.5rem;font-size:0.82rem;border:1px solid var(--gray-300);">Grand Total (UGX)</td>
+                  <td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" id="t-grand-total" readonly style="width:100%;border:none;outline:none;font-weight:700;background:transparent;font-family:var(--font-body);font-size:0.82rem;"/></td>
+                  <td style="border:1px solid var(--gray-300);"></td>
+                </tr>
+              </tfoot>
+            </table>
+            <button type="button" class="add-row-btn" id="btn-add-route-row">+ Add Route</button>
+          </div>
+          <div style="margin-top:0.85rem;">
+            <label style="font-size:0.73rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--gray-700);display:block;margin-bottom:0.3rem;">Travel Supporting Documents</label>
+            <input type="file" id="t-attachments" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
+            <div class="file-info" id="t-attach-info"></div>
+          </div>
+        </div>
+      </div>
 
-function fmtDate(iso){
-  if(!iso)return'—';
-  try{return new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}
-  catch(_){return iso;}
-}
+      <!-- ─── Inline: Accountability Form ─── -->
+      <div id="panel-accountability" class="sub-form-panel">
+        <div class="sub-form-header">
+          <h4>Advance Accountability &amp; Expense Report</h4>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('panel-accountability').classList.remove('open');">Remove</button>
+        </div>
+        <div class="sub-form-body">
+          <div class="form-grid">
+            <div class="form-group"><label>Employee Name <span class="required">*</span></label><input type="text" id="acc-employee-name" name="employeeName"/></div>
+            <div class="form-group"><label>Date</label><input type="date" id="acc-date" name="accDate"/></div>
+            <div class="form-group" style="grid-column:1/-1;"><label>Dates of Travel / Activity <span class="required">*</span></label><input type="text" id="acc-travel-dates" name="travelDates" placeholder="e.g. 15th to 19th May 2026"/></div>
+            <div class="form-group"><label>Department</label><input type="text" id="acc-department" name="department" placeholder="e.g. Programs"/></div>
+            <div class="form-group" style="grid-column:1/-1;"><label>Purpose of Travel / Activity <span class="required">*</span></label><textarea id="acc-purpose" name="purpose" rows="2" placeholder="Purpose of the trip or activity"></textarea></div>
+          </div>
+          <div style="margin-top:1rem;overflow-x:auto;">
+            <table class="inline-table">
+              <thead>
+                <tr>
+                  <th style="width:32px;">#</th>
+                  <th style="width:90px;">Account Code</th>
+                  <th style="width:90px;">Date</th>
+                  <th>Brief Explanation of Expenditure</th>
+                  <th style="width:80px;">Ref No</th>
+                  <th style="width:100px;">Budgeted (UGX)</th>
+                  <th style="width:100px;">Actual (UGX)</th>
+                  <th style="width:100px;">Balance (UGX)</th>
+                  <th style="width:28px;"></th>
+                </tr>
+              </thead>
+              <tbody id="acc-expenses-body"></tbody>
+              <tfoot>
+                <tr style="background:var(--green-light);font-weight:700;">
+                  <td colspan="5" style="text-align:right;padding:0.35rem 0.5rem;font-size:0.82rem;border:1px solid var(--gray-300);">Totals</td>
+                  <td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" id="acc-total-budgeted" readonly style="width:100%;border:none;outline:none;font-weight:700;background:transparent;font-family:var(--font-body);font-size:0.82rem;"/></td>
+                  <td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" id="acc-total-actual" readonly style="width:100%;border:none;outline:none;font-weight:700;background:transparent;font-family:var(--font-body);font-size:0.82rem;"/></td>
+                  <td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" id="acc-total-balance" readonly style="width:100%;border:none;outline:none;font-weight:700;background:transparent;font-family:var(--font-body);font-size:0.82rem;"/></td>
+                  <td style="border:1px solid var(--gray-300);"></td>
+                </tr>
+              </tfoot>
+            </table>
+            <button type="button" class="add-row-btn" id="btn-add-expense-row">+ Add Expense Row</button>
+          </div>
+          <div style="margin-top:0.85rem;">
+            <div class="form-group"><label>Advance Received (UGX)</label><input type="number" id="acc-advance-received" name="advanceReceived" step="0.01" min="0" placeholder="0.00"/></div>
+          </div>
+          <div style="margin-top:0.75rem;">
+            <label style="font-size:0.73rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--gray-700);display:block;margin-bottom:0.3rem;">Receipts &amp; Supporting Documents</label>
+            <input type="file" id="acc-attachments" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
+            <div class="file-info" id="acc-attach-info"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-function linkedFormsSection(rec){
-  if(!rec.linkedForms||!rec.linkedForms.length)return'';
-  return '<div style="margin-top:10px;">'+
-    '<div style="font-weight:700;font-size:10px;color:'+BLUE+';border-bottom:1px solid '+BLUE+';padding-bottom:3px;margin-bottom:6px;">ATTACHED RELATED FORMS</div>'+
-    rec.linkedForms.map(function(lf){
-      return '<div style="font-size:10px;padding:3px 0;border-bottom:1px solid #eee;">'+
-        '&#128196; <strong>'+safe(lf.id)+'</strong> — '+safe(lf.formType)+' — '+safe(lf.description)+
-        ' <span style="color:'+BLUE+';">['+safe(lf.status)+']</span>'+
-      '</div>';
-    }).join('')+
-  '</div>';
-}
+    <!-- Footer -->
+    <div class="form-footer">
+      <div id="form-loading" style="display:none;"><div class="spinner" style="width:18px;height:18px;border-width:2px;margin:0 8px 0 0;display:inline-block;vertical-align:middle;"></div><span style="font-size:0.85rem;">Submitting package&hellip;</span></div>
+      <button type="button" onclick="window.print()" class="btn btn-secondary">Print</button>
+      <a href="dashboard.html" class="btn btn-secondary">Cancel</a>
+      <button type="submit" id="btn-submit-requisition" class="btn btn-primary btn-lg">Submit Package</button>
+    </div>
 
-function managementNotesSection(rec){
-  if(!rec.managementNotes||!rec.managementNotes.length)return'';
-  return '<div style="margin-top:10px;">'+
-    '<div style="font-weight:700;font-size:10px;color:'+BLUE+';border-bottom:1px solid '+BLUE+';padding-bottom:3px;margin-bottom:6px;">MANAGEMENT NOTES</div>'+
-    rec.managementNotes.map(function(n){
-      return '<div style="font-size:10px;padding:4px 6px;margin-bottom:4px;background:#f9f9f9;border-left:3px solid '+BLUE+';">'+
-        '<strong>'+safe(n.byName)+'</strong> ('+safe(n.byRole)+') on '+fmtDate(n.at)+':'+
-        '<div style="margin-top:2px;">'+safe(n.note)+'</div>'+
-      '</div>';
-    }).join('')+
-  '</div>';
-}
+  </form>
+  </div>
+</div>
 
-/* ══════════════════════════════════════════
-   FORM RENDERERS
-══════════════════════════════════════════ */
-
-function renderRequest(rec){
-  var d=rec.data||{};
-  return ubfHeader('Request for Services / Goods')+
-    '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:8px;">'+
-      '<div><strong>Ref No:</strong> '+safe(rec.id)+'</div>'+
-      '<div><strong>Date:</strong> '+fmtDate(rec.createdAt)+'</div>'+
-      '<div><strong>Status:</strong> <span style="font-weight:700;color:'+BLUE+';">'+safe(rec.status)+'</span></div>'+
-    '</div>'+
-    '<table style="'+TS+'">'+
-      row2('Activity Code',d.activityCode,'Description',d.description)+
-      row1('Specification of Goods / Services Requested',d.specification)+
-      row2('Quantity',d.quantity,'Date Required',d.dateRequired)+
-      row1('Location of Work',d.locationOfWork)+
-      row1('Contract Period',d.contractPeriod)+
-      row2('Account Code',d.accountCode,'Account Name',d.accountName)+
-      row2('Donor Code',d.donorCode,'Donor Name',d.donorName)+
-      row2('Department',d.department,'Budget Code',d.budgetCode)+
-    '</table>'+
-    '<div style="font-weight:700;font-size:10px;color:'+BLUE+';margin:10px 0 6px;">AUTHORISATION</div>'+
-    approvalChain(rec)+
-    linkedFormsSection(rec)+
-    managementNotesSection(rec);
-}
-
-function renderTravel(rec){
-  var d=rec.data||{};
-  var routes=[];
-  try{routes=JSON.parse(d.routes||'[]');}catch(_){}
-  return ubfHeader('Travel Business Plan')+
-    '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:8px;">'+
-      '<div><strong>Ref No:</strong> '+safe(rec.id)+'</div>'+
-      '<div><strong>Status:</strong> <span style="font-weight:700;color:'+BLUE+';">'+safe(rec.status)+'</span></div>'+
-    '</div>'+
-    '<table style="'+TS+'">'+
-      row2("Traveller's Name",d.travellerName,'Position / Grade',d.position)+
-      row2('Departure Date',d.departureDate,'Return Date',d.returnDate)+
-      row2('Total Days',d.totalDays,'Business Nights',d.businessNights)+
-      row1('Business Reason',d.businessReason)+
-    '</table>'+
-    '<div style="font-weight:700;font-size:10px;color:'+BLUE+';margin:8px 0 4px;">ROUTE & COSTS</div>'+
-    '<table style="'+TS+'">'+
-      '<tr><th style="'+TH_DARK+'">Route</th><th style="'+TH_DARK+'">Date</th>'+
-      '<th style="'+TH_DARK+'">Per Diem</th><th style="'+TH_DARK+'">Accommodation</th>'+
-      '<th style="'+TH_DARK+'">SDA</th><th style="'+TH_DARK+'">Others</th><th style="'+TH_DARK+'">Total</th></tr>'+
-      (routes.length?routes.map(function(r){
-        return'<tr><td style="'+TD+'">'+safe(r.route)+'</td><td style="'+TD+'">'+safe(r.date)+'</td>'+
-          '<td style="'+TD+' text-align:right;">'+safe(r.perDiem)+'</td>'+
-          '<td style="'+TD+' text-align:right;">'+safe(r.accommodation)+'</td>'+
-          '<td style="'+TD+' text-align:right;">'+safe(r.sda)+'</td>'+
-          '<td style="'+TD+' text-align:right;">'+safe(r.others)+'</td>'+
-          '<td style="'+TD+' text-align:right;font-weight:700;">'+safe(r.total)+'</td></tr>';
-      }).join(''):'<tr><td colspan="7" style="'+TD+' text-align:center;color:#aaa;">No routes entered</td></tr>')+
-      '<tr><td colspan="6" style="'+TH+' text-align:right;">TOTAL ADVANCE</td>'+
-      '<td style="'+TD+' text-align:right;font-weight:700;background:#e8f4e8;">'+safe(d.grandTotal)+'</td></tr>'+
-    '</table>'+
-    approvalChain(rec)+linkedFormsSection(rec)+managementNotesSection(rec);
-}
-
-function renderAccountability(rec){
-  var d=rec.data||{};
-  var expenses=[];
-  try{expenses=JSON.parse(d.expenses||'[]');}catch(_){}
-  return ubfHeader('Advance Accountability & Expense Report')+
-    '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:8px;">'+
-      '<div><strong>Ref No:</strong> '+safe(rec.id)+'</div>'+
-      '<div><strong>Status:</strong> <span style="font-weight:700;color:'+BLUE+';">'+safe(rec.status)+'</span></div>'+
-    '</div>'+
-    '<table style="'+TS+'">'+
-      row2('Employee Name',d.employeeName,'Date',d.date)+
-      row1('Dates of Travel / Activity',d.travelDates)+
-      row2('Department',d.department,'Purpose',d.purpose)+
-    '</table>'+
-    '<div style="font-weight:700;font-size:10px;color:'+BLUE+';margin:8px 0 4px;">DETAILS OF EXPENSES</div>'+
-    '<table style="'+TS+'">'+
-      '<tr><th style="'+TH_DARK+'">Account Code</th><th style="'+TH_DARK+'">Date</th>'+
-      '<th style="'+TH_DARK+'">Brief Explanation</th><th style="'+TH_DARK+'">Ref No</th>'+
-      '<th style="'+TH_DARK+'">Budgeted</th><th style="'+TH_DARK+'">Actual</th><th style="'+TH_DARK+'">Balance</th></tr>'+
-      (expenses.length?expenses.map(function(e){
-        return'<tr><td style="'+TD+'">'+safe(e.accountCode)+'</td><td style="'+TD+'">'+safe(e.date)+'</td>'+
-          '<td style="'+TD+'">'+safe(e.explanation)+'</td><td style="'+TD+'">'+safe(e.refNo)+'</td>'+
-          '<td style="'+TD+' text-align:right;">'+safe(e.budgeted)+'</td>'+
-          '<td style="'+TD+' text-align:right;">'+safe(e.actual)+'</td>'+
-          '<td style="'+TD+' text-align:right;">'+safe(e.balance)+'</td></tr>';
-      }).join(''):'<tr><td colspan="7" style="'+TD+' text-align:center;color:#aaa;">No expenses entered</td></tr>')+
-      '<tr><td colspan="4" style="'+TH+' text-align:right;">Total Expenses</td>'+
-      '<td style="'+TD+' font-weight:700;text-align:right;">'+safe(d.totalBudgeted)+'</td>'+
-      '<td style="'+TD+' font-weight:700;text-align:right;">'+safe(d.totalActual)+'</td><td></td></tr>'+
-      '<tr><td colspan="5" style="'+TH+' text-align:right;">Advance Received</td>'+
-      '<td colspan="2" style="'+TD+' font-weight:700;text-align:right;">'+safe(d.advanceReceived)+'</td></tr>'+
-    '</table>'+
-    approvalChain(rec)+linkedFormsSection(rec)+managementNotesSection(rec);
-}
-
-function renderEvaluation(rec){
-  var d=rec.data||{};
-  var items=[];
-  try{items=JSON.parse(d.items||'[]');}catch(_){}
-  var s1=d.supplier1Name||'Supplier 1';
-  var s2=d.supplier2Name||'Supplier 2';
-  var s3=d.supplier3Name||'Supplier 3';
-  return ubfHeader('Procurement Evaluation Report')+
-    '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:8px;">'+
-      '<div><strong>Ref No:</strong> '+safe(rec.id)+'</div>'+
-      '<div><strong>Method:</strong> '+safe(d.evalMethod)+'</div>'+
-      '<div><strong>Date:</strong> '+safe(d.evalDate)+'</div>'+
-    '</div>'+
-    '<table style="'+TS+'">'+
-      row1('Item Description / Specification',d.description)+
-      row2('Quantity',d.quantity,'Unit',d.unit)+
-      row1('Suppliers Who Responded',d.suppliers)+
-      row1('Evaluation Team',d.evalTeam)+
-    '</table>'+
-    '<div style="font-weight:700;font-size:10px;color:'+BLUE+';margin:8px 0 4px;">SUPPLIER PRICE COMPARISON</div>'+
-    '<table style="'+TS+'">'+
-      '<tr><th style="'+TH_DARK+'">Item</th><th style="'+TH_DARK+'">Qty</th>'+
-      '<th style="'+TH_DARK+'">'+safe(s1)+'</th><th style="'+TH_DARK+'">'+safe(s2)+'</th>'+
-      '<th style="'+TH_DARK+'">'+safe(s3)+'</th><th style="'+TH_DARK+'">Recommended</th></tr>'+
-      (items.length?items.map(function(i){
-        return'<tr><td style="'+TD+'">'+safe(i.item)+'</td><td style="'+TD+'">'+safe(i.qty)+'</td>'+
-          '<td style="'+TD+' text-align:right;">'+safe(i.s1)+'</td>'+
-          '<td style="'+TD+' text-align:right;">'+safe(i.s2)+'</td>'+
-          '<td style="'+TD+' text-align:right;">'+safe(i.s3)+'</td>'+
-          '<td style="'+TD+'">'+safe(i.rec)+'</td></tr>';
-      }).join(''):'<tr><td colspan="6" style="'+TD+' text-align:center;color:#aaa;">No items</td></tr>')+
-      '<tr><td colspan="2" style="'+TH+' text-align:right;">Sub Total</td>'+
-      '<td style="'+TD+' font-weight:700;text-align:right;">'+safe(d.sub1)+'</td>'+
-      '<td style="'+TD+' font-weight:700;text-align:right;">'+safe(d.sub2)+'</td>'+
-      '<td style="'+TD+' font-weight:700;text-align:right;">'+safe(d.sub3)+'</td><td></td></tr>'+
-      '<tr><td colspan="2" style="'+TH+' text-align:right;">Total (incl. VAT)</td>'+
-      '<td style="'+TD+' font-weight:700;text-align:right;">'+safe(d.total1)+'</td>'+
-      '<td style="'+TD+' font-weight:700;text-align:right;">'+safe(d.total2)+'</td>'+
-      '<td style="'+TD+' font-weight:700;text-align:right;">'+safe(d.total3)+'</td><td></td></tr>'+
-    '</table>'+
-    '<table style="'+TS+'">'+
-      row1('Recommendations',d.recommendations)+
-      row1('Remarks',d.remarks)+
-    '</table>'+
-    approvalChain(rec)+linkedFormsSection(rec)+managementNotesSection(rec);
-}
-
-function renderLPO(rec){
-  var d=rec.data||{};
-  var items=[];
-  try{items=JSON.parse(d.items||'[]');}catch(_){}
-  return ubfHeader('Local Purchase Order')+
-    '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:8px;">'+
-      '<div><strong>LPO Ref:</strong> '+safe(rec.id)+'</div>'+
-      '<div><strong>Date:</strong> '+safe(d.lpoDate)+'</div>'+
-      '<div><strong>Status:</strong> <span style="font-weight:700;color:'+BLUE+';">'+safe(rec.status)+'</span></div>'+
-    '</div>'+
-    '<div style="font-weight:700;font-size:10px;color:'+BLUE+';margin-bottom:4px;">DETAILS OF VENDOR</div>'+
-    '<table style="'+TS+'">'+
-      row2('Vendor Name',d.vendorName,'Account Code',d.accountCode)+
-      row2('Address',d.vendorAddress,'Vendor No',d.vendorNo)+
-    '</table>'+
-    '<div style="font-style:italic;font-size:10px;margin-bottom:6px;">Please supply the following goods: —</div>'+
-    '<table style="'+TS+'">'+
-      '<tr><th style="'+TH_DARK+' width:5%;">#</th>'+
-      '<th style="'+TH_DARK+' width:40%;">Item Description and Specification</th>'+
-      '<th style="'+TH_DARK+' width:10%;">Qty</th>'+
-      '<th style="'+TH_DARK+' width:12%;">Unit</th>'+
-      '<th style="'+TH_DARK+' width:15%;">Unit Price (UGX)</th>'+
-      '<th style="'+TH_DARK+' width:18%;">Total Cost (UGX)</th></tr>'+
-      (items.length?items.map(function(it,i){
-        return'<tr><td style="'+TD+' text-align:center;">'+(i+1)+'</td>'+
-          '<td style="'+TD+'">'+safe(it.description)+'</td>'+
-          '<td style="'+TD+' text-align:right;">'+safe(it.qty)+'</td>'+
-          '<td style="'+TD+'">'+safe(it.unit)+'</td>'+
-          '<td style="'+TD+' text-align:right;">'+safe(it.unitPrice)+'</td>'+
-          '<td style="'+TD+' text-align:right;font-weight:700;">'+safe(it.total)+'</td></tr>';
-      }).join(''):'<tr><td colspan="6" style="'+TD+' text-align:center;color:#aaa;">No items</td></tr>')+
-      '<tr><td colspan="5" style="'+TH+' text-align:right;">Sub Total</td>'+
-        '<td style="'+TD+' text-align:right;font-weight:700;">'+safe(d.subtotal)+'</td></tr>'+
-      '<tr><td colspan="5" style="'+TH+' text-align:right;">VAT (18%)</td>'+
-        '<td style="'+TD+' text-align:right;">'+safe(d.vat)+'</td></tr>'+
-      '<tr><td colspan="5" style="'+TH_DARK+' text-align:right;background:#1a3a52;">TOTAL</td>'+
-        '<td style="background:#e8f4e8;'+TD+' text-align:right;font-weight:700;font-size:12px;">'+safe(d.total)+'</td></tr>'+
-    '</table>'+
-    '<table style="'+TS+'">'+
-      row2('Valid For',d.validity,'Deliver At',d.deliverAt)+
-      row1('Terms of Payment',d.paymentTerms)+
-    '</table>'+
-    '<div style="font-size:9px;font-style:italic;color:#888;margin-bottom:8px;">'+
-      'NB: Goods supplied shall comply with agreed specification, standard and quality. '+
-      'This Order is not valid until serially numbered and Officially Stamped.'+
-    '</div>'+
-    approvalChain(rec)+linkedFormsSection(rec)+managementNotesSection(rec);
-}
-
-function renderGRN(rec){
-  var d=rec.data||{};
-  var items=[];
-  try{items=JSON.parse(d.items||'[]');}catch(_){}
-  return ubfHeader('Goods Received Note')+
-    '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:8px;">'+
-      '<div><strong>GRN Ref:</strong> '+safe(rec.id)+'</div>'+
-      '<div><strong>Date:</strong> '+safe(d.grnDate)+'</div>'+
-      '<div><strong>Status:</strong> <span style="font-weight:700;color:'+BLUE+';">'+safe(rec.status)+'</span></div>'+
-    '</div>'+
-    '<div style="font-weight:700;font-size:10px;color:'+BLUE+';margin-bottom:4px;">DETAILS OF VENDOR</div>'+
-    '<table style="'+TS+'">'+
-      row1('Vendor Name',d.vendorName)+
-      row1('Address',d.vendorAddress)+
-      row2('Delivery Note No.',d.deliveryNoteNo,'Added to Register',d.addedToRegister)+
-      row2('Related LPO No.',d.lpoRef,'Related Requisition',d.reqRef)+
-    '</table>'+
-    '<table style="'+TS+'">'+
-      '<tr><th style="'+TH_DARK+' width:5%;">#</th>'+
-      '<th style="'+TH_DARK+' width:50%;">Items Description and Specification</th>'+
-      '<th style="'+TH_DARK+' width:15%;">Quantity</th>'+
-      '<th style="'+TH_DARK+' width:15%;">Unit of Measure</th>'+
-      '<th style="'+TH_DARK+' width:15%;">Condition</th></tr>'+
-      (items.length?items.map(function(it,i){
-        return'<tr><td style="'+TD+' text-align:center;">'+(i+1)+'</td>'+
-          '<td style="'+TD+'">'+safe(it.description)+'</td>'+
-          '<td style="'+TD+' text-align:right;">'+safe(it.qty)+'</td>'+
-          '<td style="'+TD+'">'+safe(it.unit)+'</td>'+
-          '<td style="'+TD+'">'+safe(it.condition)+'</td></tr>';
-      }).join(''):'<tr><td colspan="5" style="'+TD+' text-align:center;color:#aaa;">No items</td></tr>')+
-    '</table>'+
-    '<table style="'+TS+'border:1px solid #ccc;">'+
-      '<tr>'+
-        '<td style="'+TD+' width:33%;vertical-align:top;">'+
-          '<div style="font-size:9px;font-weight:700;color:'+BLUE+';margin-bottom:6px;text-transform:uppercase;">Delivered By</div>'+
-          '<div style="font-size:10px;"><strong>'+safe(d.deliveredByName||'—')+'</strong></div>'+
-          '<div style="font-size:9px;color:#666;">'+safe(d.deliveredByPosition||'—')+'</div>'+
-          '<div style="font-size:9px;">Date: '+safe(d.deliveredByDate||'—')+'</div>'+
-          '<div style="margin-top:20px;border-top:1px solid #999;font-size:8px;color:#aaa;padding-top:3px;">Signature</div>'+
-        '</td>'+
-        '<td style="'+TD+' width:33%;vertical-align:top;">'+
-          '<div style="font-size:9px;font-weight:700;color:'+BLUE+';margin-bottom:6px;text-transform:uppercase;">Received By</div>'+
-          '<div style="font-size:10px;"><strong>'+safe(d.receivedByName||rec.submittedByName||'—')+'</strong></div>'+
-          '<div style="font-size:9px;color:#666;">'+safe(d.receivedByPosition||rec.submittedByTitle||'—')+'</div>'+
-          '<div style="font-size:9px;">Date: '+safe(d.receivedByDate||'—')+'</div>'+
-          '<div style="margin-top:20px;border-top:1px solid #999;font-size:8px;color:#aaa;padding-top:3px;">Signature</div>'+
-        '</td>'+
-        '<td style="'+TD+' width:33%;vertical-align:top;">'+
-          '<div style="font-size:9px;font-weight:700;color:'+BLUE+';margin-bottom:6px;text-transform:uppercase;">Verified By</div>'+
-          '<div style="font-size:10px;"><strong>'+safe(d.verifiedByName||'—')+'</strong></div>'+
-          '<div style="font-size:9px;color:#666;">'+safe(d.verifiedByPosition||'—')+'</div>'+
-          '<div style="font-size:9px;">Date: '+safe(d.verifiedByDate||'—')+'</div>'+
-          '<div style="margin-top:20px;border-top:1px solid #999;font-size:8px;color:#aaa;padding-top:3px;">Signature</div>'+
-        '</td>'+
-      '</tr>'+
-    '</table>'+
-    linkedFormsSection(rec)+managementNotesSection(rec);
-}
-
-function renderInvoice(rec){
-  var d=rec.data||{};
-  var parts=[];
-  try{parts=JSON.parse(d.particulars||'[]');}catch(_){}
-  return ubfHeader('Cheque Payment Voucher')+
-    '<div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:8px;">'+
-      '<div><strong>Voucher No:</strong> '+safe(d.voucherNo||rec.id)+'</div>'+
-      '<div><strong>Cheque No:</strong> '+safe(d.chequeNo)+'</div>'+
-      '<div><strong>Date:</strong> '+safe(d.invDate)+'</div>'+
-    '</div>'+
-    '<table style="'+TS+'">'+
-      row2('Amount (UGX)',d.amount,'Payee',d.payee)+
-      row2('Related Requisition',d.reqRef,'Related LPO',d.lpoRef)+
-    '</table>'+
-    '<table style="'+TS+'">'+
-      '<tr><th style="'+TH_DARK+' width:5%;">#</th>'+
-      '<th style="'+TH_DARK+' width:55%;">Payment Particulars</th>'+
-      '<th style="'+TH_DARK+' width:15%;">Account Code</th>'+
-      '<th style="'+TH_DARK+' width:25%;">Amount (UGX)</th></tr>'+
-      (parts.length?parts.map(function(p,i){
-        return'<tr><td style="'+TD+' text-align:center;">'+(i+1)+'</td>'+
-          '<td style="'+TD+'">'+safe(p.particulars)+'</td>'+
-          '<td style="'+TD+'">'+safe(p.accountCode)+'</td>'+
-          '<td style="'+TD+' text-align:right;">'+safe(p.amount)+'</td></tr>';
-      }).join(''):'<tr><td colspan="4" style="'+TD+' text-align:center;color:#aaa;">No particulars</td></tr>')+
-      '<tr><td colspan="3" style="'+TH+' text-align:right;">VAT ('+safe(d.vatApplies)+')</td>'+
-        '<td style="'+TD+' text-align:right;">'+safe(d.vatAmount)+'</td></tr>'+
-      '<tr><td colspan="3" style="'+TH+' text-align:right;">Less: Withholding Tax</td>'+
-        '<td style="'+TD+' text-align:right;">'+safe(d.wht)+'</td></tr>'+
-      '<tr><td colspan="3" style="'+TH_DARK+' text-align:right;">TOTAL</td>'+
-        '<td style="background:#e8f4e8;'+TD+' text-align:right;font-weight:700;font-size:12px;">'+safe(d.total)+'</td></tr>'+
-      '<tr><td colspan="4" style="'+TD+' font-style:italic;">'+safe(d.amountWords)+'</td></tr>'+
-    '</table>'+
-    '<div style="font-weight:700;font-size:10px;color:'+BLUE+';margin:8px 0 4px;">ACCOUNT CODING</div>'+
-    '<table style="'+TS+'">'+
-      row2('Donor Code',d.donor,'Project Code',d.project)+
-      row2('Budget Code',d.budget,'Staff Code',d.staff)+
-      row2('Partner Code',d.partner,'Supplier Code',d.supplier)+
-      row1('Budget Category',d.budgetCategory)+
-    '</table>'+
-    approvalChain(rec)+linkedFormsSection(rec)+managementNotesSection(rec);
-}
-
-/* ── Master renderer ── */
-function renderForm(rec){
-  var t=rec.formType||'request';
-  var renderers={
-    request:renderRequest,
-    travel:renderTravel,
-    accountability:renderAccountability,
-    evaluation:renderEvaluation,
-    lpo:renderLPO,
-    grn:renderGRN,
-    invoice:renderInvoice
-  };
-  var fn=renderers[t]||renderRequest;
-  return '<div style="font-family:Arial,sans-serif;font-size:10px;color:#1a1a1a;padding:16px;max-width:800px;margin:0 auto;">'+
-    fn(rec)+
-    '<div style="margin-top:16px;padding-top:8px;border-top:1px solid #ccc;font-size:8px;color:#aaa;text-align:center;">'+
-      'Uganda Biodiversity Fund — Logistics &amp; Procurement System | '+rec.id+' | Generated '+new Date().toLocaleString('en-GB')+
-    '</div>'+
-  '</div>';
-}
-
-/* ── Download single form as PDF ── */
-function downloadFormPDF(rec,cb){
-  loadHtml2Pdf(function(){
-    /* Build fully self-contained HTML with no CSS variables */
-    var formHtml=renderForm(rec);
-    var container=document.createElement('div');
-    container.style.cssText=[
-      'position:absolute',
-      'top:0','left:0',
-      'width:794px',
-      'background:#ffffff',
-      'font-family:Arial,Helvetica,sans-serif',
-      'font-size:11px',
-      'color:#111111',
-      'padding:20px',
-      'visibility:hidden',
-      'z-index:-9999'
-    ].join(';');
-    container.innerHTML=formHtml;
-    document.body.appendChild(container);
-    var filename='UBF-'+rec.id+'-'+rec.formType+'.pdf';
-    /* 800ms delay — lets html2canvas fully paint the element */
-    setTimeout(function(){
-      container.style.visibility='visible';
-      html2pdf().set({
-        margin:[10,10,10,10],
-        filename:filename,
-        image:{type:'jpeg',quality:1},
-        html2canvas:{
-          scale:2,
-          useCORS:true,
-          logging:false,
-          backgroundColor:'#ffffff',
-          removeContainer:false
-        },
-        jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
-      }).from(container).save().then(function(){
-        container.style.visibility='hidden';
-        document.body.removeChild(container);
-        if(cb)cb();
-      }).catch(function(err){
-        if(document.body.contains(container))document.body.removeChild(container);
-        alert('PDF generation failed. Please check your internet and try again. Error: '+err.message);
-      });
-    },800);
+<script src="data.js"></script>
+<script src="form-renderer.js"></script>
+<script src="script.js"></script>
+<script>
+(function(){
+  /* ── Toggle sub-form panels ── */
+  document.getElementById('btn-toggle-travel').addEventListener('click',function(){
+    var p=document.getElementById('panel-travel');
+    p.classList.toggle('open');
+    this.textContent=p.classList.contains('open')?'- Remove Travel Business Plan':'+ Add Travel Business Plan';
   });
-}
+  document.getElementById('btn-toggle-accountability').addEventListener('click',function(){
+    var p=document.getElementById('panel-accountability');
+    p.classList.toggle('open');
+    this.textContent=p.classList.contains('open')?'- Remove Accountability Form':'+ Add Accountability Form';
+  });
 
-/* ── Download complete document package as PDF ── */
-function downloadPackagePDF(rec,allRecords,cb){
-  loadHtml2Pdf(function(){
-    /* Main form */
-    var html='<div style="font-family:Arial,sans-serif;font-size:10px;color:#1a1a1a;padding:16px;max-width:800px;margin:0 auto;">';
-
-    /* Package cover sheet */
-    html+='<div style="background:'+BLUE+';color:#fff;padding:20px;margin-bottom:20px;text-align:center;">'+
-      '<div style="font-size:16px;font-weight:700;margin-bottom:8px;">PROCUREMENT DOCUMENT PACKAGE</div>'+
-      '<div style="font-size:12px;">Uganda Biodiversity Fund</div>'+
-      '<div style="font-size:14px;font-weight:700;margin:8px 0;">'+safe(rec.id)+'</div>'+
-      '<div style="font-size:11px;">'+safe(rec.submittedByName)+' | '+fmtDate(rec.createdAt)+'</div>'+
-      '<div style="font-size:11px;margin-top:4px;">Status: <strong>'+safe(rec.status)+'</strong></div>'+
-    '</div>';
-
-    /* Table of contents */
-    html+='<div style="background:#f5f5f5;padding:12px;margin-bottom:16px;border-left:4px solid '+BLUE+';">'+
-      '<div style="font-weight:700;font-size:11px;margin-bottom:6px;color:'+BLUE+';">CONTENTS OF THIS PACKAGE</div>'+
-      '<div style="font-size:10px;">1. '+safe(rec.id)+' — '+safe(rec.formType)+' (Main Form)</div>'+
-      (rec.linkedForms&&rec.linkedForms.length?rec.linkedForms.map(function(lf,i){
-        return '<div style="font-size:10px;">'+(i+2)+'. '+safe(lf.id)+' — '+safe(lf.formType)+'</div>';
-      }).join(''):'')+
-      (rec.attachments&&rec.attachments.length?
-        '<div style="font-size:10px;margin-top:4px;font-style:italic;">Attached files: '+rec.attachments.length+' document(s)</div>':'')+
-    '</div>';
-
-    /* Main form */
-    html+=renderForm(rec);
-
-    /* Linked forms rendered in full */
-    if(rec.linkedForms&&rec.linkedForms.length&&allRecords){
-      rec.linkedForms.forEach(function(lf){
-        var linkedRec=allRecords.find(function(r){return r.id===lf.id;});
-        if(linkedRec){
-          html+='<div style="page-break-before:always;"></div>';
-          html+='<div style="background:#e8f4e8;padding:8px;margin-bottom:12px;font-weight:700;font-size:11px;color:'+GREEN+';">ATTACHED FORM: '+safe(lf.id)+'</div>';
-          html+=renderForm(linkedRec);
-        }
-      });
-    }
-
-    /* Attachments list */
-    if(rec.attachments&&rec.attachments.length){
-      html+='<div style="page-break-before:always;"></div>'+
-        '<div style="background:'+BLIGHT+';padding:12px;margin-bottom:12px;border-left:4px solid '+BLUE+';">'+
-        '<div style="font-weight:700;font-size:12px;color:'+BLUE+';margin-bottom:8px;">SUPPORTING DOCUMENTS LIST</div>'+
-        rec.attachments.map(function(a,i){
-          return'<div style="padding:6px 0;border-bottom:1px solid #ddd;font-size:10px;">'+
-            '<strong>'+(i+1)+'. '+safe(a.name)+'</strong>'+
-            '<div style="color:#666;font-size:9px;">Uploaded: '+fmtDate(a.uploadedAt)+'</div>'+
-            '<div style="color:'+BLUE+';font-size:9px;">Available at: '+safe(a.downloadUrl)+'</div>'+
-          '</div>';
-        }).join('')+
-        '<div style="font-size:9px;color:#888;margin-top:8px;font-style:italic;">Note: Supporting documents are stored in the UBF repository and can be accessed via the links above.</div>'+
-        '</div>';
-    }
-
-    html+='<div style="margin-top:16px;padding-top:8px;border-top:1px solid #ccc;font-size:8px;color:#aaa;text-align:center;">'+
-      'Uganda Biodiversity Fund — Complete Procurement Package | '+rec.id+' | Generated '+new Date().toLocaleString('en-GB')+
-    '</div></div>';
-
-    var container=document.createElement('div');
-    container.innerHTML=html;
-    container.style.cssText='position:fixed;left:-9999px;top:0;background:#fff;width:800px;';
-    document.body.appendChild(container);
-
-    setTimeout(function(){
-      container.style.visibility='visible';
-    html2pdf().set({
-      margin:[10,10,10,10],
-      filename:'UBF-PACKAGE-'+rec.id+'.pdf',
-      image:{type:'jpeg',quality:1},
-      html2canvas:{scale:2,useCORS:true,logging:false,backgroundColor:'#ffffff',removeContainer:false},
-      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-      pagebreak:{mode:['css','legacy']}
-    }).from(container).save().then(function(){
-      document.body.removeChild(container);
-      if(cb)cb();
-    }).catch(function(err){
-      if(document.body.contains(container))document.body.removeChild(container);
-      alert('PDF generation failed. Please check your internet and try again. Error: '+err.message);
+  /* ── Travel route rows ── */
+  var routeBody=document.getElementById('t-route-body'),routeCount=0;
+  function makeRouteRow(n){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td style="text-align:center;color:var(--gray-500);font-size:0.75rem;border:1px solid var(--gray-300);padding:0.25rem;">'+n+'</td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="route" type="text" placeholder="e.g. Kampala - Gulu"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="date" type="date"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="perDiem" class="r-cost" type="number" step="0.01" min="0" placeholder="0"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="accommodation" class="r-cost" type="number" step="0.01" min="0" placeholder="0"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="sda" class="r-cost" type="number" step="0.01" min="0" placeholder="0"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="others" class="r-cost" type="number" step="0.01" min="0" placeholder="0"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="total" class="r-total" type="number" step="0.01" readonly style="font-weight:600;"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem;text-align:center;"><button type="button" class="del-r" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.85rem;">x</button></td>';
+    return tr;
+  }
+  function calcRoutes(){
+    var grand=0;
+    routeBody.querySelectorAll('tr').forEach(function(row){
+      var t=0;row.querySelectorAll('.r-cost').forEach(function(i){t+=parseFloat(i.value)||0;});
+      grand+=t;var tf=row.querySelector('.r-total');if(tf)tf.value=t>0?t.toFixed(2):'';
     });
-    },800);
+    var gt=document.getElementById('t-grand-total');if(gt)gt.value=grand>0?grand.toFixed(2):'';
+  }
+  function addRoute(){routeCount++;routeBody.appendChild(makeRouteRow(routeCount));}
+  for(var i=0;i<3;i++)addRoute();
+  routeBody.addEventListener('input',calcRoutes);
+  routeBody.addEventListener('click',function(e){if(e.target.classList.contains('del-r')){e.target.closest('tr').remove();calcRoutes();}});
+  document.getElementById('btn-add-route-row').addEventListener('click',addRoute);
+
+  /* Auto-calculate travel days */
+  function calcDays(){
+    var dep=document.getElementById('t-departure-date').value;
+    var ret=document.getElementById('t-return-date').value;
+    if(dep&&ret){var d=Math.ceil((new Date(ret)-new Date(dep))/(86400000));var td=document.getElementById('t-total-days');if(td&&d>=0)td.value=d;}
+  }
+  document.getElementById('t-departure-date').addEventListener('change',calcDays);
+  document.getElementById('t-return-date').addEventListener('change',calcDays);
+
+  /* ── Accountability expense rows ── */
+  var expBody=document.getElementById('acc-expenses-body'),expCount=0;
+  function makeExpRow(n){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td style="text-align:center;color:var(--gray-500);font-size:0.75rem;border:1px solid var(--gray-300);padding:0.25rem;">'+n+'</td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="accountCode" type="text" placeholder="Code"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="date" type="date"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="explanation" type="text" placeholder="Brief explanation"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="refNo" type="text" placeholder="Ref No"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="budgeted" class="e-budgeted" type="number" step="0.01" min="0" placeholder="0"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="actual" class="e-actual" type="number" step="0.01" min="0" placeholder="0"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="balance" class="e-balance" type="number" step="0.01" readonly style="font-weight:600;"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem;text-align:center;"><button type="button" class="del-e" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.85rem;">x</button></td>';
+    return tr;
+  }
+  function calcExpenses(){
+    var totB=0,totA=0;
+    expBody.querySelectorAll('tr').forEach(function(row){
+      var b=parseFloat((row.querySelector('.e-budgeted')||{}).value)||0;
+      var a=parseFloat((row.querySelector('.e-actual')||{}).value)||0;
+      totB+=b;totA+=a;
+      var bf=row.querySelector('.e-balance');if(bf)bf.value=(b-a)!==0?(b-a).toFixed(2):'';
+    });
+    var tb=document.getElementById('acc-total-budgeted');if(tb)tb.value=totB>0?totB.toFixed(2):'';
+    var ta=document.getElementById('acc-total-actual');if(ta)ta.value=totA>0?totA.toFixed(2):'';
+    var tbal=document.getElementById('acc-total-balance');if(tbal)tbal.value=(totB-totA)!==0?(totB-totA).toFixed(2):'';
+  }
+  function addExpRow(){expCount++;expBody.appendChild(makeExpRow(expCount));}
+  for(var j=0;j<4;j++)addExpRow();
+  expBody.addEventListener('input',calcExpenses);
+  expBody.addEventListener('click',function(e){if(e.target.classList.contains('del-e')){e.target.closest('tr').remove();calcExpenses();}});
+  document.getElementById('btn-add-expense-row').addEventListener('click',addExpRow);
+
+  /* ── File info display ── */
+  ['form-attachments','t-attachments','acc-attachments'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.addEventListener('change',function(){
+      var info=document.getElementById(id.replace('-attachments','')+'-attach-info')||document.getElementById('form-attach-info');
+      if(info)info.textContent=this.files.length+' file(s) selected';
+    });
   });
-}
+  document.getElementById('form-attachments').addEventListener('change',function(){
+    document.getElementById('form-attach-info').textContent=this.files.length+' file(s) selected';
+  });
 
-/* ── Print form (clean print view) ── */
-function printForm(rec){
-  var html=renderForm(rec);
-  var win=window.open('','_blank','width=850,height=1100');
-  win.document.write(
-    '<html><head><title>UBF — '+rec.id+'</title>'+
-    '<style>body{margin:0;padding:0;}@media print{@page{margin:10mm;}}</style>'+
-    '</head><body>'+html+
-    '<script>window.onload=function(){window.print();window.onafterprint=function(){window.close();};}<\/script>'+
-    '</body></html>'
-  );
-  win.document.close();
-}
-
-/* ── Expose ── */
-global.FormRenderer={
-  renderForm:renderForm,
-  downloadFormPDF:downloadFormPDF,
-  downloadPackagePDF:downloadPackagePDF,
-  printForm:printForm
-};
-
-}(window));
+  /* ── Set today's date display ── */
+  var td=document.getElementById('form-date-today');
+  if(td)td.textContent=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  var accDate=document.getElementById('acc-date');
+  if(accDate)accDate.value=new Date().toISOString().split('T')[0];
+})();
+</script>
+</body>
+</html>

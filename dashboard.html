@@ -4,16 +4,23 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>UBF — Dashboard</title>
-  <link rel="stylesheet" href="style.css"/>  <style>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
     .nav-dropdown{position:relative;display:inline-block;}
-    .nav-dropdown-btn{display:block;padding:0.35rem 0.7rem;border-radius:var(--radius-sm);color:rgba(255,255,255,0.8);font-size:0.8rem;font-weight:500;transition:background 0.15s,color 0.15s;text-decoration:none;white-space:nowrap;background:none;border:none;cursor:pointer;font-family:var(--font-body);}
-    .nav-dropdown-btn:hover,.nav-dropdown-btn.active{background:rgba(255,255,255,0.15);color:#fff;}
-    .nav-dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#fff;border-radius:var(--radius-sm);box-shadow:0 4px 16px rgba(0,0,0,0.18);min-width:200px;z-index:200;padding:0.3rem 0;margin-top:2px;}
+    .nav-dropdown-btn{display:block;padding:0.4rem 0.8rem;border-radius:var(--radius-sm);color:rgba(255,255,255,0.82);font-size:0.82rem;font-weight:500;transition:background 0.15s,color 0.15s;text-decoration:none;white-space:nowrap;background:none;border:none;cursor:pointer;font-family:var(--font-body);}
+    .nav-dropdown-btn:hover,.nav-dropdown-btn.active{background:rgba(255,255,255,0.18);color:#fff;}
+    .nav-dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#fff;border-radius:var(--radius-md);box-shadow:var(--shadow-lg);min-width:210px;z-index:200;padding:0.4rem 0;margin-top:6px;border:1px solid var(--gray-200);}
     .nav-dropdown:hover .nav-dropdown-menu,.nav-dropdown:focus-within .nav-dropdown-menu{display:block;}
-    .nav-dropdown-menu a{display:block;padding:0.4rem 1rem;font-size:0.82rem;color:var(--gray-900);text-decoration:none;white-space:nowrap;}
-    .nav-dropdown-menu a:hover{background:var(--ubf-blue-pale);color:var(--ubf-blue-darker);}
-    .nav-dropdown-menu .menu-divider{height:1px;background:var(--gray-200);margin:0.2rem 0;}
-    .nav-dropdown-menu .menu-label{padding:0.3rem 1rem;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-500);font-weight:700;}
+    .nav-dropdown-menu a{display:block;padding:0.45rem 1rem;font-size:0.82rem;color:var(--gray-900);text-decoration:none;white-space:nowrap;}
+    .nav-dropdown-menu a:hover{background:var(--green-pale);color:var(--ubf-green-dark);}
+    .nav-dropdown-menu .menu-divider{height:1px;background:var(--gray-200);margin:0.25rem 0;}
+    .nav-dropdown-menu .menu-label{padding:0.3rem 1rem;font-size:0.66rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-500);font-weight:700;}
+
+    /* search field with leading icon (dashboard-local) */
+    .search-wrap{position:relative;display:inline-flex;align-items:center;}
+    .search-wrap svg{position:absolute;left:0.6rem;height:0.95rem;width:0.95rem;stroke:var(--gray-400);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;}
+    .search-wrap input{padding-left:1.9rem!important;}
+    .table-count{font-size:0.72rem;font-weight:700;color:var(--gray-500);background:var(--gray-100);border:1px solid var(--gray-200);padding:0.12rem 0.5rem;border-radius:999px;margin-left:0.5rem;vertical-align:middle;}
   </style>
 </head>
 <body>
@@ -22,11 +29,10 @@
     <div class="navbar-logo"><img src="ubf-logo.png" alt="UBF" onerror="if(this.src.indexOf('.png')!==-1){this.src='ubf-logo.jpg';}else{this.style.display='none';this.parentElement.setAttribute('data-fallback','true');}"/></div>
     <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
   </a>
-    <ul class="navbar-nav">
+  <ul class="navbar-nav">
     <li><a href="dashboard.html" class="active">Dashboard</a></li>
-    <!-- Forms dropdown -->
     <li class="nav-dropdown">
-      <button class="nav-dropdown-btn ">Forms ▾</button>
+      <button class="nav-dropdown-btn">Forms ▾</button>
       <div class="nav-dropdown-menu">
         <div class="menu-label">Staff Forms</div>
         <a href="form.html">Request for Goods/Services</a>
@@ -40,10 +46,10 @@
         <a href="invoice.html">Payment Voucher</a>
       </div>
     </li>
-    <li><a href="archives.html" class="">Archive</a></li>
-    <li><a href="expenditure-report.html" class="">Expenditure</a></li>
-    <li><a href="history.html" class="">History</a></li>
-    <li><a href="help.html" class="">Help</a></li>
+    <li><a href="archives.html">Archive</a></li>
+    <li><a href="expenditure-report.html">Expenditure</a></li>
+    <li><a href="history.html">History</a></li>
+    <li><a href="help.html">Help</a></li>
   </ul>
   <div class="navbar-user">
     <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading…</span><span class="role-badge" id="nav-user-role">—</span></div>
@@ -77,13 +83,41 @@
 
   <!-- Stats -->
   <div class="stats-grid">
-    <div class="stat-card total"><div class="stat-value" id="stat-total">—</div><div class="stat-label">Total</div></div>
-    <div class="stat-card pending"><div class="stat-value" id="stat-pending">—</div><div class="stat-label">Pending</div></div>
-    <div class="stat-card inreview"><div class="stat-value" id="stat-prepared">—</div><div class="stat-label">Prepared</div></div>
-    <div class="stat-card inreview" style="border-color:#7c3aed;"><div class="stat-value" id="stat-reviewed">—</div><div class="stat-label">Reviewed</div></div>
-    <div class="stat-card inreview" style="border-color:#0891b2;"><div class="stat-value" id="stat-cleared">—</div><div class="stat-label">Cleared</div></div>
-    <div class="stat-card approved"><div class="stat-value" id="stat-approved">—</div><div class="stat-label">Approved</div></div>
-    <div class="stat-card rejected"><div class="stat-value" id="stat-rejected">—</div><div class="stat-label">Rejected</div></div>
+    <div class="stat-card total">
+      <div class="stat-top"><span class="stat-label">Total</span>
+        <span class="stat-icon"><svg viewBox="0 0 24 24"><path d="M3 4h18M3 12h18M3 20h18"/></svg></span></div>
+      <div class="stat-value" id="stat-total">—</div>
+    </div>
+    <div class="stat-card pending">
+      <div class="stat-top"><span class="stat-label">Pending</span>
+        <span class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span></div>
+      <div class="stat-value" id="stat-pending">—</div>
+    </div>
+    <div class="stat-card prepared">
+      <div class="stat-top"><span class="stat-label">Prepared</span>
+        <span class="stat-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6M9 17h4"/></svg></span></div>
+      <div class="stat-value" id="stat-prepared">—</div>
+    </div>
+    <div class="stat-card reviewed">
+      <div class="stat-top"><span class="stat-label">Reviewed</span>
+        <span class="stat-icon"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span></div>
+      <div class="stat-value" id="stat-reviewed">—</div>
+    </div>
+    <div class="stat-card cleared">
+      <div class="stat-top"><span class="stat-label">Cleared</span>
+        <span class="stat-icon"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></span></div>
+      <div class="stat-value" id="stat-cleared">—</div>
+    </div>
+    <div class="stat-card approved">
+      <div class="stat-top"><span class="stat-label">Approved</span>
+        <span class="stat-icon"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></span></div>
+      <div class="stat-value" id="stat-approved">—</div>
+    </div>
+    <div class="stat-card rejected">
+      <div class="stat-top"><span class="stat-label">Rejected</span>
+        <span class="stat-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/></svg></span></div>
+      <div class="stat-value" id="stat-rejected">—</div>
+    </div>
   </div>
 
   <!-- Table -->
@@ -97,7 +131,10 @@
           <option>Reviewed</option><option>Cleared</option>
           <option>Approved</option><option>Rejected</option>
         </select>
-        <input type="search" id="filter-search" placeholder="Search ID, description, staff…" style="width:220px;"/>
+        <span class="search-wrap">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="search" id="filter-search" placeholder="Search ID, description, staff…" style="width:230px;"/>
+        </span>
       </div>
     </div>
     <div id="dashboard-loading" class="loading-state"><div class="spinner"></div>Loading submissions…</div>
@@ -106,8 +143,7 @@
         <thead>
           <tr>
             <th>Ref No</th><th>Form Type</th><th>Description</th>
-            <th>Submitted By</th><th>Date</th><th>Package</th>
-            <th>Status</th><th>Actions</th>
+            <th>Submitted By</th><th>Date</th><th>Status</th><th>Actions</th>
           </tr>
         </thead>
         <tbody id="dashboard-table-body"></tbody>

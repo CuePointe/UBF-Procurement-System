@@ -7,24 +7,23 @@
   <link rel="stylesheet" href="style.css"/>
   <style>
     .acc-table td,.acc-table th{border:1px solid var(--gray-300);padding:0.35rem 0.5rem;font-size:0.82rem;}
-    .acc-table th{background:var(--ubf-blue-light);color:var(--ubf-blue-darker);font-weight:700;font-size:0.75rem;}
+    .acc-table th{background:var(--green-light);color:var(--ubf-green-dark);font-weight:700;font-size:0.75rem;}
     .acc-table td input,.acc-table td select{width:100%;border:none;outline:none;font-family:var(--font-body);font-size:0.82rem;background:transparent;}
     .acc-table td input:focus{background:#fffde7;}
-    .summary-box{background:var(--ubf-blue-pale);border:1px solid var(--ubf-blue-light);border-radius:var(--radius-sm);padding:1rem 1.25rem;}
-    .summary-row{display:flex;align-items:center;justify-content:space-between;padding:0.35rem 0;border-bottom:1px solid var(--ubf-blue-light);font-size:0.9rem;}
+    .summary-box{background:var(--green-pale);border:1px solid var(--green-light);border-radius:var(--radius-sm);padding:1rem 1.25rem;}
+    .summary-row{display:flex;align-items:center;justify-content:space-between;padding:0.35rem 0;border-bottom:1px solid var(--green-light);font-size:0.9rem;}
     .summary-row:last-child{border-bottom:none;font-weight:700;font-size:1rem;}
     .summary-label{color:var(--gray-700);font-weight:500;}
-    .summary-value{font-weight:700;color:var(--ubf-blue-darker);font-family:monospace;font-size:0.95rem;}
+    .summary-value{font-weight:700;color:var(--ubf-green-dark);font-family:monospace;font-size:0.95rem;}
     .balance-positive{color:#14532d;}
     .balance-negative{color:var(--red);}
-    <style>
     .nav-dropdown{position:relative;display:inline-block;}
     .nav-dropdown-btn{display:block;padding:0.35rem 0.7rem;border-radius:var(--radius-sm);color:rgba(255,255,255,0.8);font-size:0.8rem;font-weight:500;transition:background 0.15s,color 0.15s;text-decoration:none;white-space:nowrap;background:none;border:none;cursor:pointer;font-family:var(--font-body);}
     .nav-dropdown-btn:hover,.nav-dropdown-btn.active{background:rgba(255,255,255,0.15);color:#fff;}
     .nav-dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#fff;border-radius:var(--radius-sm);box-shadow:0 4px 16px rgba(0,0,0,0.18);min-width:200px;z-index:200;padding:0.3rem 0;margin-top:2px;}
     .nav-dropdown:hover .nav-dropdown-menu,.nav-dropdown:focus-within .nav-dropdown-menu{display:block;}
     .nav-dropdown-menu a{display:block;padding:0.4rem 1rem;font-size:0.82rem;color:var(--gray-900);text-decoration:none;white-space:nowrap;}
-    .nav-dropdown-menu a:hover{background:var(--ubf-blue-pale);color:var(--ubf-blue-darker);}
+    .nav-dropdown-menu a:hover{background:var(--green-pale);color:var(--ubf-green-dark);}
     .nav-dropdown-menu .menu-divider{height:1px;background:var(--gray-200);margin:0.2rem 0;}
     .nav-dropdown-menu .menu-label{padding:0.3rem 1rem;font-size:0.68rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-500);font-weight:700;}
   </style>
@@ -112,7 +111,7 @@
     <!-- Expenses Table -->
     <div class="form-section">
       <div class="form-section-title">Details of Expenses</div>
-      <div class="form-group" style="margin-bottom:0.75rem;"><label>Currency</label><select id="form-currency" name="currency" style="padding:0.45rem 0.75rem;border:1.5px solid var(--gray-300);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.875rem;font-weight:600;color:var(--ubf-blue-darker);">
+      <div class="form-group" style="margin-bottom:0.75rem;"><label>Currency</label><select id="form-currency" name="currency" style="padding:0.45rem 0.75rem;border:1.5px solid var(--gray-300);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.875rem;font-weight:600;color:var(--ubf-green-dark);">
               <option value="UGX">UGX — Uganda Shillings</option>
               <option value="USD">USD — US Dollars</option>
               <option value="EUR">EUR — Euros</option>
@@ -134,7 +133,7 @@
           </thead>
           <tbody id="expenses-table-body"></tbody>
           <tfoot>
-            <tr style="background:var(--ubf-blue-light);font-weight:700;">
+            <tr style="background:var(--green-light);font-weight:700;">
               <td colspan="5" style="text-align:right;padding:0.4rem 0.5rem;font-size:0.82rem;border:1px solid var(--gray-300);">Totals</td>
               <td style="border:1px solid var(--gray-300);padding:0.3rem 0.5rem;">
                 <input type="number" id="acc-total-budgeted" step="0.01" readonly style="width:100%;border:none;outline:none;font-weight:700;background:transparent;font-family:var(--font-body);"/>
@@ -150,7 +149,7 @@
           </tfoot>
         </table>
       </div>
-      <button type="button" id="btn-add-expense" style="margin-top:6px;font-size:0.75rem;color:var(--ubf-blue-dark);background:var(--ubf-blue-pale);border:1px dashed var(--ubf-blue-light);border-radius:4px;padding:0.25rem 0.7rem;cursor:pointer;" class="no-print">
+      <button type="button" id="btn-add-expense" style="margin-top:6px;font-size:0.75rem;color:var(--ubf-green-dark);background:var(--green-pale);border:1px dashed var(--green-light);border-radius:4px;padding:0.25rem 0.7rem;cursor:pointer;" class="no-print">
         ➕ Add Expense Row
       </button>
     </div>

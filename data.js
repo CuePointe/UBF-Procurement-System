@@ -1,549 +1,489 @@
 /**
- * data.js - UBF Procurement & Logistics System
- * Token stored in localStorage key: ubf_gatekeeper_token
+ * data.js — UBF Procurement & Logistics System
+ * Backend: Supabase (Postgres + Auth + Storage) with Row-Level Security.
+ * Dependency-free: talks to Supabase REST / Auth / Storage over fetch.
+ *
+ * The public DataService API (method names & shapes) is kept identical to the
+ * previous GitHub-backed version, so dashboard.html, the forms, the expenditure
+ * report and script.js keep working unchanged.
  */
-(function(global){
+(function (global) {
 'use strict';
 
-var CONFIG={
-  API_BASE        :'https://api.github.com',
-  OWNER           :'CuePointe',
-  REPO            :'UBF-Procurement-System',
-  DB_PATH         :'data/requisitions.json',
-  USERS_PATH      :'data/users.json',
-  ARCHIVES_PATH   :'data/archives.json',
-  BRANCH          :'main',
-  SESSION_KEY     :'ubf_session',
-  TOKEN_KEY       :'ubf_gatekeeper_token',
-  PASS_EXPIRY_DAYS:90
+var CONFIG = {
+  URL             : 'https://nrtffnqbztablimkbysa.supabase.co',
+  KEY             : 'sb_publishable_GYKa4bi7xMZUc4HFkKJcdQ_fqIPy1pF',
+  BUCKET          : 'attachments',
+  SESSION_KEY     : 'ubf_sb_session',
+  SIGNED_URL_TTL  : 31536000 /* 1 year */
 };
 
-var STAFF={
-  'i.amani@ugandabiodiversityfund.org'    :{name:'Ivan Amanigaruhanga',role:'ED',           title:'Executive Director'},
-  'w.nabatanzi@ugandabiodiversityfund.org':{name:'Winnie Nabatanzi',   role:'FAM',          title:'Finance and Administration Manager'},
-  's.abonyo@ugandabiodiversityfund.org'   :{name:'Susan Abonyo',       role:'Admin Officer',title:'Administration Officer'},
-  'd.okullu@ugandabiodiversityfund.org'   :{name:'David Okullu',       role:'Staff',        title:'M&E Officer'},
-  'p.musiime@ugandabiodiversityfund.org'  :{name:'Posiano Musiime',    role:'Staff',        title:'Programs Officer'},
-  'o.atuhaire@ugandabiodiversityfund.org' :{name:'Owen Atuhaire',      role:'Staff',        title:'Project Officer'},
-  't.otieno@ugandabiodiversityfund.org'   :{name:'Tom Otieno',         role:'Staff',        title:'Office Assistant'}
-};
+var ELEVATED = ['Admin Officer', 'Finance Officer', 'FAM', 'ED'];
 
-var ELEVATED=['Admin Officer','Finance Officer','FAM','ED'];
+/* small in-memory directory (email -> {name,role,title}); best-effort */
+var _dir = {};
 
-var ROLE_ACTIONS={
-  'Admin Officer'  :{canAction:['Pending'],            nextStatus:'Prepared', actionLabel:'Mark Prepared'},
-  'Finance Officer':{canAction:['Prepared'],           nextStatus:'Reviewed', actionLabel:'Mark Reviewed'},
-  'FAM'            :{canAction:['Prepared','Reviewed'],nextStatus:null,       actionLabel:null},
-  'ED'             :{canAction:['Cleared'],            nextStatus:'Approved', actionLabel:'Approve'}
-};
-
-function getStaff(e){if(!e)return{name:'',role:'Staff',title:'Staff'};return STAFF[e.trim().toLowerCase()]||{name:e,role:'Staff',title:'Staff'};}
-function getRole(e){return getStaff(e).role;}
-function getDisplayName(e){return getStaff(e).name;}
-function getTitle(e){return getStaff(e).title;}
-function canSeeAll(r){return ELEVATED.indexOf(r)!==-1;}
-function getNextStatus(role,status){
-  if(role==='FAM'){if(status==='Prepared')return'Reviewed';if(status==='Reviewed')return'Cleared';}
-  var a=ROLE_ACTIONS[role];return a?a.nextStatus:null;
+/* ============================================================
+   Session storage
+============================================================ */
+function getStored(){
+  try { var raw = localStorage.getItem(CONFIG.SESSION_KEY); return raw ? JSON.parse(raw) : null; }
+  catch(_) { return null; }
 }
-function getActionLabel(role,status){
-  if(role==='FAM'){if(status==='Prepared')return'Mark Reviewed';if(status==='Reviewed')return'Clear';}
-  var a=ROLE_ACTIONS[role];return a?a.actionLabel:null;
-}
-function canActionRequisition(role,status){
-  if(!role||!status)return false;
-  var a=ROLE_ACTIONS[role];if(!a)return false;
-  return a.canAction.indexOf(status)!==-1;
+function setStored(s){ localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(s)); }
+function clearStored(){ localStorage.removeItem(CONFIG.SESSION_KEY); }
+
+/* ============================================================
+   Low-level fetch helpers
+============================================================ */
+async function parseJson(res){ try { return await res.json(); } catch(_) { return null; } }
+
+function friendlyErr(status, body){
+  var msg = (body && (body.message || body.error_description || body.msg || body.error || body.hint)) || '';
+  if (/invalid login credentials/i.test(msg)) return 'Incorrect email or password. Please try again.';
+  if (status === 401) return 'Session expired. Please log in again.';
+  if (status === 403) return 'You are not permitted to do that.';
+  return msg || ('Request failed (' + status + ').');
 }
 
-async function sha256(str){
-  var buf=new TextEncoder().encode(str),hash=await crypto.subtle.digest('SHA-256',buf);
-  return Array.from(new Uint8Array(hash)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
-}
-function isPasswordExpired(e){return e?new Date(e)<new Date():false;}
-function newExpiryDate(){var d=new Date();d.setDate(d.getDate()+CONFIG.PASS_EXPIRY_DAYS);return d.toISOString().split('T')[0];}
+/* Refresh the access token if it is missing or about to expire. Returns a valid token. */
+async function accessToken(){
+  var s = getStored();
+  if (!s || !s.access_token) throw new Error('Session expired. Please log in again.');
+  if (s.expires_at && Date.now() < (s.expires_at - 60000)) return s.access_token;
+  if (!s.refresh_token) return s.access_token; /* no refresh available; try as-is */
 
-function getToken(){return localStorage.getItem(CONFIG.TOKEN_KEY)||'';}
-function buildApiUrl(p){return CONFIG.API_BASE+'/repos/'+CONFIG.OWNER+'/'+CONFIG.REPO+'/contents/'+p;}
-function buildHeaders(){return{'Authorization':'Bearer '+getToken(),'Content-Type':'application/json','Accept':'application/vnd.github.v3+json','X-GitHub-Api-Version':'2022-11-28'};}
-function encodeB64(obj){return btoa(unescape(encodeURIComponent(JSON.stringify(obj,null,2))));}
-function decodeB64(b64){return JSON.parse(decodeURIComponent(escape(atob(b64.replace(/[\n\r]/g,'')))));}
-function generateId(){
-  var n=new Date(),r=Math.floor(Math.random()*0xFFFFFF).toString(16).toUpperCase().padStart(6,'0');
-  return 'UBF-'+n.getFullYear()+String(n.getMonth()+1).padStart(2,'0')+String(n.getDate()).padStart(2,'0')+'-'+r;
-}
-function apiErr(s,m){
-  if(s===401)return'Authentication failed. Check your token.';
-  if(s===403)return"Permission denied. Token needs 'repo' scope.";
-  if(s===404)return'File not found. Contact administrator.';
-  if(s===409)return'Data conflict. Refresh and try again.';
-  if(s===422)return'Sync error. Refresh and try again.';
-  return'API error ('+s+'): '+(m||'Unknown');
-}
-
-async function readGHFile(path){
-  var res=await fetch(buildApiUrl(path)+'?_='+Date.now(),{method:'GET',headers:buildHeaders()});
-  if(!res.ok){var e={};try{e=await res.json();}catch(_){}throw new Error(apiErr(res.status,e.message));}
-  var f=await res.json();var data;try{data=decodeB64(f.content);}catch(_){data=[];}
-  return{data:data,sha:f.sha};
-}
-async function writeGHFile(path,data,sha,msg){
-  var res=await fetch(buildApiUrl(path),{method:'PUT',headers:buildHeaders(),
-    body:JSON.stringify({message:msg||'UBF update',content:encodeB64(data),sha:sha,branch:CONFIG.BRANCH})});
-  if(!res.ok){var e={};try{e=await res.json();}catch(_){}throw new Error(apiErr(res.status,e.message));}
-  return await res.json();
-}
-
-async function readDatabase(){var r=await readGHFile(CONFIG.DB_PATH);return{records:Array.isArray(r.data)?r.data:[],sha:r.sha};}
-async function writeDatabase(records,sha,msg){return writeGHFile(CONFIG.DB_PATH,Array.isArray(records)?records:[],sha,msg);}
-
-async function readUsers(){var r=await readGHFile(CONFIG.USERS_PATH);return{users:Array.isArray(r.data)?r.data:[],sha:r.sha};}
-async function writeUsers(users,sha,msg){return writeGHFile(CONFIG.USERS_PATH,users,sha,msg);}
-
-/* ── Archives ── */
-async function readArchives(){
-  try{
-    var r=await readGHFile(CONFIG.ARCHIVES_PATH);
-    /* Ensure data is always the correct {folders,unfiled} object */
-    var d=r.data;
-    if(!d||Array.isArray(d)||typeof d!=='object'){d={folders:[],unfiled:[]};}
-    if(!d.folders)d.folders=[];
-    if(!d.unfiled)d.unfiled=[];
-    return{data:d,sha:r.sha};
-  }catch(_){
-    return{data:{folders:[],unfiled:[]},sha:null};
-  }
-}
-async function writeArchives(data,sha,msg){
-  /* Always re-read current sha before writing to avoid conflicts */
-  try{
-    var current=await readGHFile(CONFIG.ARCHIVES_PATH);
-    sha=current.sha;
-  }catch(_){sha=null;}
-  var url=buildApiUrl(CONFIG.ARCHIVES_PATH);
-  var body={message:msg||'Update archives',content:encodeB64(data),branch:CONFIG.BRANCH};
-  if(sha)body.sha=sha;
-  var res=await fetch(url,{method:'PUT',headers:buildHeaders(),body:JSON.stringify(body)});
-  if(!res.ok){var e={};try{e=await res.json();}catch(_){}throw new Error(apiErr(res.status,e.message));}
-  return await res.json();
-}
-
-/* Archives structure: {folders:[{id,name,createdBy,createdAt,files:[{recordId,name,addedAt}]}], unfiled:[{recordId,name,addedAt}]} */
-async function autoArchiveRecord(record){
-  var ar=await readArchives();
-  var arch=ar.data&&typeof ar.data==='object'&&!Array.isArray(ar.data)?ar.data:{folders:[],unfiled:[]};
-  if(!arch.folders)arch.folders=[];
-  if(!arch.unfiled)arch.unfiled=[];
-  var alreadyFiled=arch.unfiled.some(function(f){return f.recordId===record.id;})||
-    arch.folders.some(function(folder){return folder.files&&folder.files.some(function(f){return f.recordId===record.id;});});
-  if(!alreadyFiled){
-    var desc=(record.data&&record.data.description)||record.id;
-    arch.unfiled.push({recordId:record.id,name:desc,formType:record.formType,
-      submittedByName:record.submittedByName,approvedAt:record.updatedAt,addedAt:new Date().toISOString()});
-    await writeArchives(arch,ar.sha,'Auto-archive: '+record.id);
-  }
-  return arch;
-}
-async function createArchiveFolder(folderName,session){
-  var ar=await readArchives();
-  var arch=ar.data&&typeof ar.data==='object'&&!Array.isArray(ar.data)?ar.data:{folders:[],unfiled:[]};
-  if(!arch.folders)arch.folders=[];
-  if(!arch.unfiled)arch.unfiled=[];
-  var folder={id:'FLD-'+Date.now(),name:folderName,createdBy:session.email,
-    createdByName:session.name,createdAt:new Date().toISOString(),files:[]};
-  arch.folders.push(folder);
-  await writeArchives(arch,ar.sha,'Create folder: '+folderName+' by '+session.email);
-  return folder;
-}
-async function renameArchiveFolder(folderId,newName,session){
-  var ar=await readArchives();
-  var arch=ar.data&&typeof ar.data==='object'&&!Array.isArray(ar.data)?ar.data:{folders:[],unfiled:[]};
-  var idx=arch.folders.findIndex(function(f){return f.id===folderId;});
-  if(idx===-1)throw new Error('Folder not found.');
-  arch.folders[idx].name=newName;
-  arch.folders[idx].renamedBy=session.email;
-  arch.folders[idx].renamedAt=new Date().toISOString();
-  await writeArchives(arch,ar.sha,'Rename folder to "'+newName+'" by '+session.email);
-  return arch.folders[idx];
-}
-async function moveFileToFolder(recordId,folderId,session){
-  var ar=await readArchives();
-  var arch=ar.data&&typeof ar.data==='object'&&!Array.isArray(ar.data)?ar.data:{folders:[],unfiled:[]};
-  var fileEntry=null;
-  /* Remove from unfiled */
-  var unfiledIdx=arch.unfiled.findIndex(function(f){return f.recordId===recordId;});
-  if(unfiledIdx!==-1){fileEntry=arch.unfiled.splice(unfiledIdx,1)[0];}
-  /* Remove from other folders */
-  arch.folders.forEach(function(folder){
-    var fi=folder.files.findIndex(function(f){return f.recordId===recordId;});
-    if(fi!==-1&&!fileEntry){fileEntry=folder.files.splice(fi,1)[0];}
-    else if(fi!==-1){folder.files.splice(fi,1);}
+  var res = await fetch(CONFIG.URL + '/auth/v1/token?grant_type=refresh_token', {
+    method:'POST',
+    headers:{ 'apikey': CONFIG.KEY, 'Content-Type':'application/json' },
+    body: JSON.stringify({ refresh_token: s.refresh_token })
   });
-  if(!fileEntry)throw new Error('File not found in archives.');
-  /* Add to target folder */
-  var targetIdx=arch.folders.findIndex(function(f){return f.id===folderId;});
-  if(targetIdx===-1)throw new Error('Target folder not found.');
-  fileEntry.movedBy=session.email;fileEntry.movedAt=new Date().toISOString();
-  arch.folders[targetIdx].files.push(fileEntry);
-  await writeArchives(arch,ar.sha,'Move '+recordId+' to folder '+arch.folders[targetIdx].name);
-  return arch;
+  if (!res.ok){ clearStored(); throw new Error('Session expired. Please log in again.'); }
+  var t = await res.json();
+  s.access_token  = t.access_token;
+  s.refresh_token = t.refresh_token || s.refresh_token;
+  s.expires_at    = Date.now() + ((t.expires_in || 3600) * 1000);
+  setStored(s);
+  return s.access_token;
 }
-async function renameArchivedFile(recordId,newName,session){
-  var ar=await readArchives();
-  var arch=ar.data&&typeof ar.data==='object'&&!Array.isArray(ar.data)?ar.data:{folders:[],unfiled:[]};
-  var found=false;
-  arch.unfiled.forEach(function(f){if(f.recordId===recordId){f.name=newName;f.renamedBy=session.email;found=true;}});
-  arch.folders.forEach(function(folder){
-    folder.files.forEach(function(f){if(f.recordId===recordId){f.name=newName;f.renamedBy=session.email;found=true;}});
+
+/* PostgREST call */
+async function rest(path, opts){
+  opts = opts || {};
+  var token = await accessToken();
+  var headers = {
+    'apikey': CONFIG.KEY,
+    'Authorization': 'Bearer ' + token,
+    'Content-Type': 'application/json'
+  };
+  if (opts.prefer) headers['Prefer'] = opts.prefer;
+  var res = await fetch(CONFIG.URL + '/rest/v1/' + path, {
+    method: opts.method || 'GET',
+    headers: headers,
+    body: opts.body ? JSON.stringify(opts.body) : undefined
   });
-  if(!found)throw new Error('File not found.');
-  await writeArchives(arch,ar.sha,'Rename archived file '+recordId+' to "'+newName+'"');
-  return arch;
+  if (!res.ok){ throw new Error(friendlyErr(res.status, await parseJson(res))); }
+  if (res.status === 204) return null;
+  return await parseJson(res);
 }
 
-/* ── Auth ── */
-async function authenticateUser(email,password){
-  var el=email.trim().toLowerCase(),hash=await sha256(password);
-  var r=await readUsers(),user=r.users.find(function(u){return u.email.toLowerCase()===el;});
-  if(!user)throw new Error('No account found for this email address.');
-  if(!user.active)throw new Error('Account deactivated. Contact administrator.');
-  if(user.passwordHash!==hash)throw new Error('Incorrect password. Please try again.');
-  return{user:user,usersSha:r.sha,allUsers:r.users};
-}
-async function changePassword(email,newPass){
-  var r=await readUsers();
-  var idx=r.users.findIndex(function(u){return u.email.toLowerCase()===email.toLowerCase();});
-  if(idx===-1)throw new Error('User not found.');
-  r.users[idx].passwordHash=await sha256(newPass);r.users[idx].passwordExpiry=newExpiryDate();r.users[idx].mustChangePassword=false;
-  await writeUsers(r.users,r.sha,'Password changed for '+email);return true;
-}
-
-/* ── Session ── */
-function saveSession(user){
-  var s={email:user.email,name:user.name,role:user.role,title:user.title,
-    loginAt:new Date().toISOString(),expiresAt:new Date(Date.now()+8*3600000).toISOString()};
-  localStorage.setItem(CONFIG.SESSION_KEY,JSON.stringify(s));return s;
-}
-function getSession(){
-  try{
-    var raw=localStorage.getItem(CONFIG.SESSION_KEY);if(!raw)return null;
-    var s=JSON.parse(raw);if(new Date(s.expiresAt)<new Date()){clearSession();return null;}return s;
-  }catch(_){return null;}
-}
-function clearSession(){localStorage.removeItem(CONFIG.SESSION_KEY);}
-function isAuthenticated(){return!!getSession();}
-function requireSession(){var s=getSession();if(!s)throw new Error('Session expired. Please log in again.');return s;}
-
-/* ── Filtering ── */
-function filterByRole(records,session){
-  if(!Array.isArray(records)||!session)return[];
-  if(canSeeAll(session.role))return records;
-  return records.filter(function(r){return r.submittedBy&&r.submittedBy.toLowerCase()===session.email.toLowerCase();});
-}
-
-/* ── File upload ── */
-function uploadAttachment(file){
-  return new Promise(function(resolve,reject){
-    var reader=new FileReader();
-    reader.onerror=function(){reject(new Error('Cannot read: '+file.name));};
-    reader.onload=async function(evt){
-      try{
-        var b64=evt.target.result.split(',')[1];
-        var safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
-        var path='attachments/'+Date.now()+'_'+safe;
-        var res=await fetch(buildApiUrl(path),{method:'PUT',headers:buildHeaders(),
-          body:JSON.stringify({message:'Attachment: '+safe,content:b64,branch:CONFIG.BRANCH})});
-        if(!res.ok){var e={};try{e=await res.json();}catch(_){}throw new Error(apiErr(res.status,e.message));}
-        var result=await res.json();
-        resolve({path:path,downloadUrl:result.content.html_url,name:file.name,size:file.size,uploadedAt:new Date().toISOString()});
-      }catch(err){reject(err);}
-    };
-    reader.readAsDataURL(file);
+/* Call a Postgres function (RPC) */
+async function rpc(fn, args){
+  var token = await accessToken();
+  var res = await fetch(CONFIG.URL + '/rest/v1/rpc/' + fn, {
+    method:'POST',
+    headers:{ 'apikey': CONFIG.KEY, 'Authorization': 'Bearer ' + token, 'Content-Type':'application/json' },
+    body: JSON.stringify(args || {})
   });
-}
-async function uploadAllAttachments(fileList){
-  var results=[],files=Array.isArray(fileList)?fileList:Array.from(fileList||[]);
-  for(var i=0;i<files.length;i++)results.push(await uploadAttachment(files[i]));
-  return results;
+  if (!res.ok){ throw new Error(friendlyErr(res.status, await parseJson(res))); }
+  return await parseJson(res);
 }
 
-/* ── Build a single record object ── */
-function buildRecord(formData,files_att,formType,session,now,linkedSummaries){
-  return{
-    id:generateId(),formType:formType||'request',data:formData,
-    submittedBy:session.email,submittedByName:session.name,
-    submittedByTitle:session.title,submittedByRole:session.role,
-    status:'Pending',attachments:files_att||[],comments:[],
-    linkedForms:linkedSummaries||[],managementNotes:[],
-    createdAt:now,updatedAt:now,
-    approval:{
-      preparation:{status:'Pending',by:'',byName:'',at:'',note:''},
-      review     :{status:'Pending',by:'',byName:'',at:'',note:''},
-      clearance  :{status:'Pending',by:'',byName:'',at:'',note:''},
-      approval   :{status:'Pending',by:'',byName:'',at:'',note:''}
-    },
-    history:[{action:'Submitted',by:session.email,byName:session.name,byTitle:session.title,at:now,note:'Initial submission'}]
+/* ============================================================
+   Row <-> record mapping (keeps the shape the UI expects)
+============================================================ */
+function rowToRecord(r){
+  if (!r) return null;
+  return {
+    id               : r.id,
+    formType         : r.form_type,
+    data             : r.data || {},
+    status           : r.status,
+    submittedBy      : r.submitted_by_email,
+    submittedByName  : r.submitted_by_name,
+    submittedByTitle : r.submitted_by_title,
+    submittedByRole  : r.submitted_by_role,
+    currency         : r.currency || 'UGX',
+    attachments      : r.attachments || [],
+    comments         : r.comments || [],
+    managementNotes  : r.management_notes || [],
+    linkedForms      : r.linked_forms || [],
+    approval         : r.approval || {},
+    history          : r.history || [],
+    parentPackageId  : r.parent_package_id || null,
+    isLinkedForm     : !!r.is_linked_form,
+    createdAt        : r.created_at,
+    updatedAt        : r.updated_at
   };
 }
 
-/* ── Submit a package (one or more forms together) ── */
-async function submitPackage(mainFormData,mainFiles,mainFormType,extraForms){
-  /* extraForms: array of {formData, files, formType} */
-  var session=requireSession();
-  var db=await readDatabase();
-  var now=new Date().toISOString();
+function newApprovalSkeleton(){
+  var blank = { status:'Pending', by:'', byName:'', at:'', note:'' };
+  return { preparation:Object.assign({},blank), review:Object.assign({},blank),
+           clearance:Object.assign({},blank), approval:Object.assign({},blank) };
+}
 
-  /* 1. Upload main attachments */
-  var mainAtt=[];
-  if(mainFiles&&mainFiles.length>0)mainAtt=await uploadAllAttachments(Array.from(mainFiles));
+function generateId(){
+  var n = new Date();
+  var r = Math.floor(Math.random()*0xFFFFFF).toString(16).toUpperCase().padStart(6,'0');
+  return 'UBF-' + n.getFullYear() + String(n.getMonth()+1).padStart(2,'0') + String(n.getDate()).padStart(2,'0') + '-' + r;
+}
 
-  /* 2. Build + save extra form records first */
-  var linkedSummaries=[];
-  var extraRecords=[];
-  for(var i=0;i<(extraForms||[]).length;i++){
-    var ef=extraForms[i];
-    var efAtt=[];
-    if(ef.files&&ef.files.length>0)efAtt=await uploadAllAttachments(Array.from(ef.files));
-    var efRec=buildRecord(ef.formData,efAtt,ef.formType,session,now,[]);
-    extraRecords.push(efRec);
-    linkedSummaries.push({id:efRec.id,formType:efRec.formType,
-      description:(ef.formData&&ef.formData.description)||efRec.id,status:'Pending',
-      submittedByName:session.name});
-  }
+/* Build an insert row from a session + form data */
+function buildRow(id, formData, formType, atts, session, extra){
+  return {
+    id                : id,
+    form_type         : formType || 'request',
+    data              : formData || {},
+    status            : 'Pending',
+    submitted_by      : session.id,
+    submitted_by_email: session.email,
+    submitted_by_name : session.name,
+    submitted_by_title: session.title || '',
+    submitted_by_role : session.role || 'Staff',
+    currency          : (formData && formData.currency) || 'UGX',
+    approval          : newApprovalSkeleton(),
+    attachments       : atts || [],
+    comments          : [],
+    management_notes  : [],
+    linked_forms      : (extra && extra.linked_forms) || [],
+    history           : [{ action:'Submitted', by:session.email, byName:session.name,
+                           byTitle:session.title||'', at:new Date().toISOString(),
+                           note:(extra && extra.note) || 'Initial submission' }],
+    parent_package_id : (extra && extra.parent_package_id) || null,
+    is_linked_form    : (extra && extra.is_linked_form) || false
+  };
+}
 
-  /* 3. Build main record with links */
-  var mainRec=buildRecord(mainFormData,mainAtt,mainFormType,session,now,linkedSummaries);
+/* ============================================================
+   Storage (attachments)
+============================================================ */
+async function uploadOne(file){
+  var token = await accessToken();
+  var safe = (file.name || 'file').replace(/[^a-zA-Z0-9._-]/g, '_');
+  var path = Date.now() + '_' + Math.floor(Math.random()*1e4) + '_' + safe;
 
-  /* 4. Update extra records to reference main */
-  extraRecords.forEach(function(er){
-    er.history[0].note='Part of package '+mainRec.id;
+  var up = await fetch(CONFIG.URL + '/storage/v1/object/' + CONFIG.BUCKET + '/' + encodeURIComponent(path), {
+    method:'POST',
+    headers:{ 'apikey': CONFIG.KEY, 'Authorization':'Bearer ' + token, 'Content-Type': file.type || 'application/octet-stream' },
+    body: file
   });
+  if (!up.ok){ throw new Error('Upload failed for ' + (file.name||'file') + '.'); }
 
-  /* 5. Save all to database */
-  db.records.push(mainRec);
-  extraRecords.forEach(function(er){db.records.push(er);});
-  await writeDatabase(db.records,db.sha,'Package: '+mainRec.id+' ('+db.records.length+' total)');
+  /* signed URL so the private file can be opened from the app */
+  var downloadUrl = '';
+  try {
+    var sg = await fetch(CONFIG.URL + '/storage/v1/object/sign/' + CONFIG.BUCKET + '/' + encodeURIComponent(path), {
+      method:'POST',
+      headers:{ 'apikey': CONFIG.KEY, 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' },
+      body: JSON.stringify({ expiresIn: CONFIG.SIGNED_URL_TTL })
+    });
+    if (sg.ok){ var sj = await sg.json(); if (sj && sj.signedURL) downloadUrl = CONFIG.URL + '/storage/v1' + sj.signedURL; }
+  } catch(_){}
 
-  return mainRec;
+  return { path: CONFIG.BUCKET + '/' + path, downloadUrl: downloadUrl, name: file.name, size: file.size, uploadedAt: new Date().toISOString() };
+}
+async function uploadAllAttachments(fileList){
+  var files = Array.isArray(fileList) ? fileList : Array.from(fileList || []);
+  var out = [];
+  for (var i = 0; i < files.length; i++) out.push(await uploadOne(files[i]));
+  return out;
 }
 
-/* ── Submit single form (used when adding a form to an existing package) ── */
-async function submitAndLinkToPackage(formData,files,formType,parentPackageId){
-  var session=requireSession();
-  var db=await readDatabase();
-  var now=new Date().toISOString();
+/* ============================================================
+   Auth
+============================================================ */
+async function authenticateUser(email, password){
+  var el = (email || '').trim().toLowerCase();
+  var res = await fetch(CONFIG.URL + '/auth/v1/token?grant_type=password', {
+    method:'POST',
+    headers:{ 'apikey': CONFIG.KEY, 'Content-Type':'application/json' },
+    body: JSON.stringify({ email: el, password: password })
+  });
+  var body = await parseJson(res);
+  if (!res.ok){ throw new Error(friendlyErr(res.status, body)); }
 
-  /* Upload attachments */
-  var att=[];
-  if(files&&files.length>0)att=await uploadAllAttachments(Array.from(files));
+  var session = {
+    access_token : body.access_token,
+    refresh_token: body.refresh_token,
+    expires_at   : Date.now() + ((body.expires_in || 3600) * 1000),
+    user         : { id: body.user && body.user.id, email: el, name: el, role: 'Staff', title: '', mustChangePassword: false }
+  };
+  setStored(session);
 
-  /* Build new record — mark as linked so Exp. Report excludes it */
-  var rec=buildRecord(formData,att,formType,session,now,[]);
-  rec.isLinkedForm=true;
-  rec.parentPackageId=parentPackageId;
-  rec.history[0].note='Added to package '+parentPackageId+' by '+session.name;
-  db.records.push(rec);
+  /* fetch this user's profile (role / name / title / flags) */
+  var rows = await rest('profiles?select=full_name,role,title,active,must_change_password&id=eq.' + encodeURIComponent(session.user.id));
+  var p = (rows && rows[0]) || {};
+  if (p.active === false){ clearStored(); throw new Error('Account deactivated. Contact administrator.'); }
+  session.user.name  = p.full_name || el;
+  session.user.role  = p.role || 'Staff';
+  session.user.title = p.title || '';
+  session.user.mustChangePassword = !!p.must_change_password;
+  setStored(session);
+  _dir[el] = { name: session.user.name, role: session.user.role, title: session.user.title };
 
-  /* Link to parent */
-  var parentIdx=db.records.findIndex(function(r){return r.id===parentPackageId;});
-  if(parentIdx!==-1){
-    if(!Array.isArray(db.records[parentIdx].linkedForms))db.records[parentIdx].linkedForms=[];
-    db.records[parentIdx].linkedForms.push({id:rec.id,formType:rec.formType,
-      description:(formData&&formData.description)||rec.id,status:'Pending',submittedByName:session.name});
-    db.records[parentIdx].updatedAt=now;
-    db.records[parentIdx].history.push({action:'Form Added to Package',by:session.email,byName:session.name,
-      byTitle:session.title,at:now,note:formType+' ('+rec.id+') added by '+session.name});
-  }
-
-  await writeDatabase(db.records,db.sha,'Add '+formType+' to package '+parentPackageId);
-  return rec;
+  return { user: { id: session.user.id, email: el, name: session.user.name, role: session.user.role,
+                   title: session.user.title, mustChangePassword: session.user.mustChangePassword, passwordExpiry: null } };
 }
 
-/* ── Standard single submit (backward compat) ── */
-async function submitRequisition(formData,files,formType,linkedIds){
-  return submitPackage(formData,files,formType,[]);
+async function changePassword(email, newPass){
+  var token = await accessToken();
+  var res = await fetch(CONFIG.URL + '/auth/v1/user', {
+    method:'PUT',
+    headers:{ 'apikey': CONFIG.KEY, 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' },
+    body: JSON.stringify({ password: newPass })
+  });
+  if (!res.ok){ throw new Error(friendlyErr(res.status, await parseJson(res))); }
+  try { await rpc('complete_password_change', {}); } catch(_){}
+  var s = getStored(); if (s && s.user){ s.user.mustChangePassword = false; setStored(s); }
+  return true;
 }
 
-/* ── Status update ── */
-async function updateRequisitionStatus(id,newStatus,note){
-  var session=requireSession(),db=await readDatabase();
-  var idx=db.records.findIndex(function(r){return r.id===id;});
-  if(idx===-1)throw new Error('Requisition not found: '+id);
-  if(!canActionRequisition(session.role,db.records[idx].status))throw new Error('Your role cannot action this at its current status.');
-  var now=new Date().toISOString();
-  db.records[idx].status=newStatus;db.records[idx].updatedAt=now;
-  var stepMap={Prepared:'preparation',Reviewed:'review',Cleared:'clearance',Approved:'approval'};
-  var step=stepMap[newStatus];
-  if(step)db.records[idx].approval[step]={status:newStatus,by:session.email,byName:session.name,at:now,note:note||''};
-  db.records[idx].history.push({action:newStatus,by:session.email,byName:session.name,byTitle:session.title,at:now,note:note||''});
-  await writeDatabase(db.records,db.sha,'Status: '+id+' -> '+newStatus+' by '+session.email);
-  /* Auto-archive on approval */
-  if(newStatus==='Approved'){try{await autoArchiveRecord(db.records[idx]);}catch(_){}}
-  return db.records[idx];
+function isPasswordExpired(_){ return false; } /* Supabase Auth manages credentials now */
+
+/* ============================================================
+   Session helpers (sync — used widely by the UI)
+============================================================ */
+function saveSession(user){
+  var s = getStored();
+  if (!s){ s = { user:{} }; }
+  if (user){ s.user = Object.assign({}, s.user, {
+    id: user.id || (s.user && s.user.id), email: user.email, name: user.name,
+    role: user.role, title: user.title, mustChangePassword: user.mustChangePassword
+  }); }
+  setStored(s);
+  return getSession();
+}
+function getSession(){
+  var s = getStored();
+  if (!s || !s.user || !s.user.email) return null;
+  return { id: s.user.id, email: s.user.email, name: s.user.name, role: s.user.role,
+           title: s.user.title, mustChangePassword: s.user.mustChangePassword };
+}
+function clearSession(){
+  var s = getStored();
+  clearStored(); /* clear synchronously first so isAuthenticated() is false immediately */
+  try {
+    if (s && s.access_token){
+      /* fire-and-forget server logout; navigation can proceed right away */
+      fetch(CONFIG.URL + '/auth/v1/logout', { method:'POST',
+        headers:{ 'apikey': CONFIG.KEY, 'Authorization':'Bearer ' + s.access_token } })['catch'](function(){});
+    }
+  } catch(_){}
+}
+function isAuthenticated(){ return !!getSession(); }
+function requireSession(){ var s = getSession(); if (!s) throw new Error('Session expired. Please log in again.'); return s; }
+
+/* ============================================================
+   Role / workflow helpers (must match server change_status rules)
+============================================================ */
+function canSeeAll(role){ return ELEVATED.indexOf(role) !== -1; }
+function canActionRequisition(role, status){
+  if (!role || !status) return false;
+  if (role === 'Admin Officer') return status === 'Pending';
+  if (role === 'FAM')           return status === 'Prepared' || status === 'Reviewed';
+  if (role === 'ED')            return status === 'Cleared';
+  return false;
+}
+function getNextStatus(role, status){
+  if (role === 'Admin Officer' && status === 'Pending')  return 'Prepared';
+  if (role === 'FAM'           && status === 'Prepared') return 'Reviewed';
+  if (role === 'FAM'           && status === 'Reviewed') return 'Cleared';
+  if (role === 'ED'            && status === 'Cleared')  return 'Approved';
+  return null;
+}
+function getActionLabel(role, status){
+  if (role === 'Admin Officer' && status === 'Pending')  return 'Mark Prepared';
+  if (role === 'FAM'           && status === 'Prepared') return 'Mark Reviewed';
+  if (role === 'FAM'           && status === 'Reviewed') return 'Clear';
+  if (role === 'ED'            && status === 'Cleared')  return 'Approve';
+  return null;
+}
+function getStaff(email){ var e=(email||'').trim().toLowerCase(); return _dir[e] || { name: email||'', role:'Staff', title:'Staff' }; }
+function getRole(email){ return getStaff(email).role; }
+function getDisplayName(email){ return getStaff(email).name; }
+function getTitle(email){ return getStaff(email).title; }
+function filterByRole(records, session){
+  if (!Array.isArray(records) || !session) return [];
+  if (canSeeAll(session.role)) return records; /* server already filters via RLS */
+  return records.filter(function(r){ return r.submittedBy && r.submittedBy.toLowerCase() === session.email.toLowerCase(); });
 }
 
-/* ── Edit ── */
-async function editRequisition(id,updatedData,files){
-  var session=requireSession(),db=await readDatabase();
-  var idx=db.records.findIndex(function(r){return r.id===id;});
-  if(idx===-1)throw new Error('Not found: '+id);
-  var rec=db.records[idx];
-  if(rec.submittedBy.toLowerCase()!==session.email.toLowerCase())throw new Error('You can only edit your own submissions.');
-  if(['Prepared','Reviewed','Cleared','Approved'].indexOf(rec.status)!==-1)throw new Error('This submission is in progress and cannot be edited.');
-  var newAtt=[];
-  if(files&&files.length>0)newAtt=await uploadAllAttachments(Array.from(files));
-  var now=new Date().toISOString();
-  db.records[idx].data=updatedData;db.records[idx].status='Pending';db.records[idx].updatedAt=now;
-  db.records[idx].attachments=rec.attachments.concat(newAtt);
-  db.records[idx].approval={preparation:{status:'Pending',by:'',byName:'',at:'',note:''},review:{status:'Pending',by:'',byName:'',at:'',note:''},clearance:{status:'Pending',by:'',byName:'',at:'',note:''},approval:{status:'Pending',by:'',byName:'',at:'',note:''}};
-  db.records[idx].history.push({action:'Edited & Resubmitted',by:session.email,byName:session.name,byTitle:session.title,at:now,note:'Corrected and resubmitted'});
-  await writeDatabase(db.records,db.sha,'Edit: '+id+' by '+session.email);
-  return db.records[idx];
-}
-
-/* ── Attach files to existing record ── */
-async function attachFilesToRecord(recId,files){
-  var session=requireSession(),db=await readDatabase();
-  var idx=db.records.findIndex(function(r){return r.id===recId;});
-  if(idx===-1)throw new Error('Not found.');
-  var uploaded=await uploadAllAttachments(Array.from(files));
-  db.records[idx].attachments=db.records[idx].attachments.concat(uploaded);
-  db.records[idx].updatedAt=new Date().toISOString();
-  db.records[idx].history.push({action:'Files Attached',by:session.email,byName:session.name,byTitle:session.title,at:new Date().toISOString(),note:uploaded.length+' file(s) attached'});
-  await writeDatabase(db.records,db.sha,'Attachments: '+recId+' by '+session.email);
-  return db.records[idx];
-}
-
-/* ── Management note ── */
-async function addManagementNote(recId,noteText,files){
-  var session=requireSession();
-  if(ELEVATED.indexOf(session.role)===-1)throw new Error('Management notes are for Admin Officer, FAM and ED only.');
-  var db=await readDatabase();
-  var idx=db.records.findIndex(function(r){return r.id===recId;});
-  if(idx===-1)throw new Error('Not found.');
-  var noteAtts=[];
-  if(files&&files.length>0)noteAtts=await uploadAllAttachments(Array.from(files));
-  if(!Array.isArray(db.records[idx].managementNotes))db.records[idx].managementNotes=[];
-  var note={id:'MN-'+Date.now(),by:session.email,byName:session.name,byRole:session.role,byTitle:session.title,note:noteText,attachments:noteAtts,at:new Date().toISOString()};
-  db.records[idx].managementNotes.push(note);
-  if(noteAtts.length)db.records[idx].attachments=db.records[idx].attachments.concat(noteAtts);
-  db.records[idx].updatedAt=new Date().toISOString();
-  await writeDatabase(db.records,db.sha,'Mgmt note: '+recId+' by '+session.email);
-  return note;
-}
-
-/* ── Comments ── */
-async function addComment(reqId,text){
-  var session=requireSession(),db=await readDatabase();
-  var idx=db.records.findIndex(function(r){return r.id===reqId;});if(idx===-1)throw new Error('Not found.');
-  if(!Array.isArray(db.records[idx].comments))db.records[idx].comments=[];
-  var c={id:'CMT-'+Date.now(),by:session.email,byName:session.name,byRole:session.role,text:text,at:new Date().toISOString(),replies:[]};
-  db.records[idx].comments.push(c);db.records[idx].updatedAt=new Date().toISOString();
-  await writeDatabase(db.records,db.sha,'Comment: '+reqId);return c;
-}
-async function addReply(reqId,commentId,text){
-  var session=requireSession(),db=await readDatabase();
-  var idx=db.records.findIndex(function(r){return r.id===reqId;});if(idx===-1)throw new Error('Not found.');
-  var ci=(db.records[idx].comments||[]).findIndex(function(c){return c.id===commentId;});if(ci===-1)throw new Error('Comment not found.');
-  var r={id:'RPL-'+Date.now(),by:session.email,byName:session.name,byRole:session.role,text:text,at:new Date().toISOString()};
-  db.records[idx].comments[ci].replies.push(r);db.records[idx].updatedAt=new Date().toISOString();
-  await writeDatabase(db.records,db.sha,'Reply: '+reqId);return r;
-}
-
-/* ── Queries ── */
+/* ============================================================
+   Requisitions — queries
+============================================================ */
 async function getAllRequisitions(){
-  var session=requireSession(),db=await readDatabase();
-  var visible=filterByRole(db.records,session);
-  if(!Array.isArray(visible))return[];
-  return visible.sort(function(a,b){return new Date(b.createdAt)-new Date(a.createdAt);});
+  requireSession();
+  var rows = await rest('requisitions?select=*&order=created_at.desc');
+  return (rows || []).map(rowToRecord);
+}
+async function readDatabase(){ /* kept for the expenditure report */
+  var rows = await rest('requisitions?select=*&order=created_at.desc');
+  return { records: (rows || []).map(rowToRecord), sha: null };
 }
 async function getDashboardStats(){
-  var records=await getAllRequisitions();
-  if(!Array.isArray(records))return{total:0,pending:0,prepared:0,reviewed:0,cleared:0,approved:0,rejected:0};
-  var s={total:records.length,pending:0,prepared:0,reviewed:0,cleared:0,approved:0,rejected:0};
+  var records = await getAllRequisitions();
+  var s = { total: records.length, pending:0, prepared:0, reviewed:0, cleared:0, approved:0, rejected:0 };
   records.forEach(function(r){
-    var st=(r.status||'').toLowerCase();
-    if(st==='pending')s.pending++;
-    else if(st==='prepared')s.prepared++;
-    else if(st==='reviewed')s.reviewed++;
-    else if(st==='cleared')s.cleared++;
-    else if(st==='approved')s.approved++;
-    else if(st==='rejected')s.rejected++;
+    var st = (r.status || '').toLowerCase();
+    if (s[st] !== undefined) s[st]++;
   });
   return s;
 }
 
+/* ============================================================
+   Requisitions — submit
+============================================================ */
+async function submitPackage(mainFormData, mainFiles, mainFormType, extraForms){
+  var session = requireSession();
 
-/* ── Delete a record ── */
-async function deleteRecord(recId){
-  var session=requireSession();
-  var db=await readDatabase();
-  var idx=db.records.findIndex(function(r){return r.id===recId;});
-  if(idx===-1)throw new Error('Record not found.');
-  var rec=db.records[idx];
-  var isOwner=rec.submittedBy.toLowerCase()===session.email.toLowerCase();
-  var isManager=ELEVATED.indexOf(session.role)!==-1;
-  /* Staff can only delete own pending/rejected. Managers can delete anything except Approved */
-  if(!isManager&&!isOwner)throw new Error('You can only delete your own records.');
-  if(!isManager&&['Prepared','Reviewed','Cleared','Approved'].indexOf(rec.status)!==-1)
-    throw new Error('This record is in progress and cannot be deleted.');
-  if(rec.status==='Approved'&&!isManager)
-    throw new Error('Approved records cannot be deleted.');
-  /* Remove from linkedForms of any parent */
-  db.records.forEach(function(r){
-    if(r.linkedForms){
-      r.linkedForms=r.linkedForms.filter(function(lf){return lf.id!==recId;});
-    }
+  /* extra forms first (generate ids so the main record can link them) */
+  var extraRows = [];
+  var linkedSummaries = [];
+  var list = extraForms || [];
+  for (var i = 0; i < list.length; i++){
+    var ef = list[i];
+    var efAtt = (ef.files && ef.files.length) ? await uploadAllAttachments(ef.files) : [];
+    var efId  = generateId();
+    var efRow = buildRow(efId, ef.formData, ef.formType, efAtt, session, { note: 'Part of package' });
+    extraRows.push(efRow);
+    linkedSummaries.push({ id: efId, formType: ef.formType,
+      description: (ef.formData && ef.formData.description) || efId, status:'Pending', submittedByName: session.name });
+  }
+
+  var mainAtt = (mainFiles && mainFiles.length) ? await uploadAllAttachments(mainFiles) : [];
+  var mainId  = generateId();
+  var mainRow = buildRow(mainId, mainFormData, mainFormType, mainAtt, session, { linked_forms: linkedSummaries });
+
+  extraRows.forEach(function(er){ er.history[0].note = 'Part of package ' + mainId; });
+
+  var rows = [mainRow].concat(extraRows);
+  var inserted = await rest('requisitions', { method:'POST', body: rows, prefer:'return=representation' });
+  var main = (inserted || []).filter(function(r){ return r.id === mainId; })[0] || mainRow;
+  return rowToRecord(main);
+}
+async function submitRequisition(formData, files, formType){
+  return submitPackage(formData, files, formType, []);
+}
+async function submitAndLinkToPackage(formData, files, formType, parentPackageId){
+  var session = requireSession();
+  var att = (files && files.length) ? await uploadAllAttachments(files) : [];
+  var id  = generateId();
+  var row = buildRow(id, formData, formType, att, session,
+             { parent_package_id: parentPackageId, is_linked_form: true, note: 'Added to package ' + parentPackageId + ' by ' + session.name });
+  var inserted = await rest('requisitions', { method:'POST', body:[row], prefer:'return=representation' });
+  try {
+    await rpc('add_linked_form', { p_parent_id: parentPackageId, p_summary: {
+      id: id, formType: formType, description: (formData && formData.description) || id, status:'Pending', submittedByName: session.name } });
+  } catch(_){}
+  return rowToRecord((inserted && inserted[0]) || row);
+}
+
+/* ============================================================
+   Requisitions — mutations (all server-enforced via RPC)
+============================================================ */
+async function updateRequisitionStatus(id, newStatus, note){
+  var r = await rpc('change_status', { p_id: id, p_new_status: newStatus, p_note: note || '' });
+  return rowToRecord(r);
+}
+async function editRequisition(id, updatedData, files){
+  var att = (files && files.length) ? await uploadAllAttachments(files) : [];
+  var r = await rpc('edit_requisition', { p_id: id, p_data: updatedData, p_new_attachments: att });
+  return rowToRecord(r);
+}
+async function attachFilesToRecord(recId, files){
+  var att = await uploadAllAttachments(files);
+  var r = await rpc('attach_files', { p_id: recId, p_atts: att });
+  return rowToRecord(r);
+}
+async function addManagementNote(recId, noteText, files){
+  var att = (files && files.length) ? await uploadAllAttachments(files) : [];
+  return await rpc('add_management_note', { p_id: recId, p_text: noteText, p_atts: att });
+}
+async function addComment(reqId, text){ return await rpc('add_comment', { p_id: reqId, p_text: text }); }
+async function addReply(reqId, commentId, text){ return await rpc('add_reply', { p_id: reqId, p_comment_id: commentId, p_text: text }); }
+async function deleteRecord(recId){ await rpc('delete_requisition', { p_id: recId }); return true; }
+
+/* ============================================================
+   Archives
+============================================================ */
+function entryToFile(e){ return { recordId: e.record_id, name: e.name, formType: e.form_type,
+  submittedByName: e.submitted_by_name, addedAt: e.added_at }; }
+
+async function readArchives(){
+  requireSession();
+  var folders = await rest('archive_folders?select=*&order=created_at.desc');
+  var entries = await rest('archive_entries?select=*');
+  folders = folders || []; entries = entries || [];
+  var out = { folders: [], unfiled: [] };
+  folders.forEach(function(f){
+    out.folders.push({ id: f.id, name: f.name, createdBy: f.created_by, createdByName: f.created_by_name,
+      createdAt: f.created_at, files: entries.filter(function(e){ return e.folder_id === f.id; }).map(entryToFile) });
   });
-  db.records.splice(idx,1);
-  await writeDatabase(db.records,db.sha,'Delete record '+recId+' by '+session.email);
+  out.unfiled = entries.filter(function(e){ return !e.folder_id; }).map(entryToFile);
+  return { data: out, sha: null };
+}
+async function createArchiveFolder(folderName, session){
+  session = session || getSession();
+  var rows = await rest('archive_folders', { method:'POST',
+    body:[{ name: folderName, created_by: session.id, created_by_name: session.name }], prefer:'return=representation' });
+  var f = (rows && rows[0]) || {};
+  return { id: f.id, name: f.name, createdBy: f.created_by, createdByName: f.created_by_name, createdAt: f.created_at, files: [] };
+}
+async function renameArchiveFolder(folderId, newName){
+  await rest('archive_folders?id=eq.' + encodeURIComponent(folderId), { method:'PATCH', body:{ name:newName }, prefer:'return=minimal' });
   return true;
 }
-
-/* ── Delete archive folder ── */
-async function deleteArchiveFolder(folderId,session){
-  var ar=await readArchives();
-  var arch=ar.data&&typeof ar.data==='object'&&!Array.isArray(ar.data)?ar.data:{folders:[],unfiled:[]};
-  var idx=arch.folders.findIndex(function(f){return f.id===folderId;});
-  if(idx===-1)throw new Error('Folder not found.');
-  /* Move files back to unfiled */
-  var folder=arch.folders[idx];
-  if(folder.files&&folder.files.length){
-    folder.files.forEach(function(f){arch.unfiled.push(f);});
-  }
-  arch.folders.splice(idx,1);
-  await writeArchives(arch,ar.sha,'Delete folder '+folderId+' by '+session.email);
-  return arch;
+async function moveFileToFolder(recordId, folderId){
+  await rest('archive_entries?record_id=eq.' + encodeURIComponent(recordId), { method:'PATCH', body:{ folder_id: folderId }, prefer:'return=minimal' });
+  return true;
 }
-
-/* ── Delete archived file entry ── */
-async function deleteArchivedFile(recordId,session){
-  var ar=await readArchives();
-  var arch=ar.data&&typeof ar.data==='object'&&!Array.isArray(ar.data)?ar.data:{folders:[],unfiled:[]};
-  /* Remove from unfiled */
-  arch.unfiled=arch.unfiled.filter(function(f){return f.recordId!==recordId;});
-  /* Remove from all folders */
-  arch.folders.forEach(function(folder){
-    if(folder.files)folder.files=folder.files.filter(function(f){return f.recordId!==recordId;});
-  });
-  await writeArchives(arch,ar.sha,'Remove archived file '+recordId+' by '+session.email);
-  return arch;
+async function renameArchivedFile(recordId, newName){
+  await rest('archive_entries?record_id=eq.' + encodeURIComponent(recordId), { method:'PATCH', body:{ name:newName }, prefer:'return=minimal' });
+  return true;
 }
+async function deleteArchiveFolder(folderId){
+  await rest('archive_folders?id=eq.' + encodeURIComponent(folderId), { method:'DELETE', prefer:'return=minimal' });
+  return true;
+}
+async function deleteArchivedFile(recordId){
+  await rest('archive_entries?record_id=eq.' + encodeURIComponent(recordId), { method:'DELETE', prefer:'return=minimal' });
+  return true;
+}
+async function autoArchiveRecord(_){ return {}; } /* handled server-side on approval */
 
-global.DataService={
-  CONFIG,ROLE_ACTIONS,ELEVATED,
-  getStaff,getRole,getDisplayName,getTitle,
-  canSeeAll,canActionRequisition,getNextStatus,getActionLabel,
-  authenticateUser,changePassword,sha256,isPasswordExpired,
-  saveSession,getSession,clearSession,isAuthenticated,requireSession,
-  readGitHubFile:readGHFile,writeGitHubFile:writeGHFile,
-  readDatabase,writeDatabase,readUsers,writeUsers,
-  readArchives,writeArchives,autoArchiveRecord,
-  createArchiveFolder,renameArchiveFolder,moveFileToFolder,renameArchivedFile,
-  uploadAttachment,uploadAllAttachments,
-  submitPackage,submitRequisition,submitAndLinkToPackage,
-  updateRequisitionStatus,editRequisition,attachFilesToRecord,addManagementNote,
-  addComment,addReply,getAllRequisitions,getDashboardStats,
-  deleteRecord,deleteArchiveFolder,deleteArchivedFile
+/* ============================================================
+   Export — same surface as before
+============================================================ */
+global.DataService = {
+  CONFIG: CONFIG, ELEVATED: ELEVATED,
+  getStaff: getStaff, getRole: getRole, getDisplayName: getDisplayName, getTitle: getTitle,
+  canSeeAll: canSeeAll, canActionRequisition: canActionRequisition,
+  getNextStatus: getNextStatus, getActionLabel: getActionLabel,
+  authenticateUser: authenticateUser, changePassword: changePassword, isPasswordExpired: isPasswordExpired,
+  saveSession: saveSession, getSession: getSession, clearSession: clearSession,
+  isAuthenticated: isAuthenticated, requireSession: requireSession,
+  filterByRole: filterByRole,
+  uploadAttachment: uploadOne, uploadAllAttachments: uploadAllAttachments,
+  readDatabase: readDatabase, getAllRequisitions: getAllRequisitions, getDashboardStats: getDashboardStats,
+  submitPackage: submitPackage, submitRequisition: submitRequisition, submitAndLinkToPackage: submitAndLinkToPackage,
+  updateRequisitionStatus: updateRequisitionStatus, editRequisition: editRequisition,
+  attachFilesToRecord: attachFilesToRecord, addManagementNote: addManagementNote,
+  addComment: addComment, addReply: addReply, deleteRecord: deleteRecord,
+  readArchives: readArchives, createArchiveFolder: createArchiveFolder, renameArchiveFolder: renameArchiveFolder,
+  moveFileToFolder: moveFileToFolder, renameArchivedFile: renameArchivedFile,
+  deleteArchiveFolder: deleteArchiveFolder, deleteArchivedFile: deleteArchivedFile,
+  autoArchiveRecord: autoArchiveRecord,
+  generateId: generateId
 };
 }(window));

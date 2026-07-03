@@ -4,6 +4,10 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>UBF &mdash; Staff User Guide</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico"/>
+  <link rel="shortcut icon" type="image/x-icon" href="favicon.ico"/>
+  <link rel="icon" type="image/png" href="ubf-logo.png"/>
+  <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
   <link rel="stylesheet" href="style.css"/>
   <style>
     .guide-wrap{max-width:900px;margin:0 auto;}
@@ -126,11 +130,11 @@
         <span>&#9660;</span>
       </div>
       <div class="guide-card-body open">
-        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Open the portal</div><div class="step-desc">Go to: <strong>https://cuepointe.github.io/UBF-Request-Portal/</strong><br/>Bookmark this address so you can always find it.</div></div></div>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Open the portal</div><div class="step-desc">Go to: <strong>https://cuepointe.github.io/UBF-Procurement-System/</strong><br/>Bookmark this address so you can always find it.</div></div></div>
         <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Enter your UBF work email</div><div class="step-desc">Use your official email address e.g. <strong>s.abonyo@ugandabiodiversityfund.org</strong></div></div></div>
-        <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">First time — enter default password</div><div class="step-desc">Type <strong>admin</strong> as your password. You will be immediately asked to set your own private password.</div></div></div>
-        <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Set your own password</div><div class="step-desc">Choose a password of at least 8 characters. You will use this every time you log in.<br/>Passwords expire every 90 days — you will be prompted to set a new one automatically.</div></div></div>
-        <div class="warn-box">Never share your password with anyone. If you forget it, contact Tom Otieno: t.otieno@ugandabiodiversityfund.org</div>
+        <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">First time — enter the temporary password</div><div class="step-desc">The administrator gives you a one-time temporary password. Enter it, and you will immediately be asked to set your own private password.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Set your own password</div><div class="step-desc">Choose a password of at least 8 characters. You will use this every time you log in. Your password is stored securely and is never visible to anyone — not even the administrator.</div></div></div>
+        <div class="warn-box">Never share your password with anyone. If you forget it, contact Tom Otieno (t.otieno@ugandabiodiversityfund.org) — the administrator can issue you a new temporary password to reset it.</div>
       </div>
     </div>
 
@@ -142,9 +146,10 @@
       </div>
       <div class="guide-card-body open">
         <div class="step-desc" style="margin-bottom:0.75rem;">After login you land on the Dashboard. This is your home page showing all your submissions.</div>
-        <div class="step"><div class="step-num">A</div><div class="step-body"><div class="step-title">Stat Cards</div><div class="step-desc">The coloured cards at the top show how many submissions are at each stage: Pending, Prepared, Reviewed, Cleared, Approved, Rejected.</div></div></div>
-        <div class="step"><div class="step-num">B</div><div class="step-body"><div class="step-title">Submissions Table</div><div class="step-desc">Every submission you can see is listed here. Click any <strong>Ref No</strong> (shown in blue) to open the full record.</div></div></div>
-        <div class="step"><div class="step-num">C</div><div class="step-body"><div class="step-title">Filters</div><div class="step-desc">Use the Status filter and Search bar to find specific records quickly.</div></div></div>
+        <div class="step"><div class="step-num">A</div><div class="step-body"><div class="step-title">🔔 My Tasks</div><div class="step-desc">At the very top, the <strong>My Tasks</strong> panel shows exactly what is waiting for <em>you</em> right now — requests you need to action, or your own rejected items to fix and resubmit. Click a card to open it. If you have nothing pending, the panel stays hidden.</div></div></div>
+        <div class="step"><div class="step-num">B</div><div class="step-body"><div class="step-title">Stat Cards</div><div class="step-desc">The coloured cards show how many submissions are at each stage: Pending, Prepared, Reviewed, Cleared, Approved, Rejected.</div></div></div>
+        <div class="step"><div class="step-num">C</div><div class="step-body"><div class="step-title">Submissions Table</div><div class="step-desc">Every submission you can see is listed here. Click any <strong>Ref No</strong> (shown in green) to open the full record — including every form in its package.</div></div></div>
+        <div class="step"><div class="step-num">D</div><div class="step-body"><div class="step-title">Filters</div><div class="step-desc">Use the Status filter and Search bar to find specific records quickly.</div></div></div>
         <div class="tip-box"><strong>Package indicator:</strong> A green <strong>pkg:2</strong> badge next to a Ref No means that record has 2 additional forms attached to its package.</div>
       </div>
     </div>
@@ -176,21 +181,23 @@
         <div class="workflow-flow">
           <div class="wf-step">Staff Submits<br/><small>PENDING</small></div>
           <div class="wf-arrow">&#8594;</div>
-          <div class="wf-step">Susan Prepares<br/><small>PREPARED</small></div>
+          <div class="wf-step">Admin Officer Prepares<br/><small>PREPARED</small></div>
           <div class="wf-arrow">&#8594;</div>
-          <div class="wf-step">Winnie Reviews<br/><small>REVIEWED</small></div>
+          <div class="wf-step">Finance Officer Reviews<br/><small>REVIEWED</small></div>
           <div class="wf-arrow">&#8594;</div>
-          <div class="wf-step">Winnie Clears<br/><small>CLEARED</small></div>
+          <div class="wf-step">FAM Clears<br/><small>CLEARED</small></div>
           <div class="wf-arrow">&#8594;</div>
-          <div class="wf-step final">Ivan Approves<br/><small>APPROVED</small></div>
+          <div class="wf-step final">ED Approves<br/><small>APPROVED</small></div>
         </div>
         <div style="margin-top:1rem;">
           <div class="step"><div class="step-num" style="background:var(--ubf-green);">S</div><div class="step-body"><div class="step-title"><span class="role-pill rp-staff">Staff</span> Submit</div><div class="step-desc">Fill and submit Request, Travel Plan or Accountability Form from the Dashboard.</div></div></div>
-          <div class="step"><div class="step-num" style="background:var(--gold);">A</div><div class="step-body"><div class="step-title"><span class="role-pill rp-admin">Admin Officer</span> Susan Abonyo — Mark Prepared</div><div class="step-desc">Opens the record, reviews it, can add Evaluation Report, LPO or other forms to the package, then clicks <strong>"Mark Prepared &amp; Forward"</strong>.</div></div></div>
-          <div class="step"><div class="step-num" style="background:#7c3aed;">F</div><div class="step-body"><div class="step-title"><span class="role-pill rp-fam">FAM</span> Winnie Nabatanzi — Review then Clear</div><div class="step-desc">Reviews the full package. Can add GRN, Invoice or other forms. Clicks <strong>"Mark Reviewed"</strong> then later <strong>"Clear &amp; Forward"</strong>.</div></div></div>
-          <div class="step"><div class="step-num" style="background:#4c1d95;">E</div><div class="step-body"><div class="step-title"><span class="role-pill rp-ed">ED</span> Ivan Amanigaruhanga — Final Approval</div><div class="step-desc">Reviews the complete package with all forms. Clicks <strong>"Approve &amp; Forward"</strong>. The file automatically saves to the Document Archive.</div></div></div>
+          <div class="step"><div class="step-num" style="background:var(--gold);">A</div><div class="step-body"><div class="step-title"><span class="role-pill rp-admin">Admin Officer</span> — Mark Prepared</div><div class="step-desc">Opens the record, reviews it, can add Evaluation Report, LPO or other forms to the package, then clicks <strong>"Mark Prepared &amp; Forward"</strong>.</div></div></div>
+          <div class="step"><div class="step-num" style="background:#7c3aed;">F</div><div class="step-body"><div class="step-title"><span class="role-pill rp-admin">Finance Officer</span> — Review</div><div class="step-desc">Checks the figures and supporting documents of the full package, then clicks <strong>"Mark Reviewed &amp; Forward"</strong>.</div></div></div>
+          <div class="step"><div class="step-num" style="background:#0891b2;">M</div><div class="step-body"><div class="step-title"><span class="role-pill rp-fam">FAM</span> — Clear</div><div class="step-desc">Clears the reviewed package. Can add GRN, Invoice or other forms, then clicks <strong>"Clear &amp; Forward"</strong>.</div></div></div>
+          <div class="step"><div class="step-num" style="background:#4c1d95;">E</div><div class="step-body"><div class="step-title"><span class="role-pill rp-ed">ED</span> — Final Approval</div><div class="step-desc">Reviews the complete package with all forms. Clicks <strong>"Approve &amp; Forward"</strong>. The file automatically saves to the Document Archive.</div></div></div>
         </div>
-        <div class="warn-box">If a submission is <strong>Rejected</strong> at any stage, the original submitter receives it back and can edit and resubmit it.</div>
+        <div class="tip-box">Only the officer whose turn it is can move a record forward — the system enforces this. A staff member can never approve their own request, and no step can be skipped.</div>
+        <div class="warn-box">If a submission is <strong>Rejected</strong> at any stage, the original submitter receives it back and can edit and resubmit it. Until a Finance Officer is assigned, the FAM performs the Review step as well.</div>
       </div>
     </div>
 
@@ -296,7 +303,7 @@
         <span class="role-pill rp-fam">FAM</span><span class="role-pill rp-admin">Admin Officer</span><span class="role-pill rp-ed">ED</span>
         <div style="margin-top:0.75rem;"></div>
         <div class="step-desc" style="margin-bottom:0.75rem;">A live financial dashboard automatically generated from all system data.</div>
-        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Click "Report" in the navigation</div></div></div>
+        <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">Click "Expenditure" in the navigation</div></div></div>
         <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">Set your date range and filters</div><div class="step-desc">Filter by date, form type, status or department. Click <strong>Apply</strong>.</div></div></div>
         <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">The report shows</div><div class="step-desc">
           &bull; Total approved, pending and rejected expenditure in UGX<br/>
@@ -306,7 +313,7 @@
           &bull; Travel advances tracker<br/>
           &bull; Full transaction register
         </div></div></div>
-        <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Print the report</div><div class="step-desc">Click the Print button for a clean printable version for board meetings or audits.</div></div></div>
+        <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">Export or print</div><div class="step-desc">Click <strong>⬇ Excel / CSV</strong> to download the filtered transaction register as a spreadsheet (opens in Excel), or <strong>🖨️ Print</strong> for a clean printable version for board meetings or audits.</div></div></div>
       </div>
     </div>
 
@@ -325,7 +332,7 @@
             <tr style="border-bottom:1px solid var(--gray-200);"><td style="padding:0.5rem 0.75rem;font-weight:600;">Accountability &amp; Expense Report</td><td style="padding:0.5rem 0.75rem;color:var(--gray-600);">Post-travel expense accounting</td><td style="padding:0.5rem 0.75rem;"><span class="role-pill rp-all">All Staff</span></td></tr>
             <tr style="border-bottom:1px solid var(--gray-200);background:var(--gray-100);"><td style="padding:0.5rem 0.75rem;font-weight:600;">Evaluation Report</td><td style="padding:0.5rem 0.75rem;color:var(--gray-600);">Supplier price comparison</td><td style="padding:0.5rem 0.75rem;"><span class="role-pill rp-admin">Admin Officer</span><span class="role-pill rp-fam">FAM</span><span class="role-pill rp-ed">ED</span></td></tr>
             <tr style="border-bottom:1px solid var(--gray-200);"><td style="padding:0.5rem 0.75rem;font-weight:600;">Local Purchase Order (LPO)</td><td style="padding:0.5rem 0.75rem;color:var(--gray-600);">Official order to supplier</td><td style="padding:0.5rem 0.75rem;"><span class="role-pill rp-admin">Admin Officer</span><span class="role-pill rp-fam">FAM</span><span class="role-pill rp-ed">ED</span></td></tr>
-            <tr style="border-bottom:1px solid var(--gray-200);background:var(--gray-100);"><td style="padding:0.5rem 0.75rem;font-weight:600;">Goods Received Note (GRN)</td><td style="padding:0.5rem 0.75rem;color:var(--gray-600);">Confirm goods received</td><td style="padding:0.5rem 0.75rem;"><span class="role-pill rp-all">All Staff</span></td></tr>
+            <tr style="border-bottom:1px solid var(--gray-200);background:var(--gray-100);"><td style="padding:0.5rem 0.75rem;font-weight:600;">Goods Received Note (GRN)</td><td style="padding:0.5rem 0.75rem;color:var(--gray-600);">Confirm goods received</td><td style="padding:0.5rem 0.75rem;"><span class="role-pill rp-admin">Admin Officer</span><span class="role-pill rp-fam">FAM</span><span class="role-pill rp-ed">ED</span></td></tr>
             <tr style="border-bottom:1px solid var(--gray-200);"><td style="padding:0.5rem 0.75rem;font-weight:600;">Payment Voucher</td><td style="padding:0.5rem 0.75rem;color:var(--gray-600);">Authorise cheque payment</td><td style="padding:0.5rem 0.75rem;"><span class="role-pill rp-admin">Admin Officer</span><span class="role-pill rp-fam">FAM</span><span class="role-pill rp-ed">ED</span></td></tr>
           </tbody>
         </table>
@@ -339,11 +346,11 @@
         <span>&#9660;</span>
       </div>
       <div class="guide-card-body">
-        <div class="step"><div class="step-num">?</div><div class="step-body"><div class="step-title">I cannot log in</div><div class="step-desc">Check your email spelling. Make sure you are using your UBF work email. If you forgot your password contact Tom Otieno.</div></div></div>
+        <div class="step"><div class="step-num">?</div><div class="step-body"><div class="step-title">I cannot log in</div><div class="step-desc">Check your email spelling and make sure you are using your UBF work email. First time logging in? Use the temporary password the administrator gave you, then set your own. If you forgot your password, contact Tom Otieno for a new temporary one.</div></div></div>
         <div class="step"><div class="step-num">?</div><div class="step-body"><div class="step-title">I submitted a form but cannot see it</div><div class="step-desc">Refresh the page with <strong>Ctrl+Shift+R</strong>. If still not visible check the History page.</div></div></div>
         <div class="step"><div class="step-num">?</div><div class="step-body"><div class="step-title">The PDF downloads but opens blank</div><div class="step-desc">Make sure you have a stable internet connection. The PDF library loads from the internet. Wait 3 seconds after clicking then try again.</div></div></div>
         <div class="step"><div class="step-num">?</div><div class="step-body"><div class="step-title">I see a "Data conflict" error</div><div class="step-desc">Someone else saved data at the same moment. Refresh the page and try again.</div></div></div>
-        <div class="step"><div class="step-num">?</div><div class="step-body"><div class="step-title">My session expired</div><div class="step-desc">Sessions expire after 8 hours. Simply log in again. Your data is safe.</div></div></div>
+        <div class="step"><div class="step-num">?</div><div class="step-body"><div class="step-title">I was logged out</div><div class="step-desc">For your security you are signed out after a period of inactivity. Simply log in again — your data is safe.</div></div></div>
         <div class="step"><div class="step-num">?</div><div class="step-body"><div class="step-title">I cannot see management forms (Evaluation, LPO etc.)</div><div class="step-desc">These forms are only available to Admin Officer, FAM and ED. Contact your supervisor if you need access.</div></div></div>
         <div style="margin-top:1rem;padding:0.85rem 1rem;background:var(--ubf-blue-pale);border-radius:var(--radius-sm);font-size:0.85rem;">
           <strong>Technical Support:</strong><br/>

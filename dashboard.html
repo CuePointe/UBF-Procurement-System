@@ -66,6 +66,15 @@
     <p>Uganda Biodiversity Fund — Logistics &amp; Procurement System</p>
   </div>
 
+  <!-- My Tasks — populated by the inline script at the bottom of this page -->
+  <div id="my-tasks-card" style="display:none;background:linear-gradient(120deg,var(--green-pale),#fff);border:1.5px solid var(--green-light);border-left:5px solid var(--ubf-green);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);padding:1rem 1.25rem;margin-bottom:1.5rem;">
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.65rem;">
+      <span style="font-size:1.05rem;">🔔</span>
+      <h2 style="font-size:.95rem;color:var(--ubf-green-dark);margin:0;">My Tasks <span id="my-tasks-count" style="display:inline-block;background:var(--ubf-green);color:#fff;font-size:.68rem;font-weight:800;border-radius:999px;padding:.1rem .55rem;margin-left:.3rem;vertical-align:middle;">0</span></h2>
+    </div>
+    <div id="my-tasks-list" style="display:flex;flex-wrap:wrap;gap:.6rem;"></div>
+  </div>
+
   <!-- Quick Actions -->
   <div style="display:flex;gap:0.6rem;flex-wrap:wrap;margin-bottom:1.75rem;">
     <a href="form.html" class="btn btn-primary">+ Request for Goods/Services</a>
@@ -164,5 +173,57 @@
 <script src="data.js"></script>
 <script src="form-renderer.js"></script>
 <script src="script.js"></script>
+<script>
+/* ── My Tasks band: what needs MY action right now ── */
+(function(){
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function stPill(st){
+    var m={pending:'status-pending',prepared:'status-inreview',reviewed:'status-inreview',cleared:'status-inreview',verified:'status-inreview',approved:'status-approved',rejected:'status-rejected'};
+    return '<span class="status-badge '+(m[(st||'').toLowerCase()]||'status-pending')+'">'+esc(st)+'</span>';
+  }
+  function openRecord(id){
+    var link=document.querySelector('.link-detail[data-id="'+id+'"]');
+    if(link){ link.click(); return; }
+    var q=document.getElementById('filter-search');
+    if(q){ q.value=id; q.dispatchEvent(new Event('input',{bubbles:true})); }
+  }
+  function card(r, actionText){
+    var desc=(r.data&&r.data.description)||r.id;
+    return '<div style="flex:1 1 260px;max-width:340px;background:#fff;border:1px solid var(--gray-200);border-radius:10px;padding:.7rem .85rem;display:flex;flex-direction:column;gap:.35rem;">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;">'+stPill(r.status)+
+        '<span style="font-size:.68rem;color:var(--gray-400);font-weight:600;">'+esc(r.id)+'</span></div>'+
+      '<div style="font-size:.85rem;font-weight:700;color:var(--gray-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+esc(desc)+'">'+esc(desc)+'</div>'+
+      '<div style="font-size:.72rem;color:var(--gray-500);">by '+esc(r.submittedByName||r.submittedBy||'')+'</div>'+
+      '<button class="btn-action btn-approve mt-open" data-id="'+esc(r.id)+'" style="align-self:flex-start;margin-top:.15rem;">'+esc(actionText)+' →</button>'+
+    '</div>';
+  }
+  async function render(){
+    var DS=window.DataService; var s=DS.getSession(); if(!s) return;
+    try{
+      var recs=await DS.getAllRequisitions();
+      var tasks=[];
+      recs.forEach(function(r){
+        if(DS.canActionRequisition(s.role,r.status)){
+          tasks.push(card(r, DS.getActionLabel(s.role,r.status)||'Open'));
+        } else if(r.status==='Rejected' && r.submittedBy && r.submittedBy.toLowerCase()===s.email.toLowerCase()){
+          tasks.push(card(r,'Fix & Resubmit'));
+        }
+      });
+      if(!tasks.length) return;
+      document.getElementById('my-tasks-count').textContent=tasks.length;
+      document.getElementById('my-tasks-list').innerHTML=tasks.join('');
+      document.getElementById('my-tasks-card').style.display='block';
+      document.getElementById('my-tasks-list').addEventListener('click',function(e){
+        var b=e.target.closest('.mt-open'); if(b) openRecord(b.getAttribute('data-id'));
+      });
+    }catch(_){}
+  }
+  function boot(){
+    if(window.DataService && window.DataService.getSession && window.DataService.getSession()){ render(); return; }
+    setTimeout(boot,300);
+  }
+  boot();
+})();
+</script>
 </body>
 </html>

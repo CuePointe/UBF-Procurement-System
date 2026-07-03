@@ -30,8 +30,15 @@ function getStored(){
   try { var raw = localStorage.getItem(CONFIG.SESSION_KEY); return raw ? JSON.parse(raw) : null; }
   catch(_) { return null; }
 }
-function setStored(s){ localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(s)); }
-function clearStored(){ localStorage.removeItem(CONFIG.SESSION_KEY); }
+function setStored(s){
+  localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(s));
+  /* Compat shim: older script.js builds gate pages on this legacy key. */
+  localStorage.setItem('ubf_gatekeeper_token', 'supabase-auth');
+}
+function clearStored(){
+  localStorage.removeItem(CONFIG.SESSION_KEY);
+  localStorage.removeItem('ubf_gatekeeper_token');
+}
 
 /* ============================================================
    Low-level fetch helpers
@@ -232,6 +239,16 @@ async function authenticateUser(email, password){
   setStored(session);
   _dir[el] = { name: session.user.name, role: session.user.role, title: session.user.title };
 
+  /* Cache whether an active Finance Officer exists (drives the ED approval path).
+     Only elevated roles can read other profiles, and only they need this. */
+  if (ELEVATED.indexOf(session.user.role) !== -1){
+    try {
+      var fo = await rest('profiles?select=id&role=eq.' + encodeURIComponent('Finance Officer') + '&active=is.true&limit=1');
+      session.hasFO = !!(fo && fo.length);
+    } catch(_){ session.hasFO = false; }
+    setStored(session);
+  }
+
   return { user: { id: session.user.id, email: el, name: session.user.name, role: session.user.role,
                    title: session.user.title, mustChangePassword: session.user.mustChangePassword, passwordExpiry: null } };
 }
@@ -288,25 +305,31 @@ function requireSession(){ var s = getSession(); if (!s) throw new Error('Sessio
    Role / workflow helpers (must match server change_status rules)
 ============================================================ */
 function canSeeAll(role){ return ELEVATED.indexOf(role) !== -1; }
+function hasFinanceOfficer(){ var s = getStored(); return !!(s && s.hasFO); }
+/* Chain: Admin Officer prepares -> Finance Officer reviews -> FAM clears -> ED approves.
+   While no active Finance Officer exists, the FAM may also review (fallback). */
 function canActionRequisition(role, status){
   if (!role || !status) return false;
-  if (role === 'Admin Officer') return status === 'Pending';
-  if (role === 'FAM')           return status === 'Prepared' || status === 'Reviewed';
-  if (role === 'ED')            return status === 'Cleared';
+  if (role === 'Admin Officer')   return status === 'Pending';
+  if (role === 'Finance Officer') return status === 'Prepared';
+  if (role === 'FAM')             return status === 'Reviewed' || (status === 'Prepared' && !hasFinanceOfficer());
+  if (role === 'ED')              return status === 'Cleared';
   return false;
 }
 function getNextStatus(role, status){
-  if (role === 'Admin Officer' && status === 'Pending')  return 'Prepared';
-  if (role === 'FAM'           && status === 'Prepared') return 'Reviewed';
-  if (role === 'FAM'           && status === 'Reviewed') return 'Cleared';
-  if (role === 'ED'            && status === 'Cleared')  return 'Approved';
+  if (role === 'Admin Officer'   && status === 'Pending')  return 'Prepared';
+  if (role === 'Finance Officer' && status === 'Prepared') return 'Reviewed';
+  if (role === 'FAM'             && status === 'Prepared' && !hasFinanceOfficer()) return 'Reviewed';
+  if (role === 'FAM'             && status === 'Reviewed') return 'Cleared';
+  if (role === 'ED'              && status === 'Cleared')  return 'Approved';
   return null;
 }
 function getActionLabel(role, status){
-  if (role === 'Admin Officer' && status === 'Pending')  return 'Mark Prepared';
-  if (role === 'FAM'           && status === 'Prepared') return 'Mark Reviewed';
-  if (role === 'FAM'           && status === 'Reviewed') return 'Clear';
-  if (role === 'ED'            && status === 'Cleared')  return 'Approve';
+  if (role === 'Admin Officer'   && status === 'Pending')  return 'Mark Prepared';
+  if (role === 'Finance Officer' && status === 'Prepared') return 'Mark Reviewed';
+  if (role === 'FAM'             && status === 'Prepared' && !hasFinanceOfficer()) return 'Mark Reviewed';
+  if (role === 'FAM'             && status === 'Reviewed') return 'Clear';
+  if (role === 'ED'              && status === 'Cleared')  return 'Approve';
   return null;
 }
 function getStaff(email){ var e=(email||'').trim().toLowerCase(); return _dir[e] || { name: email||'', role:'Staff', title:'Staff' }; }
@@ -469,7 +492,7 @@ global.DataService = {
   CONFIG: CONFIG, ELEVATED: ELEVATED,
   getStaff: getStaff, getRole: getRole, getDisplayName: getDisplayName, getTitle: getTitle,
   canSeeAll: canSeeAll, canActionRequisition: canActionRequisition,
-  getNextStatus: getNextStatus, getActionLabel: getActionLabel,
+  getNextStatus: getNextStatus, getActionLabel: getActionLabel, hasFinanceOfficer: hasFinanceOfficer,
   authenticateUser: authenticateUser, changePassword: changePassword, isPasswordExpired: isPasswordExpired,
   saveSession: saveSession, getSession: getSession, clearSession: clearSession,
   isAuthenticated: isAuthenticated, requireSession: requireSession,

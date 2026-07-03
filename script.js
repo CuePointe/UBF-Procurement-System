@@ -2,14 +2,13 @@
  * script.js - UBF Procurement & Logistics System
  */
 
-/* Token check — no prompt ever fires from script.js
-   Token is set ONLY via the setup screen in index.html */
+/* Session check — Supabase login stores the session in localStorage.
+   Non-login pages redirect to the login when no session is present. */
 (function(){
-  var K='ubf_gatekeeper_token';
+  var K='ubf_sb_session';
   var path=location.pathname;
-  var isLoginPage=path.indexOf('index')===-1&&path.slice(-1)!=='/'&&path!=='';
-  /* Non-login pages: if no token, redirect to login */
-  if(!localStorage.getItem(K)&&isLoginPage){
+  var isAppPage=path.indexOf('index')===-1&&path.slice(-1)!=='/'&&path!=='';
+  if(!localStorage.getItem(K)&&isAppPage){
     location.href=path.substring(0,path.lastIndexOf('/')+1)+'index.html';
   }
 }());
@@ -48,7 +47,7 @@ function fmtDT(iso){
   try{return new Date(iso).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(_){return iso;}
 }
 function stCls(st){
-  var m={pending:'status-pending',prepared:'status-inreview',reviewed:'status-inreview',cleared:'status-inreview',approved:'status-approved',rejected:'status-rejected'};
+  var m={pending:'status-pending',prepared:'status-inreview',reviewed:'status-inreview',cleared:'status-inreview',verified:'status-inreview',approved:'status-approved',rejected:'status-rejected'};
   return m[(st||'').toLowerCase()]||'status-pending';
 }
 function ftLbl(t){

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UBF — Executive Expenditure Report</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .rpt-page{max-width:1200px;margin:0 auto;}
+
+    /* KPI tiles (match dashboard) */
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1rem;margin-bottom:1.75rem;}
+    .kpi-card{position:relative;background:var(--white);border:1px solid var(--gray-200);border-top:3px solid var(--gray-300);border-radius:var(--radius-md);padding:1.15rem 1.3rem;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:.5rem;}
+    .kpi-top{display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
+    .kpi-ic{display:grid;place-items:center;height:2.1rem;width:2.1rem;border-radius:10px;background:var(--gray-100);color:var(--gray-500);}
+    .kpi-ic svg{height:1.15rem;width:1.15rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+    .kpi-value{font-family:var(--font-display);font-size:1.55rem;font-weight:800;color:var(--gray-900);line-height:1.05;letter-spacing:-.02em;}
+    .kpi-label{font-size:.71rem;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-500);font-weight:700;}
+    .kpi-sub{font-size:.74rem;color:var(--gray-400);}
+    .kpi-card.total{border-top-color:var(--ubf-green);}.kpi-card.total .kpi-ic{background:var(--green-light);color:var(--ubf-green);}
+    .kpi-card.green{border-top-color:#16a34a;}.kpi-card.green .kpi-ic{background:#dcfce7;color:#15803d;}
+    .kpi-card.amber{border-top-color:var(--amber);}.kpi-card.amber .kpi-ic{background:var(--amber-light);color:var(--amber);}
+    .kpi-card.red{border-top-color:var(--red);}.kpi-card.red .kpi-ic{background:var(--red-light);color:var(--red);}
+    .kpi-card.purple{border-top-color:var(--violet);}.kpi-card.purple .kpi-ic{background:#efe7fd;color:var(--violet);}
+
+    /* Section cards */
+    .rpt-card{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);margin-bottom:1.5rem;overflow:hidden;}
+    .rpt-card-header{background:linear-gradient(120deg,var(--ubf-green-dark),var(--ubf-green));color:var(--white);padding:.8rem 1.25rem;font-weight:700;font-size:.82rem;text-transform:uppercase;letter-spacing:.05em;display:flex;align-items:center;justify-content:space-between;gap:.5rem;}
+    .rpt-card-body{padding:1.25rem;}
+
+    /* Chart */
+    .chart-box{width:100%;}
+    .chart-empty{color:var(--gray-500);font-size:.85rem;padding:1rem;}
+
+    /* Horizontal bars */
+    .hbars{display:flex;flex-direction:column;gap:.7rem;}
+    .hbar-row{display:grid;grid-template-columns:150px 1fr 170px;align-items:center;gap:.85rem;}
+    .hbar-label{font-size:.83rem;font-weight:600;color:var(--gray-700);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .hbar-track{height:12px;background:var(--gray-100);border-radius:999px;overflow:hidden;}
+    .hbar-fill{height:100%;border-radius:999px;transition:width .5s ease;}
+    .hbar-val{font-size:.8rem;font-weight:700;color:var(--gray-900);text-align:right;font-variant-numeric:tabular-nums;}
+    .hbar-count{color:var(--gray-400);font-weight:600;font-size:.72rem;}
+    @media(max-width:640px){.hbar-row{grid-template-columns:96px 1fr;}.hbar-val{grid-column:2;text-align:left;}}
+
+    /* Report table */
+    .rpt-table{width:100%;border-collapse:collapse;font-size:.83rem;}
+    .rpt-table th{background:var(--gray-100);color:var(--gray-600);font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;padding:.6rem .85rem;text-align:left;border-bottom:1px solid var(--gray-200);white-space:nowrap;}
+    .rpt-table td{padding:.55rem .85rem;border-bottom:1px solid var(--gray-200);vertical-align:middle;color:var(--gray-700);}
+    .rpt-table tr:last-child td{border-bottom:none;}
+    .rpt-table tbody tr:hover td{background:var(--green-pale);}
+    .rpt-table .total-row td{background:var(--green-light);font-weight:700;color:var(--gray-900);border-top:2px solid var(--ubf-green);}
+    .rpt-table .num{text-align:right;font-variant-numeric:tabular-nums;}
+    .rpt-ref{font-size:.78rem;font-weight:700;color:var(--ubf-green-dark);}
+
+    /* Filter bar */
+    .filter-bar{background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:flex-end;gap:1rem;flex-wrap:wrap;}
+    .filter-bar label{font-size:.68rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.04em;}
+    .filter-bar input,.filter-bar select{padding:.45rem .7rem;border:1.5px solid var(--gray-300);border-radius:var(--radius-sm);font-size:.85rem;font-family:var(--font-body);color:var(--gray-900);}
+    .filter-bar input:focus,.filter-bar select:focus{outline:none;border-color:var(--ubf-green);box-shadow:0 0 0 3px rgba(58,107,42,.14);}
+
+    .rpt-print-header{display:none;}
+
+    /* Status pill */
+    .pill{display:inline-flex;align-items:center;gap:.3rem;padding:.16rem .55rem;border-radius:999px;font-size:.67rem;font-weight:700;text-transform:uppercase;}
+    .pill::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;}
+    .pill-pending{background:var(--amber-light);color:#92400e;}
+    .pill-approved{background:#dcfce7;color:#166534;}
+    .pill-rejected{background:var(--red-light);color:#991b1b;}
+    .pill-other{background:var(--ubf-blue-light);color:#1e40af;}
+
+    .rpt-loading{text-align:center;padding:3rem;color:var(--gray-500);}
+
+    /* Nav dropdown */
+    .nav-dropdown{position:relative;display:inline-block;}
+    .nav-dropdown-btn{display:block;padding:.4rem .8rem;border-radius:var(--radius-sm);color:rgba(255,255,255,.82);font-size:.82rem;font-weight:500;background:none;border:none;cursor:pointer;font-family:var(--font-body);}
+    .nav-dropdown-btn:hover{background:rgba(255,255,255,.18);color:#fff;}
+    .nav-dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#fff;border-radius:var(--radius-md);box-shadow:var(--shadow-lg);min-width:210px;z-index:200;padding:.4rem 0;margin-top:6px;border:1px solid var(--gray-200);}
+    .nav-dropdown:hover .nav-dropdown-menu,.nav-dropdown:focus-within .nav-dropdown-menu{display:block;}
+    .nav-dropdown-menu a{display:block;padding:.45rem 1rem;font-size:.82rem;color:var(--gray-900);white-space:nowrap;}
+    .nav-dropdown-menu a:hover{background:var(--green-pale);color:var(--ubf-green-dark);}
+    .nav-dropdown-menu .menu-divider{height:1px;background:var(--gray-200);margin:.25rem 0;}
+    .nav-dropdown-menu .menu-label{padding:.3rem 1rem;font-size:.66rem;text-transform:uppercase;letter-spacing:.07em;color:var(--gray-500);font-weight:700;}
+
+    @media print{
+      .navbar,.filter-bar,.doc-footer,.page-header,.btn,.no-print{display:none!important;}
+      .rpt-print-header{display:block!important;text-align:center;margin-bottom:1.5rem;}
+      .rpt-print-header h1{font-size:1.4rem;color:var(--ubf-green-dark);}
+      .rpt-print-header p{font-size:.85rem;color:var(--gray-500);}
+      .page-wrapper{padding:0;}
+      .rpt-card,.kpi-card{box-shadow:none;border:1px solid var(--gray-300);page-break-inside:avoid;}
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="navbar-brand" href="dashboard.html">
+    <div class="navbar-logo"><img src="ubf-logo.png" alt="UBF" onerror="if(this.src.indexOf('.png')!==-1){this.src='ubf-logo.jpg';}else{this.style.display='none';this.parentElement.setAttribute('data-fallback','true');}"/></div>
+    <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
+  </a>
+  <ul class="navbar-nav">
+    <li><a href="dashboard.html">Dashboard</a></li>
+    <li class="nav-dropdown">
+      <button class="nav-dropdown-btn">Forms ▾</button>
+      <div class="nav-dropdown-menu">
+        <div class="menu-label">Staff Forms</div>
+        <a href="form.html">Request for Goods/Services</a>
+        <a href="travel-plan.html">Travel Business Plan</a>
+        <a href="accountability.html">Accountability Form</a>
+        <div class="menu-divider"></div>
+        <div class="menu-label">Management Forms</div>
+        <a href="evaluation.html">Evaluation Report</a>
+        <a href="lpo.html">Local Purchase Order</a>
+        <a href="grn.html">Goods Received Note</a>
+        <a href="invoice.html">Payment Voucher</a>
+      </div>
+    </li>
+    <li><a href="archives.html">Archive</a></li>
+    <li><a href="expenditure-report.html" class="active">Expenditure</a></li>
+    <li><a href="history.html">History</a></li>
+    <li><a href="help.html">Help</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading…</span><span class="role-badge" id="nav-user-role">—</span></div>
+    <button id="btn-logout">Logout</button>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div id="global-error-banner" class="banner"></div>
+
+  <div class="rpt-print-header">
+    <img src="ubf-logo.png" alt="Uganda Biodiversity Fund" style="height:60px;width:auto;margin:0 auto 0.75rem;display:block;object-fit:contain;" onerror="if(this.src.indexOf('.png')!==-1){this.src='ubf-logo.jpg';}else{this.style.display='none';}"/>
+    <h1>Uganda Biodiversity Fund</h1>
+    <h2 style="font-size:1rem;font-weight:400;">Executive Logistics &amp; Procurement Expenditure Report</h2>
+    <p id="rpt-print-period"></p>
+  </div>
+
+  <div class="page-header">
+    <h1>Executive Expenditure Report</h1>
+    <p>Live data drawn automatically from all procurement submissions in the system</p>
+  </div>
+
+  <div class="filter-bar no-print">
+    <div><label>From</label><br/><input type="date" id="filter-from"/></div>
+    <div><label>To</label><br/><input type="date" id="filter-to"/></div>
+    <div><label>Form Type</label><br/>
+      <select id="filter-type">
+        <option value="">All Types</option>
+        <option value="request">Request for Goods/Services</option>
+        <option value="travel">Travel Business Plan</option>
+        <option value="accountability">Accountability</option>
+        <option value="evaluation">Evaluation Report</option>
+        <option value="lpo">Local Purchase Order</option>
+        <option value="grn">Goods Received Note</option>
+        <option value="invoice">Payment Voucher</option>
+      </select>
+    </div>
+    <div><label>Status</label><br/>
+      <select id="filter-status-rpt">
+        <option value="">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Prepared">Prepared</option>
+        <option value="Reviewed">Reviewed</option>
+        <option value="Cleared">Cleared</option>
+        <option value="Approved">Approved</option>
+        <option value="Rejected">Rejected</option>
+      </select>
+    </div>
+    <div><label>Department</label><br/><input type="text" id="filter-dept" placeholder="e.g. Finance" style="width:140px;"/></div>
+    <div style="display:flex;gap:0.5rem;align-items:flex-end;">
+      <button class="btn btn-primary btn-sm" id="btn-apply-filter">Apply</button>
+      <button class="btn btn-secondary btn-sm" id="btn-reset-filter">Reset</button>
+      <button class="btn btn-secondary btn-sm" id="btn-export-csv" title="Download the filtered register as a spreadsheet">⬇ Excel / CSV</button>
+      <button class="btn btn-secondary btn-sm" onclick="window.print()">🖨️ Print</button>
+    </div>
+  </div>
+
+  <div class="rpt-page" id="rpt-container">
+    <div class="rpt-loading" id="rpt-loading">
+      <div class="spinner"></div>
+      <p>Loading expenditure data from system…</p>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="script.js"></script>
+<script>
+(function(){
+'use strict';
+
+/* ── Helpers ── */
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function fmtUGX(n){if(!n||isNaN(n))return'UGX 0';return'UGX '+Number(n).toLocaleString('en-UG',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function shortAmt(n){n=Number(n)||0;if(n>=1e9)return(n/1e9).toFixed(n%1e9?1:0)+'B';if(n>=1e6)return(n/1e6).toFixed(n%1e6?1:0)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return String(Math.round(n));}
+function fmtDate(iso){if(!iso)return'—';try{return new Date(iso).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});}catch(_){return iso;}}
+function pillClass(st){var s=(st||'').toLowerCase();if(s==='approved')return'pill-approved';if(s==='rejected')return'pill-rejected';if(s==='pending')return'pill-pending';return'pill-other';}
+function ftLabel(t){var m={request:'Request for Goods/Services',travel:'Travel Business Plan',accountability:'Accountability',evaluation:'Evaluation Report',lpo:'Local Purchase Order',grn:'Goods Received Note',invoice:'Payment Voucher'};return m[t]||t||'—';}
+function statusColor(st){var s=(st||'').toLowerCase();if(s==='approved')return'#16a34a';if(s==='rejected')return'#c0392b';if(s==='pending')return'#d97706';return'#2563eb';}
+function monthShort(m){try{var p=m.split('-');return new Date(+p[0],+p[1]-1,1).toLocaleDateString('en-GB',{month:'short'})+" '"+String(p[0]).slice(2);}catch(_){return m;}}
+function monthLong(m){try{var p=m.split('-');return new Date(+p[0],+p[1]-1,1).toLocaleDateString('en-GB',{month:'long',year:'numeric'});}catch(_){return m;}}
+function niceCeil(x){if(x<=0)return 1;var e=Math.pow(10,Math.floor(Math.log10(x)));var f=x/e;var nf=f<=1?1:f<=2?2:f<=5?5:10;return nf*e;}
+
+/* ── Extraction (unchanged pipeline) ── */
+function extractAmount(rec){
+  if(!rec||!rec.data)return 0;var d=rec.data;
+  var candidates=[d.total,d.amount,d.invTotal,d.lpoTotal,d.subtotal,d.grandTotal,d.advanceReceived,d.totalActual,d.totalBudgeted,d.estimatedCost,d.unitCost];
+  for(var i=0;i<candidates.length;i++){var v=parseFloat(candidates[i]);if(!isNaN(v)&&v>0)return v;}
+  var itemFields=[d.items,d.particulars,d.expenses,d.routes];
+  for(var j=0;j<itemFields.length;j++){
+    if(!itemFields[j])continue;
+    try{var rows=JSON.parse(itemFields[j]);var sum=0;
+      rows.forEach(function(row){
+        var lineTotal=parseFloat(row.total||row.amount||row.lineTotal||0);if(lineTotal>0){sum+=lineTotal;return;}
+        var qty=parseFloat(row.qty||row.quantity||1);var price=parseFloat(row.unitPrice||row.price||row.perDiem||row.actual||row.budgeted||0);if(price>0)sum+=qty*price;
+        var travelCost=['perDiem','accommodation','sda','others'].reduce(function(s,k){return s+(parseFloat(row[k])||0);},0);if(travelCost>0)sum+=travelCost;
+      });
+      if(sum>0)return sum;
+    }catch(_){}
+  }
+  return 0;
+}
+function extractDept(rec){if(!rec||!rec.data)return'—';return rec.data.department||rec.data.dept||'—';}
+function extractCurrency(rec){if(!rec||!rec.data)return'UGX';return rec.data.currency||'UGX';}
+function fmtAmount(n,currency){if(!n||isNaN(n))return(currency||'UGX')+' 0';return(currency||'UGX')+' '+Number(n).toLocaleString('en-UG',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function extractDonor(rec){if(!rec||!rec.data)return'—';return rec.data.donorName||rec.data.donor||'—';}
+function extractProject(rec){if(!rec||!rec.data)return'—';return rec.data.projectCode||rec.data.project||rec.data.activityCode||'—';}
+
+/* ── Charts ── */
+function svgMonthly(byMonth){
+  var months=Object.keys(byMonth).sort();
+  if(!months.length)return'<p class="chart-empty">No data for the selected period.</p>';
+  var W=760,H=280,padL=52,padR=16,padT=22,padB=44;
+  var plotW=W-padL-padR,plotH=H-padT-padB;
+  var max=Math.max.apply(null,months.map(function(m){return byMonth[m].amount;}))||1;
+  var niceMax=niceCeil(max);
+  var n=months.length,slot=plotW/n,barW=Math.min(52,slot*0.58);
+  var grid='',ticks=4;
+  for(var i=0;i<=ticks;i++){
+    var val=niceMax*i/ticks,y=padT+plotH-(val/niceMax*plotH);
+    grid+='<line x1="'+padL+'" y1="'+y+'" x2="'+(W-padR)+'" y2="'+y+'" stroke="#e7e9e4" stroke-width="1"/>';
+    grid+='<text x="'+(padL-8)+'" y="'+(y+3)+'" text-anchor="end" font-size="10" fill="#7c8377">'+shortAmt(val)+'</text>';
+  }
+  var bars=months.map(function(m,idx){
+    var d=byMonth[m],h=d.amount/niceMax*plotH,x=padL+slot*idx+(slot-barW)/2,y=padT+plotH-h;
+    return'<g><title>'+esc(monthLong(m))+': '+esc(fmtUGX(d.amount))+' ('+d.count+' tx)</title>'+
+      '<rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+Math.max(0,h)+'" rx="4" fill="#3a6b2a"/>'+
+      '<text x="'+(x+barW/2)+'" y="'+(y-6)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#3f463c">'+shortAmt(d.amount)+'</text>'+
+      '<text x="'+(x+barW/2)+'" y="'+(padT+plotH+16)+'" text-anchor="middle" font-size="10" fill="#7c8377">'+esc(monthShort(m))+'</text>'+
+    '</g>';
+  }).join('');
+  return'<div class="chart-box"><svg viewBox="0 0 '+W+' '+H+'" width="100%" style="height:auto;overflow:visible;" role="img" aria-label="Monthly expenditure">'+
+    grid+
+    '<line x1="'+padL+'" y1="'+(padT+plotH)+'" x2="'+(W-padR)+'" y2="'+(padT+plotH)+'" stroke="#d5d8d1" stroke-width="1.5"/>'+
+    bars+'</svg></div>';
+}
+function horizBars(data,colorFn,totalAmt){
+  var keys=Object.keys(data).sort(function(a,b){return data[b].amount-data[a].amount;});
+  if(!keys.length)return'<p class="chart-empty">No data.</p>';
+  var max=Math.max.apply(null,keys.map(function(k){return data[k].amount;}))||1;
+  return'<div class="hbars">'+keys.map(function(k){
+    var pct=Math.max(2,Math.round(data[k].amount/max*100));
+    var color=colorFn?colorFn(k):'var(--ubf-green)';
+    return'<div class="hbar-row">'+
+      '<div class="hbar-label" title="'+esc(k)+'">'+esc(k)+'</div>'+
+      '<div class="hbar-track"><div class="hbar-fill" style="width:'+pct+'%;background:'+color+';"></div></div>'+
+      '<div class="hbar-val">'+esc(fmtUGX(data[k].amount))+' <span class="hbar-count">· '+data[k].count+' tx</span></div>'+
+    '</div>';
+  }).join('')+'</div>';
+}
+
+/* ── Filters ── */
+var _allRecords=[];
+function applyFilters(){
+  var fromVal=document.getElementById('filter-from').value;
+  var toVal=document.getElementById('filter-to').value;
+  var typeVal=document.getElementById('filter-type').value;
+  var stVal=document.getElementById('filter-status-rpt').value;
+  var deptVal=(document.getElementById('filter-dept').value||'').toLowerCase();
+  return _allRecords.filter(function(r){
+    if(typeVal&&r.formType!==typeVal)return false;
+    if(stVal&&r.status!==stVal)return false;
+    if(fromVal&&r.createdAt<fromVal)return false;
+    if(toVal&&r.createdAt>toVal+'T23:59:59')return false;
+    if(deptVal&&extractDept(r).toLowerCase().indexOf(deptVal)===-1)return false;
+    return true;
+  });
+}
+
+/* ── Render ── */
+function renderReport(records){
+  var container=document.getElementById('rpt-container');
+  if(!records||records.length===0){container.innerHTML='<div style="text-align:center;padding:3rem;color:var(--gray-500);"><p>No records match the selected filters.</p></div>';return;}
+
+  var totalCommitted=0,totalApproved=0,totalPending=0,totalRejected=0,txCount=records.length;
+  var byType={},byDept={},byDonor={},byStatus={},byMonth={};
+  records.forEach(function(r){
+    var amt=extractAmount(r),st=(r.status||'').toLowerCase();
+    totalCommitted+=amt;
+    if(st==='approved')totalApproved+=amt;
+    else if(st==='pending'||st==='prepared'||st==='reviewed'||st==='cleared')totalPending+=amt;
+    else if(st==='rejected')totalRejected+=amt;
+    var tl=ftLabel(r.formType);if(!byType[tl])byType[tl]={count:0,amount:0};byType[tl].count++;byType[tl].amount+=amt;
+    var dept=extractDept(r);if(!byDept[dept])byDept[dept]={count:0,amount:0};byDept[dept].count++;byDept[dept].amount+=amt;
+    var donor=extractDonor(r);if(!byDonor[donor])byDonor[donor]={count:0,amount:0};byDonor[donor].count++;byDonor[donor].amount+=amt;
+    var status=r.status||'Unknown';if(!byStatus[status])byStatus[status]={count:0,amount:0};byStatus[status].count++;byStatus[status].amount+=amt;
+    var mkey=r.createdAt?r.createdAt.substring(0,7):'Unknown';if(!byMonth[mkey])byMonth[mkey]={count:0,amount:0};byMonth[mkey].count++;byMonth[mkey].amount+=amt;
+  });
+
+  function ic(p){return'<span class="kpi-ic"><svg viewBox="0 0 24 24">'+p+'</svg></span>';}
+  var kpiHtml='<div class="kpi-grid">'+
+    '<div class="kpi-card total"><div class="kpi-top"><span class="kpi-label">Total Submissions</span>'+ic('<path d="M3 4h18M3 12h18M3 20h18"/>')+'</div><div class="kpi-value">'+txCount+'</div><div class="kpi-sub">All form types</div></div>'+
+    '<div class="kpi-card green"><div class="kpi-top"><span class="kpi-label">Approved Expenditure</span>'+ic('<path d="M20 6 9 17l-5-5"/>')+'</div><div class="kpi-value">'+fmtUGX(totalApproved)+'</div><div class="kpi-sub">Fully authorised</div></div>'+
+    '<div class="kpi-card amber"><div class="kpi-top"><span class="kpi-label">Pending / In Review</span>'+ic('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>')+'</div><div class="kpi-value">'+fmtUGX(totalPending)+'</div><div class="kpi-sub">Awaiting approval</div></div>'+
+    '<div class="kpi-card red"><div class="kpi-top"><span class="kpi-label">Rejected</span>'+ic('<circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/>')+'</div><div class="kpi-value">'+fmtUGX(totalRejected)+'</div><div class="kpi-sub">Not approved</div></div>'+
+    '<div class="kpi-card purple"><div class="kpi-top"><span class="kpi-label">Total Committed</span>'+ic('<path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>')+'</div><div class="kpi-value">'+fmtUGX(totalCommitted)+'</div><div class="kpi-sub">All statuses combined</div></div>'+
+  '</div>';
+
+  /* breakdown detail table (kept for print/precision) */
+  function breakdownTable(data,label1){
+    var keys=Object.keys(data).sort(function(a,b){return data[b].amount-data[a].amount;});
+    if(!keys.length)return'<p class="text-muted">No data.</p>';
+    var rows=keys.map(function(k){var pct=totalCommitted>0?Math.round(data[k].amount/totalCommitted*100):0;
+      return'<tr><td>'+esc(k)+'</td><td class="num">'+data[k].count+'</td><td class="num">'+fmtUGX(data[k].amount)+'</td><td class="num">'+pct+'%</td></tr>';}).join('');
+    return'<table class="rpt-table"><thead><tr><th>'+esc(label1)+'</th><th class="num">Count</th><th class="num">Amount (UGX)</th><th class="num">Share</th></tr></thead><tbody>'+rows+'</tbody>'+
+      '<tfoot><tr class="total-row"><td>Total</td><td class="num">'+txCount+'</td><td class="num">'+fmtUGX(totalCommitted)+'</td><td class="num">100%</td></tr></tfoot></table>';
+  }
+
+  var months=Object.keys(byMonth).sort();
+  var monthRows=months.map(function(m){var d=byMonth[m];return'<tr><td>'+esc(monthLong(m))+'</td><td class="num">'+d.count+'</td><td class="num">'+fmtUGX(d.amount)+'</td></tr>';}).join('');
+  var monthTable='<table class="rpt-table"><thead><tr><th>Month</th><th class="num">Transactions</th><th class="num">Amount (UGX)</th></tr></thead><tbody>'+(monthRows||'<tr><td colspan="3" class="text-muted">No data</td></tr>')+'</tbody></table>';
+
+  /* Transaction register */
+  var txRows=records.map(function(r){var amt=extractAmount(r);
+    return'<tr><td class="rpt-ref">'+esc(r.id)+'</td><td>'+esc(ftLabel(r.formType))+'</td><td style="font-size:.82rem;">'+esc((r.data&&r.data.description)||'—')+'</td>'+
+      '<td>'+esc(r.submittedByName)+'</td><td>'+esc(extractDept(r))+'</td><td>'+esc(extractDonor(r))+'</td><td>'+esc(extractProject(r))+'</td>'+
+      '<td>'+fmtDate(r.createdAt)+'</td><td class="num">'+esc(fmtAmount(amt,extractCurrency(r)))+'</td>'+
+      '<td><span class="pill '+pillClass(r.status)+'">'+esc(r.status)+'</span></td>'+
+      '<td style="font-size:.78rem;">'+esc(r.approval&&r.approval.approval&&r.approval.approval.byName?r.approval.approval.byName:'—')+'</td></tr>';}).join('');
+  var txTable='<div style="overflow-x:auto;"><table class="rpt-table"><thead><tr><th>Ref No</th><th>Form Type</th><th>Description</th><th>Submitted By</th><th>Department</th><th>Donor</th><th>Project</th><th>Date</th><th class="num">Amount (UGX)</th><th>Status</th><th>Approved By</th></tr></thead><tbody>'+(txRows||'')+'</tbody></table></div>';
+
+  /* Approved register */
+  var approvedRecs=records.filter(function(r){return(r.status||'').toLowerCase()==='approved';});
+  var approvedRows=approvedRecs.map(function(r){var amt=extractAmount(r);
+    return'<tr><td class="rpt-ref">'+esc(r.id)+'</td><td>'+esc(ftLabel(r.formType))+'</td><td>'+esc((r.data&&r.data.description)||'—')+'</td><td>'+esc(r.submittedByName)+'</td><td>'+esc(extractDept(r))+'</td><td>'+esc(extractDonor(r))+'</td><td>'+fmtDate(r.approval&&r.approval.approval?r.approval.approval.at:'')+'</td><td class="num" style="font-weight:700;">'+esc(fmtAmount(amt,extractCurrency(r)))+'</td></tr>';}).join('');
+  var approvedTotal=approvedRecs.reduce(function(s,r){return s+extractAmount(r);},0);
+  var approvedTable=approvedRecs.length===0?'<p class="text-muted" style="padding:1rem;">No approved expenditures in selected period.</p>':
+    '<div style="overflow-x:auto;"><table class="rpt-table"><thead><tr><th>Ref No</th><th>Form Type</th><th>Description</th><th>Submitted By</th><th>Department</th><th>Donor</th><th>Approved On</th><th class="num">Amount (UGX)</th></tr></thead><tbody>'+approvedRows+'</tbody><tfoot><tr class="total-row"><td colspan="7">Total Approved Expenditure</td><td class="num">'+fmtUGX(approvedTotal)+'</td></tr></tfoot></table></div>';
+
+  /* Travel advances */
+  var advances=records.filter(function(r){return r.formType==='travel'&&(r.status||'').toLowerCase()!=='rejected';});
+  var advanceRows=advances.map(function(r){var amt=extractAmount(r);
+    var accounted=records.some(function(x){return x.formType==='accountability'&&x.data&&x.data.description&&x.data.description.indexOf(r.id)!==-1;});
+    return'<tr><td class="rpt-ref">'+esc(r.id)+'</td><td>'+esc(r.submittedByName)+'</td><td>'+esc((r.data&&r.data.businessReason)||'—')+'</td><td>'+fmtDate(r.createdAt)+'</td><td class="num">'+esc(fmtAmount(amt,extractCurrency(r)))+'</td><td><span class="pill '+pillClass(r.status)+'">'+esc(r.status)+'</span></td>'+
+      '<td style="font-size:.78rem;font-weight:700;color:'+(accounted?'#166534':'#b45309')+';">'+(accounted?'✅ Accounted':'⏳ Outstanding')+'</td></tr>';}).join('');
+  var advancesTable=advances.length===0?'<p class="text-muted" style="padding:1rem;">No travel advances on record.</p>':
+    '<table class="rpt-table"><thead><tr><th>Ref No</th><th>Staff</th><th>Purpose</th><th>Date</th><th class="num">Advance (UGX)</th><th>Status</th><th>Accountability</th></tr></thead><tbody>'+advanceRows+'</tbody></table>';
+
+  var periodFrom=document.getElementById('filter-from').value||'All time';
+  var periodTo=document.getElementById('filter-to').value||'Present';
+  document.getElementById('rpt-print-period').textContent='Period: '+periodFrom+' to '+periodTo;
+
+  container.innerHTML=kpiHtml+
+    '<div class="rpt-card"><div class="rpt-card-header">📈 Monthly Expenditure Trend</div><div class="rpt-card-body">'+svgMonthly(byMonth)+
+      '<div style="margin-top:1rem;">'+monthTable+'</div></div></div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;" class="rpt-split">'+
+      '<div class="rpt-card" style="margin:0;"><div class="rpt-card-header">📋 By Form Type</div><div class="rpt-card-body">'+horizBars(byType)+'</div></div>'+
+      '<div class="rpt-card" style="margin:0;"><div class="rpt-card-header">📊 By Approval Status</div><div class="rpt-card-body">'+horizBars(byStatus,statusColor)+'</div></div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem;" class="rpt-split">'+
+      '<div class="rpt-card" style="margin:0;"><div class="rpt-card-header">🏢 By Department</div><div class="rpt-card-body">'+horizBars(byDept)+'</div></div>'+
+      '<div class="rpt-card" style="margin:0;"><div class="rpt-card-header">🌍 By Donor / Funding Source</div><div class="rpt-card-body">'+horizBars(byDonor)+'</div></div>'+
+    '</div>'+
+    '<div class="rpt-card"><div class="rpt-card-header">✅ Approved Expenditures Register</div><div class="rpt-card-body">'+approvedTable+'</div></div>'+
+    '<div class="rpt-card"><div class="rpt-card-header">✈️ Travel Advances &amp; Accountability Status</div><div class="rpt-card-body">'+advancesTable+'</div></div>'+
+    '<div class="rpt-card"><div class="rpt-card-header">📜 Full Transaction Register ('+records.length+' records)<span style="font-size:.72rem;opacity:.8;font-weight:400;">All submissions matching filters</span></div><div class="rpt-card-body">'+txTable+'</div></div>'+
+    '<div style="text-align:center;font-size:.75rem;color:var(--gray-500);padding:1rem 0 2rem;">Report generated on '+new Date().toLocaleString('en-GB')+' &nbsp;|&nbsp; Uganda Biodiversity Fund — Logistics &amp; Procurement System</div>';
+}
+
+/* ── Init ── */
+async function initReport(){
+  /* Offline preview hook (harmless in production) */
+  if(window.__PREVIEW_RECORDS__){
+    document.getElementById('nav-user-name').textContent='Ivan Amanigaruhanga';
+    var rp=document.getElementById('nav-user-role');rp.textContent='ED';rp.className='role-badge role-ed';
+    document.getElementById('filter-from').value='2026-01-01';
+    document.getElementById('filter-to').value='2026-12-31';
+    _allRecords=window.__PREVIEW_RECORDS__;
+    document.getElementById('rpt-loading').style.display='none';
+    renderReport(applyFilters());
+    wireFilters();return;
+  }
+
+  if(!window.DataService){return;}
+  var DS=window.DataService;
+  if(!DS.isAuthenticated()){var d=location.pathname;location.href=d.substring(0,d.lastIndexOf('/')+1)+'index.html';return;}
+  var session=DS.getSession();
+  var elevated=['Admin Officer','Finance Officer','FAM','ED'];
+  if(elevated.indexOf(session.role)===-1){
+    document.getElementById('rpt-container').innerHTML='<div style="text-align:center;padding:3rem;color:var(--red);"><h2>Access Restricted</h2><p>The Executive Expenditure Report is available to Admin Officer, FAM and ED only.</p></div>';return;
+  }
+  var ne=document.getElementById('nav-user-name'),re=document.getElementById('nav-user-role');
+  if(ne)ne.textContent=session.name||session.email;
+  if(re){re.textContent=session.role;re.className='role-badge role-'+session.role.toLowerCase().replace(/\s+/g,'-');}
+  var lb=document.getElementById('btn-logout');
+  if(lb)lb.addEventListener('click',function(){DS.clearSession();var d=location.pathname;location.href=d.substring(0,d.lastIndexOf('/')+1)+'index.html';});
+  var now=new Date();
+  document.getElementById('filter-from').value=now.getFullYear()+'-01-01';
+  document.getElementById('filter-to').value=now.toISOString().split('T')[0];
+  try{
+    var db=await DS.readDatabase();
+    _allRecords=Array.isArray(db.records)?db.records:[];
+    document.getElementById('rpt-loading').style.display='none';
+    renderReport(applyFilters());
+  }catch(err){document.getElementById('rpt-loading').innerHTML='<p style="color:var(--red);">Failed to load data: '+err.message+'</p>';}
+  wireFilters(now);
+}
+function exportCSV(){
+  var recs=applyFilters();
+  if(!recs.length){ alert('No records match the current filters.'); return; }
+  var head=['Ref No','Form Type','Description','Submitted By','Department','Donor','Project','Date','Amount','Currency','Status','Approved By'];
+  var rows=recs.map(function(r){
+    return [ r.id, ftLabel(r.formType), (r.data&&r.data.description)||'', r.submittedByName||'',
+      extractDept(r), extractDonor(r), extractProject(r), (r.createdAt||'').substring(0,10),
+      extractAmount(r), extractCurrency(r), r.status||'',
+      (r.approval&&r.approval.approval&&r.approval.approval.byName)||'' ];
+  });
+  var csv=[head].concat(rows).map(function(row){
+    return row.map(function(c){ c=String(c==null?'':c); return '"'+c.replace(/"/g,'""')+'"'; }).join(',');
+  }).join('\r\n');
+  var blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='UBF-Expenditure-Register-'+new Date().toISOString().substring(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+function wireFilters(now){
+  now=now||new Date();
+  document.getElementById('btn-apply-filter').addEventListener('click',function(){renderReport(applyFilters());});
+  document.getElementById('btn-export-csv').addEventListener('click',exportCSV);
+  document.getElementById('btn-reset-filter').addEventListener('click',function(){
+    document.getElementById('filter-from').value=now.getFullYear()+'-01-01';
+    document.getElementById('filter-to').value=now.toISOString().split('T')[0];
+    document.getElementById('filter-type').value='';
+    document.getElementById('filter-status-rpt').value='';
+    document.getElementById('filter-dept').value='';
+    renderReport(applyFilters());
+  });
+}
+
+document.addEventListener('DOMContentLoaded',initReport);
+}());
+</script>
+</body>
+</html>

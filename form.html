@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UBF &mdash; Request for Goods/Services</title>
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    .sub-form-panel{display:none;border:1.5px solid var(--green-light);border-radius:var(--radius-md);margin-top:1rem;overflow:hidden;}
+    .sub-form-panel.open{display:block;}
+    .sub-form-header{background:var(--green-pale);padding:0.7rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--green-light);}
+    .sub-form-header h4{color:var(--ubf-green-dark);font-size:0.88rem;font-weight:700;margin:0;}
+    .sub-form-body{padding:1.25rem;}
+    .sub-form-body .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;}
+    .sub-form-body .form-group{display:flex;flex-direction:column;gap:0.25rem;}
+    .sub-form-body label{font-size:0.73rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--gray-700);}
+    .sub-form-body input,.sub-form-body select,.sub-form-body textarea{padding:0.55rem 0.8rem;border:1.5px solid var(--gray-300);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:0.875rem;color:var(--gray-900);width:100%;transition:border-color .15s,box-shadow .15s;}
+    .sub-form-body input:focus,.sub-form-body select:focus,.sub-form-body textarea:focus{outline:none;border-color:var(--ubf-green);box-shadow:0 0 0 3px rgba(58,107,42,.14);}
+    .sub-form-body textarea{resize:vertical;min-height:70px;}
+    .inline-table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+    .inline-table th{background:var(--green-light);color:var(--ubf-green-dark);padding:0.45rem 0.5rem;border:1px solid var(--gray-300);font-size:0.72rem;font-weight:700;}
+    .inline-table td{border:1px solid var(--gray-300);padding:0.2rem 0.4rem;}
+    .inline-table td input,.inline-table td select{width:100%;border:none;outline:none;font-size:0.82rem;font-family:var(--font-body);background:transparent;}
+    .inline-table td input:focus{background:#fffde7;}
+    .add-row-btn{font-size:0.73rem;font-weight:700;color:var(--ubf-green-dark);background:var(--green-pale);border:1px dashed var(--ubf-green);border-radius:6px;padding:0.3rem 0.7rem;cursor:pointer;margin-top:6px;}
+    .add-row-btn:hover{background:var(--green-light);}
+    .pkg-toggle-btn{font-size:0.82rem;}
+    .nav-dropdown{position:relative;display:inline-block;}
+    .nav-dropdown-btn{display:block;padding:0.4rem 0.8rem;border-radius:var(--radius-sm);color:rgba(255,255,255,0.82);font-size:0.82rem;font-weight:500;transition:background 0.15s,color 0.15s;text-decoration:none;white-space:nowrap;background:none;border:none;cursor:pointer;font-family:var(--font-body);}
+    .nav-dropdown-btn:hover,.nav-dropdown-btn.active{background:rgba(255,255,255,0.18);color:#fff;}
+    .nav-dropdown-menu{display:none;position:absolute;top:100%;left:0;background:#fff;border-radius:var(--radius-md);box-shadow:var(--shadow-lg);min-width:210px;z-index:200;padding:0.4rem 0;margin-top:6px;border:1px solid var(--gray-200);}
+    .nav-dropdown:hover .nav-dropdown-menu,.nav-dropdown:focus-within .nav-dropdown-menu{display:block;}
+    .nav-dropdown-menu a{display:block;padding:0.45rem 1rem;font-size:0.82rem;color:var(--gray-900);text-decoration:none;white-space:nowrap;}
+    .nav-dropdown-menu a:hover{background:var(--green-pale);color:var(--ubf-green-dark);}
+    .nav-dropdown-menu .menu-divider{height:1px;background:var(--gray-200);margin:0.25rem 0;}
+    .nav-dropdown-menu .menu-label{padding:0.3rem 1rem;font-size:0.66rem;text-transform:uppercase;letter-spacing:0.07em;color:var(--gray-500);font-weight:700;}
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <a class="navbar-brand" href="dashboard.html">
+    <div class="navbar-logo"><img src="ubf-logo.png" alt="UBF" onerror="if(this.src.indexOf('.png')!==-1){this.src='ubf-logo.jpg';}else{this.style.display='none';this.parentElement.setAttribute('data-fallback','true');}"/></div>
+    <div class="navbar-title"><span class="org">Uganda Biodiversity Fund</span><span class="portal">Procurement System</span></div>
+  </a>
+    <ul class="navbar-nav">
+    <li><a href="dashboard.html" class="">Dashboard</a></li>
+    <!-- Forms dropdown -->
+    <li class="nav-dropdown">
+      <button class="nav-dropdown-btn active">Forms ▾</button>
+      <div class="nav-dropdown-menu">
+        <div class="menu-label">Staff Forms</div>
+        <a href="form.html">Request for Goods/Services</a>
+        <a href="travel-plan.html">Travel Business Plan</a>
+        <a href="accountability.html">Accountability Form</a>
+        <div class="menu-divider"></div>
+        <div class="menu-label">Management Forms</div>
+        <a href="evaluation.html">Evaluation Report</a>
+        <a href="lpo.html">Local Purchase Order</a>
+        <a href="grn.html">Goods Received Note</a>
+        <a href="invoice.html">Payment Voucher</a>
+      </div>
+    </li>
+    <li><a href="archives.html" class="">Archive</a></li>
+    <li><a href="expenditure-report.html" class="">Expenditure</a></li>
+    <li><a href="history.html" class="">History</a></li>
+    <li><a href="help.html" class="">Help</a></li>
+  </ul>
+  <div class="navbar-user">
+    <div class="navbar-user-info"><span class="user-email" id="nav-user-name">Loading&hellip;</span><span class="role-badge" id="nav-user-role">&mdash;</span></div>
+    <button id="btn-logout">Logout</button>
+  </div>
+</nav>
+
+<div class="page-wrapper">
+  <div id="global-error-banner" class="banner"></div>
+  <div id="global-success-banner" class="banner"></div>
+  <div class="page-header">
+    <h1>Request for Goods / Services</h1>
+    <p>Fill the request below. You may also add a Travel Plan or Accountability Form to submit as one package.</p>
+  </div>
+
+  <div class="form-card">
+  <form id="requisition-form" novalidate autocomplete="off">
+
+    <!-- Submitter info -->
+    <div class="form-section">
+      <div class="form-section-title">Submitted By</div>
+      <div class="submitter-box">
+        <div><div class="sub-label">Name</div><div class="sub-value" id="form-submitter-name">&mdash;</div></div>
+        <div><div class="sub-label">Title</div><div class="sub-value" id="form-submitter-title">&mdash;</div></div>
+        <div><div class="sub-label">Date</div><div class="sub-value" id="form-date-today">&mdash;</div></div>
+      </div>
+    </div>
+
+    <!-- Request details -->
+    <div class="form-section">
+      <div class="form-section-title">Request Details</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Activity Code</label>
+          <input type="text" id="form-activity-code" name="activityCode" placeholder="e.g. ACT-2026-001"/>
+        </div>
+        <div class="form-group">
+          <label>Date Required <span class="required">*</span></label>
+          <input type="date" id="form-date-required" name="dateRequired" required/>
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Description of Goods / Services Required <span class="required">*</span></label>
+          <textarea id="form-description" name="description" rows="2" placeholder="Briefly describe what is needed" required></textarea>
+        </div>
+        <div class="form-group" style="grid-column:1/-1;">
+          <label>Specification of Goods / Services Requested <span class="required">*</span></label>
+          <textarea id="form-specification" name="specification" rows="3" placeholder="Detailed specifications &mdash; brand, size, standard, quality requirements" required></textarea>
+        </div>
+        <div class="form-group">
+          <label>Quantity <span class="required">*</span></label>
+          <input type="number" id="form-quantity" name="quantity" min="1" step="any" placeholder="e.g. 10" required/>
+        </div>
+        <div class="form-group">
+          <label>Location of Work / Delivery Point</label>
+          <input type="text" id="form-location" name="locationOfWork" placeholder="e.g. UBF Head Office"/>
+        </div>
+        <div class="form-group">
+          <label>Contract Period</label>
+          <input type="text" id="form-contract-period" name="contractPeriod" placeholder="e.g. 3 months"/>
+        </div>
+        <div class="form-group">
+          <label>Department</label>
+          <input type="text" id="form-department" name="department" placeholder="e.g. Finance"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Account coding -->
+    <div class="form-section">
+      <div class="form-section-title">Account Coding</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Account Code</label><input type="text" id="form-account-code" name="accountCode" placeholder="Code"/></div>
+        <div class="form-group"><label>Account Name</label><input type="text" id="form-account-name" name="accountName" placeholder="Name"/></div>
+        <div class="form-group"><label>Donor Code</label><input type="text" id="form-donor-code" name="donorCode" placeholder="Code"/></div>
+        <div class="form-group"><label>Donor Name</label><input type="text" id="form-donor-name" name="donorName" placeholder="Name"/></div>
+        <div class="form-group"><label>Budget Code</label><input type="text" id="form-budget-code" name="budgetCode" placeholder="Code"/></div>
+      </div>
+    </div>
+
+    <!-- Attachments -->
+    <div class="form-section">
+      <div class="form-section-title">Attachments</div>
+      <p style="font-size:0.82rem;color:var(--gray-500);margin-bottom:0.5rem;">Upload any supporting documents (quotes, approvals, receipts).</p>
+      <input type="file" id="form-attachments" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"/>
+      <div class="file-info" id="form-attach-info"></div>
+    </div>
+
+    <!-- ================================================
+         PACKAGE BUILDER — Add more forms
+    ================================================ -->
+    <div class="form-section" style="background:var(--green-pale);">
+      <div class="form-section-title" style="color:var(--ubf-green-dark);">
+        Add Forms to This Package (Optional)
+      </div>
+      <p style="font-size:0.82rem;color:var(--gray-500);margin-bottom:0.85rem;">
+        You may add a Travel Business Plan and/or an Accountability Form to submit everything together as one file.
+      </p>
+      <div style="display:flex;gap:0.6rem;flex-wrap:wrap;">
+        <button type="button" id="btn-toggle-travel" class="btn btn-secondary pkg-toggle-btn">+ Add Travel Business Plan</button>
+        <button type="button" id="btn-toggle-accountability" class="btn btn-secondary pkg-toggle-btn">+ Add Accountability Form</button>
+      </div>
+
+      <!-- ─── Inline: Travel Business Plan ─── -->
+      <div id="panel-travel" class="sub-form-panel">
+        <div class="sub-form-header">
+          <h4>Travel Business Plan</h4>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('panel-travel').classList.remove('open');">Remove</button>
+        </div>
+        <div class="sub-form-body">
+          <div class="form-grid">
+            <div class="form-group"><label>Traveller Name <span class="required">*</span></label><input type="text" id="t-traveller-name" name="travellerName" placeholder="Full name"/></div>
+            <div class="form-group"><label>Position / Grade</label><input type="text" id="t-position" name="position" placeholder="Title"/></div>
+            <div class="form-group"><label>Departure Date <span class="required">*</span></label><input type="date" id="t-departure-date" name="departureDate"/></div>
+            <div class="form-group"><label>Return Date <span class="required">*</span></label><input type="date" id="t-return-date" name="returnDate"/></div>
+            <div class="form-group"><label>Total Days</label><input type="number" id="t-total-days" name="totalDays" readonly placeholder="Auto"/></div>
+            <div class="form-group"><label>Business Nights</label><input type="number" id="t-business-nights" name="businessNights" min="0"/></div>
+            <div class="form-group" style="grid-column:1/-1;"><label>Business Reason / Purpose of Travel <span class="required">*</span></label><textarea id="t-business-reason" name="businessReason" rows="2" placeholder="Purpose of the trip"></textarea></div>
+          </div>
+          <div style="margin-top:1rem;overflow-x:auto;">
+            <table class="inline-table">
+              <thead>
+                <tr>
+                  <th style="width:32px;">#</th>
+                  <th>Route (From &mdash; To)</th>
+                  <th style="width:95px;">Date</th>
+                  <th style="width:85px;">Per Diem</th>
+                  <th style="width:100px;">Accommodation</th>
+                  <th style="width:70px;">SDA</th>
+                  <th style="width:80px;">Others</th>
+                  <th style="width:90px;">Total (UGX)</th>
+                  <th style="width:28px;"></th>
+                </tr>
+              </thead>
+              <tbody id="t-route-body"></tbody>
+              <tfoot>
+                <tr style="background:var(--green-light);font-weight:700;">
+                  <td colspan="7" style="text-align:right;padding:0.35rem 0.5rem;font-size:0.82rem;border:1px solid var(--gray-300);">Grand Total (UGX)</td>
+                  <td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" id="t-grand-total" readonly style="width:100%;border:none;outline:none;font-weight:700;background:transparent;font-family:var(--font-body);font-size:0.82rem;"/></td>
+                  <td style="border:1px solid var(--gray-300);"></td>
+                </tr>
+              </tfoot>
+            </table>
+            <button type="button" class="add-row-btn" id="btn-add-route-row">+ Add Route</button>
+          </div>
+          <div style="margin-top:0.85rem;">
+            <label style="font-size:0.73rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--gray-700);display:block;margin-bottom:0.3rem;">Travel Supporting Documents</label>
+            <input type="file" id="t-attachments" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
+            <div class="file-info" id="t-attach-info"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─── Inline: Accountability Form ─── -->
+      <div id="panel-accountability" class="sub-form-panel">
+        <div class="sub-form-header">
+          <h4>Advance Accountability &amp; Expense Report</h4>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('panel-accountability').classList.remove('open');">Remove</button>
+        </div>
+        <div class="sub-form-body">
+          <div class="form-grid">
+            <div class="form-group"><label>Employee Name <span class="required">*</span></label><input type="text" id="acc-employee-name" name="employeeName"/></div>
+            <div class="form-group"><label>Date</label><input type="date" id="acc-date" name="accDate"/></div>
+            <div class="form-group" style="grid-column:1/-1;"><label>Dates of Travel / Activity <span class="required">*</span></label><input type="text" id="acc-travel-dates" name="travelDates" placeholder="e.g. 15th to 19th May 2026"/></div>
+            <div class="form-group"><label>Department</label><input type="text" id="acc-department" name="department" placeholder="e.g. Programs"/></div>
+            <div class="form-group" style="grid-column:1/-1;"><label>Purpose of Travel / Activity <span class="required">*</span></label><textarea id="acc-purpose" name="purpose" rows="2" placeholder="Purpose of the trip or activity"></textarea></div>
+          </div>
+          <div style="margin-top:1rem;overflow-x:auto;">
+            <table class="inline-table">
+              <thead>
+                <tr>
+                  <th style="width:32px;">#</th>
+                  <th style="width:90px;">Account Code</th>
+                  <th style="width:90px;">Date</th>
+                  <th>Brief Explanation of Expenditure</th>
+                  <th style="width:80px;">Ref No</th>
+                  <th style="width:100px;">Budgeted (UGX)</th>
+                  <th style="width:100px;">Actual (UGX)</th>
+                  <th style="width:100px;">Balance (UGX)</th>
+                  <th style="width:28px;"></th>
+                </tr>
+              </thead>
+              <tbody id="acc-expenses-body"></tbody>
+              <tfoot>
+                <tr style="background:var(--green-light);font-weight:700;">
+                  <td colspan="5" style="text-align:right;padding:0.35rem 0.5rem;font-size:0.82rem;border:1px solid var(--gray-300);">Totals</td>
+                  <td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" id="acc-total-budgeted" readonly style="width:100%;border:none;outline:none;font-weight:700;background:transparent;font-family:var(--font-body);font-size:0.82rem;"/></td>
+                  <td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" id="acc-total-actual" readonly style="width:100%;border:none;outline:none;font-weight:700;background:transparent;font-family:var(--font-body);font-size:0.82rem;"/></td>
+                  <td style="border:1px solid var(--gray-300);padding:0.2rem 0.4rem;"><input type="number" id="acc-total-balance" readonly style="width:100%;border:none;outline:none;font-weight:700;background:transparent;font-family:var(--font-body);font-size:0.82rem;"/></td>
+                  <td style="border:1px solid var(--gray-300);"></td>
+                </tr>
+              </tfoot>
+            </table>
+            <button type="button" class="add-row-btn" id="btn-add-expense-row">+ Add Expense Row</button>
+          </div>
+          <div style="margin-top:0.85rem;">
+            <div class="form-group"><label>Advance Received (UGX)</label><input type="number" id="acc-advance-received" name="advanceReceived" step="0.01" min="0" placeholder="0.00"/></div>
+          </div>
+          <div style="margin-top:0.75rem;">
+            <label style="font-size:0.73rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--gray-700);display:block;margin-bottom:0.3rem;">Receipts &amp; Supporting Documents</label>
+            <input type="file" id="acc-attachments" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"/>
+            <div class="file-info" id="acc-attach-info"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="form-footer">
+      <div id="form-loading" style="display:none;"><div class="spinner" style="width:18px;height:18px;border-width:2px;margin:0 8px 0 0;display:inline-block;vertical-align:middle;"></div><span style="font-size:0.85rem;">Submitting package&hellip;</span></div>
+      <button type="button" onclick="window.print()" class="btn btn-secondary">Print</button>
+      <a href="dashboard.html" class="btn btn-secondary">Cancel</a>
+      <button type="submit" id="btn-submit-requisition" class="btn btn-primary btn-lg">Submit Package</button>
+    </div>
+
+  </form>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="form-renderer.js"></script>
+<script src="script.js"></script>
+<script>
+(function(){
+  /* ── Toggle sub-form panels ── */
+  document.getElementById('btn-toggle-travel').addEventListener('click',function(){
+    var p=document.getElementById('panel-travel');
+    p.classList.toggle('open');
+    this.textContent=p.classList.contains('open')?'- Remove Travel Business Plan':'+ Add Travel Business Plan';
+  });
+  document.getElementById('btn-toggle-accountability').addEventListener('click',function(){
+    var p=document.getElementById('panel-accountability');
+    p.classList.toggle('open');
+    this.textContent=p.classList.contains('open')?'- Remove Accountability Form':'+ Add Accountability Form';
+  });
+
+  /* ── Travel route rows ── */
+  var routeBody=document.getElementById('t-route-body'),routeCount=0;
+  function makeRouteRow(n){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td style="text-align:center;color:var(--gray-500);font-size:0.75rem;border:1px solid var(--gray-300);padding:0.25rem;">'+n+'</td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="route" type="text" placeholder="e.g. Kampala - Gulu"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="date" type="date"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="perDiem" class="r-cost" type="number" step="0.01" min="0" placeholder="0"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="accommodation" class="r-cost" type="number" step="0.01" min="0" placeholder="0"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="sda" class="r-cost" type="number" step="0.01" min="0" placeholder="0"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="others" class="r-cost" type="number" step="0.01" min="0" placeholder="0"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="total" class="r-total" type="number" step="0.01" readonly style="font-weight:600;"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem;text-align:center;"><button type="button" class="del-r" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.85rem;">x</button></td>';
+    return tr;
+  }
+  function calcRoutes(){
+    var grand=0;
+    routeBody.querySelectorAll('tr').forEach(function(row){
+      var t=0;row.querySelectorAll('.r-cost').forEach(function(i){t+=parseFloat(i.value)||0;});
+      grand+=t;var tf=row.querySelector('.r-total');if(tf)tf.value=t>0?t.toFixed(2):'';
+    });
+    var gt=document.getElementById('t-grand-total');if(gt)gt.value=grand>0?grand.toFixed(2):'';
+  }
+  function addRoute(){routeCount++;routeBody.appendChild(makeRouteRow(routeCount));}
+  for(var i=0;i<3;i++)addRoute();
+  routeBody.addEventListener('input',calcRoutes);
+  routeBody.addEventListener('click',function(e){if(e.target.classList.contains('del-r')){e.target.closest('tr').remove();calcRoutes();}});
+  document.getElementById('btn-add-route-row').addEventListener('click',addRoute);
+
+  /* Auto-calculate travel days */
+  function calcDays(){
+    var dep=document.getElementById('t-departure-date').value;
+    var ret=document.getElementById('t-return-date').value;
+    if(dep&&ret){var d=Math.ceil((new Date(ret)-new Date(dep))/(86400000));var td=document.getElementById('t-total-days');if(td&&d>=0)td.value=d;}
+  }
+  document.getElementById('t-departure-date').addEventListener('change',calcDays);
+  document.getElementById('t-return-date').addEventListener('change',calcDays);
+
+  /* ── Accountability expense rows ── */
+  var expBody=document.getElementById('acc-expenses-body'),expCount=0;
+  function makeExpRow(n){
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td style="text-align:center;color:var(--gray-500);font-size:0.75rem;border:1px solid var(--gray-300);padding:0.25rem;">'+n+'</td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="accountCode" type="text" placeholder="Code"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="date" type="date"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="explanation" type="text" placeholder="Brief explanation"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="refNo" type="text" placeholder="Ref No"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="budgeted" class="e-budgeted" type="number" step="0.01" min="0" placeholder="0"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="actual" class="e-actual" type="number" step="0.01" min="0" placeholder="0"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem 0.35rem;"><input data-col="balance" class="e-balance" type="number" step="0.01" readonly style="font-weight:600;"/></td>'+
+      '<td style="border:1px solid var(--gray-300);padding:0.15rem;text-align:center;"><button type="button" class="del-e" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.85rem;">x</button></td>';
+    return tr;
+  }
+  function calcExpenses(){
+    var totB=0,totA=0;
+    expBody.querySelectorAll('tr').forEach(function(row){
+      var b=parseFloat((row.querySelector('.e-budgeted')||{}).value)||0;
+      var a=parseFloat((row.querySelector('.e-actual')||{}).value)||0;
+      totB+=b;totA+=a;
+      var bf=row.querySelector('.e-balance');if(bf)bf.value=(b-a)!==0?(b-a).toFixed(2):'';
+    });
+    var tb=document.getElementById('acc-total-budgeted');if(tb)tb.value=totB>0?totB.toFixed(2):'';
+    var ta=document.getElementById('acc-total-actual');if(ta)ta.value=totA>0?totA.toFixed(2):'';
+    var tbal=document.getElementById('acc-total-balance');if(tbal)tbal.value=(totB-totA)!==0?(totB-totA).toFixed(2):'';
+  }
+  function addExpRow(){expCount++;expBody.appendChild(makeExpRow(expCount));}
+  for(var j=0;j<4;j++)addExpRow();
+  expBody.addEventListener('input',calcExpenses);
+  expBody.addEventListener('click',function(e){if(e.target.classList.contains('del-e')){e.target.closest('tr').remove();calcExpenses();}});
+  document.getElementById('btn-add-expense-row').addEventListener('click',addExpRow);
+
+  /* ── File info display ── */
+  ['form-attachments','t-attachments','acc-attachments'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el)el.addEventListener('change',function(){
+      var info=document.getElementById(id.replace('-attachments','')+'-attach-info')||document.getElementById('form-attach-info');
+      if(info)info.textContent=this.files.length+' file(s) selected';
+    });
+  });
+  document.getElementById('form-attachments').addEventListener('change',function(){
+    document.getElementById('form-attach-info').textContent=this.files.length+' file(s) selected';
+  });
+
+  /* ── Set today's date display ── */
+  var td=document.getElementById('form-date-today');
+  if(td)td.textContent=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  var accDate=document.getElementById('acc-date');
+  if(accDate)accDate.value=new Date().toISOString().split('T')[0];
+})();
+</script>
+</body>
+</html>

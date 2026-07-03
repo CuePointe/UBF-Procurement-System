@@ -4,12 +4,9 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>UBF &mdash; Procurement &amp; Logistics System</title>
-
-  <!-- Fonts (degrades gracefully to system fonts if offline) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
   <style>
   :root{
     --forest-600:#3a6b2a; --forest-700:#2d5a1f; --forest-800:#264a1c; --forest-900:#1e3d18;
@@ -19,176 +16,101 @@
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;}
-  body{
-    font-family:'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
-    color:var(--ink); background:var(--sand); -webkit-font-smoothing:antialiased;
-  }
-  a{color:var(--forest-600);text-decoration:none;}
-  a:hover{text-decoration:underline;}
-
+  body{font-family:'Plus Jakarta Sans','Segoe UI',system-ui,-apple-system,Arial,sans-serif;color:var(--ink);background:var(--sand);-webkit-font-smoothing:antialiased;}
+  a{color:var(--forest-600);text-decoration:none;} a:hover{text-decoration:underline;}
   .wrap{min-height:100vh;display:grid;grid-template-columns:1fr;}
   @media(min-width:1024px){ .wrap{grid-template-columns:1.05fr 1fr;} }
-
-  /* ---------- Brand panel ---------- */
-  .brand{
-    position:relative;display:none;flex-direction:column;justify-content:space-between;
-    padding:3rem;color:#fff;overflow:hidden;
-    background:
-      radial-gradient(1100px 560px at -10% -20%, rgba(255,255,255,.10), transparent 55%),
-      radial-gradient(820px 460px at 120% 120%, rgba(45,90,126,.55), transparent 50%),
-      linear-gradient(155deg,#2d5a1f 0%, #3a6b2a 46%, #264a1c 100%);
-  }
+  .brand{position:relative;display:none;flex-direction:column;justify-content:space-between;padding:3rem;color:#fff;overflow:hidden;
+    background:radial-gradient(1100px 560px at -10% -20%, rgba(255,255,255,.10), transparent 55%),
+               radial-gradient(820px 460px at 120% 120%, rgba(45,90,126,.55), transparent 50%),
+               linear-gradient(155deg,#2d5a1f 0%, #3a6b2a 46%, #264a1c 100%);}
   @media(min-width:1024px){ .brand{display:flex;} }
   .ring{position:absolute;border:1px solid rgba(255,255,255,.10);border-radius:50%;pointer-events:none;}
-  .ring.r1{top:-6rem;right:-6rem;width:20rem;height:20rem;}
-  .ring.r2{top:2.5rem;right:-2.5rem;width:24rem;height:24rem;}
-
+  .ring.r1{top:-6rem;right:-6rem;width:20rem;height:20rem;} .ring.r2{top:2.5rem;right:-2.5rem;width:24rem;height:24rem;}
   .brand-top{position:relative;display:flex;align-items:center;gap:.75rem;}
   .logo-badge{display:grid;place-items:center;height:3rem;width:3rem;border-radius:.85rem;background:#fff;box-shadow:0 8px 22px rgba(0,0,0,.25);}
-  .logo-badge img{height:2.4rem;width:2.4rem;object-fit:contain;}
-  .logo-badge span{font-weight:800;color:var(--forest-700);}
+  .logo-badge img{height:2.4rem;width:2.4rem;object-fit:contain;} .logo-badge span{font-weight:800;color:var(--forest-700);}
   .eyebrow{font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.6);}
   .brand-top .name{font-size:.9rem;font-weight:700;line-height:1.2;}
-
   .brand-mid{position:relative;max-width:30rem;}
-  .brand-mid h2{font-size:2rem;line-height:1.15;font-weight:800;}
-  .brand-mid h2 em{font-style:normal;color:var(--forest-200);}
+  .brand-mid h2{font-size:2rem;line-height:1.15;font-weight:800;} .brand-mid h2 em{font-style:normal;color:var(--forest-200);}
   .brand-mid p{margin-top:1rem;color:rgba(255,255,255,.72);line-height:1.6;}
   .feat{margin-top:2rem;list-style:none;display:flex;flex-direction:column;gap:.85rem;font-size:.92rem;}
   .feat li{display:flex;align-items:center;gap:.75rem;}
   .chip{display:grid;place-items:center;height:2rem;width:2rem;border-radius:.6rem;background:rgba(255,255,255,.12);}
   .chip svg{height:1.05rem;width:1.05rem;stroke:#fff;}
   .brand-foot{position:relative;font-size:.72rem;color:rgba(255,255,255,.5);}
-
-  /* ---------- Auth side ---------- */
   .auth{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1.5rem;}
   @media(min-width:640px){ .auth{padding:2.5rem;} }
   .auth-inner{width:100%;max-width:27rem;}
-
   .m-logo{display:flex;align-items:center;justify-content:center;gap:.7rem;margin-bottom:2rem;}
   @media(min-width:1024px){ .m-logo{display:none;} }
   .m-logo .badge{display:grid;place-items:center;height:3rem;width:3rem;border-radius:.85rem;background:var(--forest-600);box-shadow:0 6px 16px rgba(0,0,0,.15);}
-  .m-logo .badge img{height:2.4rem;width:2.4rem;object-fit:contain;}
-  .m-logo .badge span{color:#fff;font-weight:800;}
-  .m-logo .eyebrow{color:var(--soft);}
-  .m-logo .name{font-size:.9rem;font-weight:800;color:var(--forest-700);}
-
+  .m-logo .badge img{height:2.4rem;width:2.4rem;object-fit:contain;} .m-logo .badge span{color:#fff;font-weight:800;}
+  .m-logo .eyebrow{color:var(--soft);} .m-logo .name{font-size:.9rem;font-weight:800;color:var(--forest-700);}
   .card{background:#fff;border:1px solid var(--line);border-radius:1.15rem;box-shadow:var(--shadow);padding:1.75rem;}
   @media(min-width:640px){ .card{padding:2.25rem;} }
-
   h1.title{font-size:1.35rem;font-weight:800;color:#0f172a;}
   .sub{margin:.35rem 0 1.5rem;font-size:.9rem;color:var(--muted);}
-
   .field{margin-bottom:1rem;}
   .label{display:block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:.4rem;}
   .control{position:relative;display:flex;align-items:center;}
   .control > svg.lead{position:absolute;left:.85rem;height:1.05rem;width:1.05rem;stroke:var(--soft);pointer-events:none;}
-  .input{
-    width:100%;border:1.5px solid var(--line);border-radius:.75rem;
-    padding:.8rem .9rem;font-family:inherit;font-size:.92rem;color:var(--ink);
-    background:#fff;transition:border-color .15s, box-shadow .15s;
-  }
+  .input{width:100%;border:1.5px solid var(--line);border-radius:.75rem;padding:.8rem .9rem;font-family:inherit;font-size:.92rem;color:var(--ink);background:#fff;transition:border-color .15s, box-shadow .15s;}
   .control .input{padding-left:2.5rem;}
-  .input.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem;}
   .input::placeholder{color:#9aa4b2;}
   .input:focus{outline:none;border-color:var(--forest-600);box-shadow:0 0 0 4px rgba(58,107,42,.14);}
   .eye{position:absolute;right:.5rem;display:grid;place-items:center;height:2rem;width:2rem;border:none;background:none;cursor:pointer;color:var(--soft);border-radius:.5rem;}
-  .eye:hover{color:var(--muted);}
-  .eye svg{height:1.05rem;width:1.05rem;stroke:currentColor;}
-
-  .row{display:flex;align-items:center;justify-content:space-between;margin:.35rem 0 1.15rem;}
-  .link-btn{background:none;border:none;cursor:pointer;font-family:inherit;font-size:.76rem;font-weight:600;color:var(--forest-600);padding:0;}
-  .link-btn:hover{text-decoration:underline;}
-  .link-btn.muted{color:var(--soft);font-weight:500;}
-
-  .btn{
-    width:100%;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
-    border:none;border-radius:.75rem;padding:.85rem 1rem;
-    font-family:inherit;font-size:.92rem;font-weight:700;color:#fff;background:var(--forest-600);
-    cursor:pointer;transition:background .15s, transform .05s;
-  }
-  .btn:hover{background:var(--forest-700);}
-  .btn:active{transform:translateY(1px);}
-  .btn:disabled{background:#b6c2ae;cursor:not-allowed;}
+  .eye:hover{color:var(--muted);} .eye svg{height:1.05rem;width:1.05rem;stroke:currentColor;}
+  .btn{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;border:none;border-radius:.75rem;padding:.85rem 1rem;font-family:inherit;font-size:.92rem;font-weight:700;color:#fff;background:var(--forest-600);cursor:pointer;transition:background .15s, transform .05s;}
+  .btn:hover{background:var(--forest-700);} .btn:active{transform:translateY(1px);} .btn:disabled{background:#b6c2ae;cursor:not-allowed;}
   .btn svg{height:1.05rem;width:1.05rem;stroke:#fff;}
   .btn-back{display:block;width:100%;text-align:center;margin-top:.85rem;background:none;border:none;cursor:pointer;font-family:inherit;font-size:.78rem;font-weight:600;color:var(--soft);}
-
+  .link-row{display:flex;justify-content:flex-end;margin:-0.4rem 0 1.1rem;}
+  .link-btn{background:none;border:none;cursor:pointer;font-family:inherit;font-size:.76rem;font-weight:600;color:var(--forest-600);padding:0;}
+  .link-btn:hover{text-decoration:underline;}
   .alert{border-radius:.75rem;padding:.75rem .9rem;font-size:.85rem;margin-bottom:1rem;}
   .alert-error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b;}
   .alert-info{background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;}
   .alert-warn{background:#fffbeb;border:1px solid #fde68a;color:#92400e;}
-
+  .hint{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:.75rem;padding:.7rem .9rem;font-size:.8rem;color:#14532d;margin-bottom:1.1rem;line-height:1.5;}
   .foot{margin-top:1.5rem;text-align:center;font-size:.74rem;color:var(--soft);}
-
-  #sec-setup,#sec-login,#sec-change{display:none;}
+  #sec-login,#sec-change{display:none;}
   </style>
 </head>
-
 <body>
 <div class="wrap">
-
-  <!-- ================= BRAND PANEL ================= -->
   <aside class="brand">
     <span class="ring r1"></span><span class="ring r2"></span>
-
     <div class="brand-top">
       <div class="logo-badge">
-        <img src="ubf-logo.png" alt="UBF"
-             onerror="if(this.src.indexOf('.png')!==-1){this.src='ubf-logo.jpg';}else{this.replaceWith(Object.assign(document.createElement('span'),{textContent:'UBF'}));}"/>
+        <img src="ubf-logo.png" alt="UBF" onerror="if(this.src.indexOf('.png')!==-1){this.src='ubf-logo.jpg';}else{this.replaceWith(Object.assign(document.createElement('span'),{textContent:'UBF'}));}"/>
       </div>
-      <div>
-        <div class="eyebrow">Uganda Biodiversity Fund</div>
-        <div class="name">Procurement &amp; Logistics</div>
-      </div>
+      <div><div class="eyebrow">Uganda Biodiversity Fund</div><div class="name">Procurement &amp; Logistics</div></div>
     </div>
-
     <div class="brand-mid">
       <h2>A paperless procurement chain, <em>for now &amp; the future.</em></h2>
       <p>Submit, review and approve requisitions from any device &mdash; with a complete, tamper-evident audit trail behind every decision.</p>
       <ul class="feat">
         <li><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="6" height="6" rx="1"/><rect x="15" y="15" width="6" height="6" rx="1"/><path d="M9 6h6a2 2 0 0 1 2 2v7"/></svg></span>Five-step approval workflow</li>
-        <li><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg></span>Role-based access for every officer</li>
+        <li><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg></span>Role-based access, enforced on the server</li>
         <li><span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6"/><rect x="12.5" y="7" width="3" height="10"/><rect x="18" y="13" width="3" height="4"/></svg></span>Live executive expenditure reporting</li>
       </ul>
     </div>
-
     <div class="brand-foot">&copy; <span id="yr"></span> Uganda Biodiversity Fund &middot; Plot 425 Zzimwe Road, Kisugu, Kampala</div>
   </aside>
 
-  <!-- ================= AUTH SIDE ================= -->
   <main class="auth">
     <div class="auth-inner">
-
       <div class="m-logo">
-        <div class="badge">
-          <img src="ubf-logo.png" alt="UBF" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'UBF'}));"/>
-        </div>
-        <div>
-          <div class="eyebrow">Uganda Biodiversity Fund</div>
-          <div class="name">Procurement &amp; Logistics</div>
-        </div>
+        <div class="badge"><img src="ubf-logo.png" alt="UBF" onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'UBF'}));"/></div>
+        <div><div class="eyebrow">Uganda Biodiversity Fund</div><div class="name">Procurement &amp; Logistics</div></div>
       </div>
 
       <div class="card">
-
-        <!-- Alerts (IDs preserved for existing JS) -->
-        <div id="alert-error" class="alert alert-error"></div>
-        <div id="alert-info"  class="alert alert-info"></div>
-        <div id="alert-warn"  class="alert alert-warn"></div>
-
-        <!-- ===== SETUP ===== -->
-        <section id="sec-setup">
-          <h1 class="title">One-time system setup</h1>
-          <p class="sub">Enter the GitHub Access Key given to you by the system administrator. It is saved only on this device and never stored in any file.</p>
-          <div class="field">
-            <label class="label" for="setup-token">GitHub Access Key</label>
-            <input id="setup-token" class="input mono" type="password" autocomplete="off" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"/>
-          </div>
-          <button id="btn-test-token" class="btn" onclick="doTestAndSaveToken()">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15" r="4"/><path d="M10.8 12.2 21 2m-4 3 2 2m-5 1 2 2"/></svg>
-            Verify &amp; Save Key
-          </button>
-        </section>
+        <div id="alert-error" class="alert alert-error" style="display:none"></div>
+        <div id="alert-info"  class="alert alert-info"  style="display:none"></div>
+        <div id="alert-warn"  class="alert alert-warn"  style="display:none"></div>
 
         <!-- ===== LOGIN ===== -->
         <section id="sec-login">
@@ -210,10 +132,7 @@
                 <button type="button" class="eye" onclick="togglePwd()" title="Show / hide password" id="pwd-eye"></button>
               </div>
             </div>
-            <div class="row">
-              <button type="button" class="link-btn" onclick="doForgot()">Forgot password?</button>
-              <button type="button" class="link-btn muted" onclick="doResetToken()">Reset Access Key</button>
-            </div>
+            <div class="link-row"><button type="button" class="link-btn" onclick="doForgot()">Forgot password?</button></div>
             <button type="submit" id="btn-login" class="btn">
               <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/></svg>
               Log In
@@ -223,8 +142,9 @@
 
         <!-- ===== CHANGE PASSWORD ===== -->
         <section id="sec-change">
+          <div class="hint"><strong>Set your personal password</strong><br/>First time here? Enter a new password of your own (minimum 8 characters) to finish setting up your account.</div>
           <h1 class="title">Set your password</h1>
-          <p class="sub">Your account requires a new password before you can continue. Minimum 8 characters.</p>
+          <p class="sub">You must set a new password before continuing.</p>
           <div class="field">
             <label class="label" for="inp-newpwd">New Password</label>
             <input id="inp-newpwd" class="input" type="password" placeholder="Minimum 8 characters"/>
@@ -239,10 +159,9 @@
           </button>
           <button type="button" class="btn-back" onclick="showSection('sec-login')">&larr; Back to login</button>
         </section>
-
       </div>
 
-      <p class="foot">UBF Procurement System v3.0 &middot; Support:
+      <p class="foot">UBF Procurement System v4.0 &middot; Support:
         <a href="mailto:t.otieno@ugandabiodiversityfund.org">t.otieno@ugandabiodiversityfund.org</a>
       </p>
     </div>
@@ -251,82 +170,29 @@
 
 <script src="data.js"></script>
 <script>
-/* ============================================
-   Globals
-============================================ */
 var DS = null;
 var _pendingUser = null;
-var TOKEN_KEY = 'ubf_gatekeeper_token';
 
-var EYE_OPEN  = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
-var EYE_OFF   = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.2A10.9 10.9 0 0 1 12 4c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4M6.6 6.6A17 17 0 0 0 2 11s3.5 7 10 7a10.9 10.9 0 0 0 4-.7"/><path d="m2 2 20 20"/></svg>';
+var EYE_OPEN = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+var EYE_OFF  = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 4.2A10.9 10.9 0 0 1 12 4c6.5 0 10 7 10 7a17 17 0 0 1-3.2 4M6.6 6.6A17 17 0 0 0 2 11s3.5 7 10 7a10.9 10.9 0 0 0 4-.7"/><path d="m2 2 20 20"/></svg>';
 
 document.getElementById('yr').textContent = new Date().getFullYear();
 document.getElementById('pwd-eye').innerHTML = EYE_OPEN;
 
-function waitForDS(cb){
-  if(window.DataService){DS=window.DataService;cb();return;}
-  setTimeout(function(){waitForDS(cb);},50);
-}
+function waitForDS(cb){ if(window.DataService){DS=window.DataService;cb();return;} setTimeout(function(){waitForDS(cb);},50); }
 
-/* ============================================
-   Helpers
-============================================ */
 function showSection(id){
-  ['sec-setup','sec-login','sec-change'].forEach(function(s){
-    document.getElementById(s).style.display = (s===id) ? 'block' : 'none';
-  });
+  ['sec-login','sec-change'].forEach(function(s){ document.getElementById(s).style.display = (s===id)?'block':'none'; });
   clearAlerts();
 }
-function clearAlerts(){
-  ['alert-error','alert-info','alert-warn'].forEach(function(id){
-    var el = document.getElementById(id);
-    if(el){el.style.display='none';el.textContent='';}
-  });
-}
-function showError(msg){ clearAlerts(); var el=document.getElementById('alert-error'); if(el){el.textContent=msg;el.style.display='block';} }
-function showInfo(msg){  clearAlerts(); var el=document.getElementById('alert-info');  if(el){el.textContent=msg;el.style.display='block';} }
-function showWarn(msg){  clearAlerts(); var el=document.getElementById('alert-warn');  if(el){el.textContent=msg;el.style.display='block';} }
-
+function clearAlerts(){ ['alert-error','alert-info','alert-warn'].forEach(function(id){ var el=document.getElementById(id); if(el){el.style.display='none';el.textContent='';} }); }
+function showError(m){ clearAlerts(); var el=document.getElementById('alert-error'); el.textContent=m; el.style.display='block'; }
+function showInfo(m){  clearAlerts(); var el=document.getElementById('alert-info');  el.textContent=m; el.style.display='block'; }
+function showWarn(m){  clearAlerts(); var el=document.getElementById('alert-warn');  el.textContent=m; el.style.display='block'; }
 function go(page){ var base=location.href.replace(/\/[^\/]*$/, '/'); location.href = base + page; }
+function togglePwd(){ var i=document.getElementById('inp-pass'), b=document.getElementById('pwd-eye'); if(!i)return; if(i.type==='password'){i.type='text';b.innerHTML=EYE_OFF;}else{i.type='password';b.innerHTML=EYE_OPEN;} }
+function doForgot(){ alert('Please contact the system administrator to reset your password:\nt.otieno@ugandabiodiversityfund.org'); }
 
-function togglePwd(){
-  var i=document.getElementById('inp-pass'); var btn=document.getElementById('pwd-eye');
-  if(!i) return;
-  if(i.type==='password'){ i.type='text'; btn.innerHTML=EYE_OFF; }
-  else{ i.type='password'; btn.innerHTML=EYE_OPEN; }
-}
-function doForgot(){ alert('Please contact the system administrator:\nt.otieno@ugandabiodiversityfund.org'); }
-
-/* ============================================
-   Step 1 — Verify & save Access Key
-============================================ */
-async function doTestAndSaveToken(){
-  var val = (document.getElementById('setup-token').value || '').trim();
-  if(!val){ showError('Please paste your GitHub token first.'); return; }
-  var btn = document.getElementById('btn-test-token');
-  btn.disabled = true; btn.textContent = 'Verifying...'; clearAlerts();
-  try{
-    var OWNER='CuePointe', REPO='UBF-Procurement-System';
-    var url='https://api.github.com/repos/'+OWNER+'/'+REPO+'/contents/data/users.json';
-    var res=await fetch(url,{method:'GET',headers:{'Authorization':'Bearer '+val,'Accept':'application/vnd.github.v3+json'}});
-    if(res.status===200){ localStorage.setItem(TOKEN_KEY,val); showInfo('Token verified. Please log in below.'); showSection('sec-login'); }
-    else if(res.status===401){ showError('Token rejected by GitHub (401). Please generate a NEW token at github.com/settings/tokens and try again.'); btn.disabled=false; btn.textContent='Verify & Save Key'; }
-    else if(res.status===404){ localStorage.setItem(TOKEN_KEY,val); showError('Token is valid but data/users.json is missing from your GitHub repo. Please upload users.json to the data/ folder, then try logging in.'); btn.disabled=false; btn.textContent='Verify & Save Key'; }
-    else if(res.status===403){ showError('Token does not have permission (403). When generating the token, make sure to tick the "repo" checkbox under Scopes.'); btn.disabled=false; btn.textContent='Verify & Save Key'; }
-    else { showError('Unexpected response ('+res.status+'). Please try again or contact Tom Otieno.'); btn.disabled=false; btn.textContent='Verify & Save Key'; }
-  }catch(err){ showError('Network error: '+err.message+'. Please check your internet connection.'); btn.disabled=false; btn.textContent='Verify & Save Key'; }
-}
-
-function doResetToken(){
-  if(confirm('This will clear the stored Access Key and ask you to enter it again.\n\nContinue?')){
-    localStorage.removeItem(TOKEN_KEY); clearAlerts(); showSection('sec-setup');
-  }
-}
-
-/* ============================================
-   Step 2 — Login
-============================================ */
 async function doLogin(e){
   e.preventDefault(); clearAlerts();
   var email=(document.getElementById('inp-email').value||'').trim().toLowerCase();
@@ -335,26 +201,18 @@ async function doLogin(e){
   if(!pass){  showError('Please enter your password.');       return; }
   var btn=document.getElementById('btn-login'); btn.disabled=true; btn.textContent='Verifying...';
   try{
-    var result=await DS.authenticateUser(email,pass); var user=result.user;
-    if(user.mustChangePassword || DS.isPasswordExpired(user.passwordExpiry)){
-      _pendingUser=user; showSection('sec-change'); btn.disabled=false; btn.textContent='Log In'; return;
-    }
-    DS.saveSession(user); showInfo('Login successful. Redirecting...');
-    setTimeout(function(){ go('dashboard.html'); }, 800);
+    var result = await DS.authenticateUser(email, pass);
+    var user = result.user;
+    if(user.mustChangePassword){ _pendingUser=user; showSection('sec-change'); btn.disabled=false; btn.textContent='Log In'; return; }
+    DS.saveSession(user);
+    showInfo('Login successful. Redirecting...');
+    setTimeout(function(){ go('dashboard.html'); }, 700);
   }catch(err){
-    var msg=err.message||'Login failed.';
-    if(msg.indexOf('401')!==-1||msg.toLowerCase().indexOf('auth')!==-1||msg.toLowerCase().indexOf('token')!==-1){ showWarn('Access Key invalid or expired. Please click "Reset Access Key" and enter your new GitHub token.'); }
-    else if(msg.indexOf('404')!==-1){ showError('System file not found. Ensure data/users.json has been uploaded to GitHub.'); }
-    else if(msg.toLowerCase().indexOf('incorrect password')!==-1){ showError('Incorrect password. Please try again.'); }
-    else if(msg.toLowerCase().indexOf('no account')!==-1){ showError('No account found for this email. Check your spelling.'); }
-    else { showError(msg); }
+    showError(err.message || 'Login failed.');
     btn.disabled=false; btn.textContent='Log In';
   }
 }
 
-/* ============================================
-   Step 3 — Change Password
-============================================ */
 async function doChangePwd(){
   clearAlerts();
   var np=document.getElementById('inp-newpwd').value||''; var cp=document.getElementById('inp-confirmpwd').value||'';
@@ -362,20 +220,19 @@ async function doChangePwd(){
   if(np!==cp){ showError('Passwords do not match.'); return; }
   var btn=document.getElementById('btn-changepwd'); btn.disabled=true; btn.textContent='Saving...';
   try{
-    await DS.changePassword(_pendingUser.email,np);
-    var result=await DS.authenticateUser(_pendingUser.email,np);
-    DS.saveSession(result.user); showInfo('Password set. Redirecting...');
-    setTimeout(function(){ go('dashboard.html'); }, 800);
-  }catch(err){ showError('Failed: '+(err.message||'Unknown error.')); btn.disabled=false; btn.textContent='Set Password & Log In'; }
+    await DS.changePassword(_pendingUser.email, np);
+    DS.saveSession(_pendingUser);
+    showInfo('Password set. Redirecting...');
+    setTimeout(function(){ go('dashboard.html'); }, 700);
+  }catch(err){
+    showError('Failed: ' + (err.message || 'Unknown error.'));
+    btn.disabled=false; btn.textContent='Set Password & Log In';
+  }
 }
 
-/* ============================================
-   Initialise
-============================================ */
 waitForDS(function(){
   if(DS.isAuthenticated()){ go('dashboard.html'); return; }
-  if(localStorage.getItem(TOKEN_KEY)){ showSection('sec-login'); }
-  else { showSection('sec-setup'); }
+  showSection('sec-login');
 });
 </script>
 </body>

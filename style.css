@@ -269,8 +269,11 @@ tbody td:first-child a,.link-detail{color:var(--ubf-green);font-weight:700;}
 
 /* ── Responsive ── */
 @media(max-width:768px){
-  .navbar{padding:0 .75rem;}
-  .navbar-nav{display:none;}
+  .navbar{padding:0 .6rem;gap:.5rem;}
+  /* keep navigation reachable on phones — scroll it horizontally instead of hiding it */
+  .navbar-title .org{display:none;}
+  .navbar-nav{gap:.1rem;-webkit-overflow-scrolling:touch;}
+  .navbar-nav a,.nav-dropdown-btn{padding:.35rem .55rem;font-size:.78rem;}
   .page-wrapper{padding:1rem;}
   .stats-grid{grid-template-columns:repeat(2,1fr);}
   .modal-grid{grid-template-columns:1fr;}

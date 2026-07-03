@@ -2,14 +2,13 @@
  * script.js - UBF Procurement & Logistics System
  */
 
-/* Token check — no prompt ever fires from script.js
-   Token is set ONLY via the setup screen in index.html */
+/* Session check — Supabase login stores the session in localStorage.
+   Non-login pages redirect to the login when no session is present. */
 (function(){
-  var K='ubf_gatekeeper_token';
+  var K='ubf_sb_session';
   var path=location.pathname;
-  var isLoginPage=path.indexOf('index')===-1&&path.slice(-1)!=='/'&&path!=='';
-  /* Non-login pages: if no token, redirect to login */
-  if(!localStorage.getItem(K)&&isLoginPage){
+  var isAppPage=path.indexOf('index')===-1&&path.slice(-1)!=='/'&&path!=='';
+  if(!localStorage.getItem(K)&&isAppPage){
     location.href=path.substring(0,path.lastIndexOf('/')+1)+'index.html';
   }
 }());
@@ -48,7 +47,7 @@ function fmtDT(iso){
   try{return new Date(iso).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});}catch(_){return iso;}
 }
 function stCls(st){
-  var m={pending:'status-pending',prepared:'status-inreview',reviewed:'status-inreview',cleared:'status-inreview',approved:'status-approved',rejected:'status-rejected'};
+  var m={pending:'status-pending',prepared:'status-inreview',reviewed:'status-inreview',cleared:'status-inreview',verified:'status-inreview',approved:'status-approved',rejected:'status-rejected'};
   return m[(st||'').toLowerCase()]||'status-pending';
 }
 function ftLbl(t){
@@ -1524,10 +1523,10 @@ function filterHist(){
   var sv=($id('history-filter-status')||{}).value||'';
   var ft=($id('history-filter-type')||{}).value||'';
   var sq=(($id('history-filter-search')||{}).value||'').toLowerCase();
-  var showLinked=($id('history-show-linked')||{}).checked;
   renderHistTable(_allRecs.filter(function(r){
-    /* Exclude linked/child forms unless user explicitly wants to see them */
-    if(r.isLinkedForm&&!showLinked)return false;
+    /* Forms that belong to a package are only ever viewed inside that package,
+       never as independent rows in the audit history. */
+    if(r.isLinkedForm)return false;
     var d=(r.data&&r.data.description)||r.id||'';
     return(!sv||r.status===sv)&&(!ft||r.formType===ft)&&(!sq||r.id.toLowerCase().indexOf(sq)!==-1||d.toLowerCase().indexOf(sq)!==-1||(r.submittedByName||'').toLowerCase().indexOf(sq)!==-1);
   }));
@@ -1536,7 +1535,7 @@ async function initHist(){
   if(!$id('history-container'))return;
   if(!enforceAuth())return;navbar();wireLogout();wireModal();wireModalEvents();
   var ld=$id('history-loading');if(ld)ld.style.display='block';
-  try{var recs=await DS.getAllRequisitions();_allRecs=Array.isArray(recs)?recs:[];renderHistTable(_allRecs);}
+  try{var recs=await DS.getAllRequisitions();_allRecs=Array.isArray(recs)?recs:[];renderHistTable(_allRecs.filter(function(r){return !r.isLinkedForm;}));}
   catch(err){showBanner(err.message||'Failed.','error');}
   finally{if(ld)ld.style.display='none';}
   var fs=$id('history-filter-status'),ft=$id('history-filter-type'),fq=$id('history-filter-search');

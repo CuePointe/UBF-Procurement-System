@@ -1,227 +1,182 @@
 # Uganda Biodiversity Fund — Procurement & Logistics System
-## Professional Assessment Report & Strategic Recommendation
 
-**Prepared for:** UBF Management (Executive Director, Finance & Administration Manager)
-**Prepared by:** Digital Operations & Strategy Advisory
-**Subject system:** UBF Procurement & Logistics System (v3.0) — `CuePointe/UBF-Procurement-System`
-**Report date:** 1 July 2026
-**Classification:** Internal — Management Use
-**Live portal:** https://cuepointe.github.io/UBF-Procurement-System/
+> **"For now & the future"**
+>
+> A secure, paperless procurement and logistics platform for the Uganda Biodiversity Fund — a lightweight web front-end backed by a managed database with server-enforced access control and a complete, tamper-evident audit trail.
 
 ---
 
-## 1. Executive Summary
+## 🌿 About This System
 
-The UBF Procurement & Logistics System is an impressive, low-cost achievement. In a matter of months it has replaced a paper-based procurement chain with a structured, role-based digital workflow — at effectively **zero infrastructure cost** — and has already processed live requisitions end-to-end (submission → approval → payment). As a proof of concept and an internal productivity tool, it is a clear success and a credit to the in-house developer.
+The **UBF Procurement & Logistics System** is the Fund's internal portal for raising, reviewing, approving and archiving all procurement and logistics paperwork. It replaces manual, paper-based processes with a structured, role-based digital approval chain accessible from any device with a browser.
 
-However, the same architectural choice that makes the system free — using a **public GitHub repository as the live database** and a **shared GitHub access token stored in each user's browser** — creates **serious confidentiality and integrity risks** that are not acceptable for a financial system handling real procurement, payment vouchers, and staff credentials. These are not theoretical: at the time of this review, staff password hashes and every financial record are **publicly downloadable by anyone on the internet**, without a login.
-
-This report's recommendation is therefore **two-track**:
-
-1. **Immediate (this week):** contain the security exposure — make the repository private, rotate credentials, and strengthen password handling. These are fast, low-effort, high-impact.
-2. **Structural (next 1–3 months):** move data and authentication behind a proper backend so that access control is enforced by the server, not merely hidden in the browser. A recommended migration path (Supabase) is set out in Section 8.
-
-The good news: the workflow design, the data model, and the user experience are sound and largely reusable. The recommended changes protect the investment already made rather than discarding it.
-
-**Overall rating:** **Strong concept and execution; not yet production-safe for financial data.** Priority action is security containment.
+Every submission, approval, comment and attachment is recorded with a timestamp and the responsible officer, producing an **auditor-ready** history for every transaction.
 
 ---
 
-## 2. Scope & Method
+## 🔗 Live Portal
 
-This assessment reviewed the system across four lenses, consistent with the advisory brief:
+```
+https://cuepointe.github.io/UBF-Procurement-System/
+```
 
-| Lens | Focus |
+---
+
+## ✨ Key Features
+
+- **Secure login** — email + password via managed authentication (salted, hashed); first-time users are forced to set their own password.
+- **Server-enforced role-based access** — who can see and do what is decided by the database, not the browser, so the rules cannot be bypassed.
+- **Approval workflow** — Submit → Prepare → Review → Clear → Approve, with rejection (and edit-and-resubmit) at any stage.
+- **7 official UBF form templates** — faithful to the existing paper forms, print- and PDF-ready.
+- **Packages** — bundle related forms (e.g. Request + LPO + Payment Voucher) into one submission; every form in a package is viewable inline for auditors.
+- **"My Tasks"** — every user sees exactly what needs their action on the dashboard.
+- **Executive Expenditure Report** — live financial dashboard with charts, breakdowns, and one-click **Excel/CSV export**.
+- **Document Archive** — approved packages auto-filed, searchable, organised into folders by management.
+- **Comments, management notes & attachments** — threaded discussion and supporting documents on every record.
+- **Full audit trail** — every action permanently recorded with timestamp and user.
+- **Responsive & mobile-friendly** — usable from a phone in the field.
+
+---
+
+## 👥 Staff Roles & Approval Chain
+
+| Role | Responsibility in the workflow |
 |---|---|
-| **Software / Architecture** | Code structure, data layer, workflow logic, maintainability |
-| **Security & Compliance** | Confidentiality, integrity, access control, credential handling |
-| **Data Science / Analytics** | Data model quality, reporting, audit trail, decision value |
-| **Strategy & Marketing** | Positioning, adoption, reputational impact, growth potential |
+| **Staff** | Raise Requests, Travel Plans and Accountability forms; view and account for their own submissions |
+| **Admin Officer** | **Prepares** submitted requests; may also raise management forms |
+| **Finance Officer** | **Reviews** prepared requests |
+| **FAM** (Finance & Administration Manager) | **Clears** reviewed requests; manages the Document Archive |
+| **ED** (Executive Director) | **Approves** cleared requests; full oversight and Executive Expenditure Report |
 
-**Materials reviewed:** repository source (`index.html`, `dashboard.html`, `data.js`, `script.js`, `form-renderer.js`, seven form templates, `expenditure-report.html`), live data files (`data/users.json`, `data/requisitions.json`, `data/archives.json`), and repository configuration on GitHub.
+### Approval chain
+
+```
+┌──────────┬────────────────┬─────────────────┬──────────────┬──────────────┐
+│  Staff   │ Admin Officer  │ Finance Officer │     FAM      │      ED      │
+│ Submits  │   Prepares     │    Reviews      │   Clears     │   Approves   │
+│ PENDING  │   PREPARED     │    REVIEWED     │   CLEARED    │   APPROVED   │
+└──────────┴────────────────┴─────────────────┴──────────────┴──────────────┘
+```
+
+At any stage a submission can be **Rejected** with a written reason; the original submitter can then edit and resubmit it.
+
+> If no active Finance Officer is assigned, the FAM performs the Review step as well, so work never stalls.
 
 ---
 
-## 3. System Overview
+## 📋 Available Forms
 
-**What it does.** A serverless internal portal that digitises UBF's procurement and logistics paperwork and routes each request through a five-stage approval chain.
+| Form | Available To | Purpose |
+|---|---|---|
+| Request for Goods / Services | All Staff | Official procurement request |
+| Travel Business Plan | All Staff | Travel advance request with route breakdown |
+| Advance Accountability & Expense Report | All Staff | Post-travel expense accountability |
+| Evaluation Report | Management | Supplier price comparison and recommendation (add/remove supplier columns) |
+| Local Purchase Order (LPO) | Management | Official purchase order issued to a vendor |
+| Goods Received Note (GRN) | Management | Confirmation of goods received |
+| Invoice / Payment Voucher | Management | Cheque payment authorisation |
 
-- **Workflow:** Submit → Prepare (Admin Officer) → Review → Clear (FAM) → Approve (ED), with rejection-and-resubmit at any stage.
-- **Forms (7):** Request for Goods/Services, Travel Business Plan, Advance Accountability, Evaluation Report, Local Purchase Order (LPO), Goods Received Note (GRN), Invoice/Payment Voucher.
-- **Roles (4):** Staff, Admin Officer, FAM, ED, with a permission matrix governing which forms and actions each can perform.
-- **Extras:** threaded comments, file attachments, package linking (e.g. Request → LPO → Invoice), auto-archiving on approval, and an **Executive Expenditure Report** that aggregates spend by status, type, department, donor and month.
+---
 
-**How it is built.**
+## 🗂️ System Architecture
+
+```
+UBF-Procurement-System/
+│
+├── index.html               Login (email + password)
+├── dashboard.html           Dashboard: My Tasks, stats, submissions
+├── form.html                Request for Goods / Services (+ package builder)
+├── travel-plan.html         Travel Business Plan
+├── accountability.html      Advance Accountability & Expense Report
+├── evaluation.html          Procurement Evaluation Report
+├── lpo.html                 Local Purchase Order
+├── grn.html                 Goods Received Note
+├── invoice.html             Invoice / Payment Voucher
+├── expenditure-report.html  Executive Expenditure Report (charts + CSV)
+├── archives.html            Document Archive
+├── history.html             Full audit history
+├── help.html                User guide
+│
+├── data.js                  Data layer — talks to the Supabase backend
+├── script.js                UI router and event handlers
+├── form-renderer.js         Form rendering + PDF generation
+├── style.css                UBF-branded stylesheet
+│
+├── ubf-logo.png             Brand logo
+├── favicon.ico              Browser tab icon
+└── apple-touch-icon.png     iOS home-screen icon
+```
+
+### Technology stack
 
 | Layer | Technology |
 |---|---|
-| Frontend | Pure HTML5, CSS3, vanilla JavaScript (no framework, no build step) |
-| "Database" | JSON files (`requisitions.json`, `users.json`, `archives.json`) committed to the GitHub repo |
-| Data access | GitHub Contents API called directly from the browser |
-| Auth | SHA-256 password hashing via the Web Crypto API |
-| Hosting | GitHub Pages (static) |
+| Front-end | HTML5, CSS3, vanilla JavaScript — no build step, no framework |
+| Backend | **Supabase** — managed PostgreSQL, Authentication & Storage |
+| Access control | PostgreSQL **Row-Level Security** + `SECURITY DEFINER` workflow functions |
+| Auth | Supabase Auth (bcrypt-salted passwords, JWT sessions) |
+| File storage | Supabase Storage (private bucket) |
+| Hosting | GitHub Pages (static front-end) |
+| Fonts | Plus Jakarta Sans |
 
-**The core architectural idea:** the browser talks straight to GitHub's REST API using a Personal Access Token (PAT) to read and write JSON files. There is no server of UBF's own. This is genuinely clever and explains the zero cost — and it is also the root of the risks below.
-
----
-
-## 4. Strengths (What Is Working Well)
-
-1. **Cost efficiency.** Zero hosting and zero database fees. For a fund that must steward donor money carefully, this is a legitimately attractive property.
-2. **Real, working digitisation.** The live data shows complete, real approval chains with timestamps and named actors — this is not a mock-up; it is in genuine use.
-3. **Sound workflow model.** The five-stage chain mirrors real segregation-of-duties: the person who submits is not the person who approves. The rejection-and-resubmit loop is well handled.
-4. **Clean, immutable-by-design audit trail.** Every action is recorded twice — in each record's `history[]` array **and** as a Git commit. Git history is inherently tamper-evident, which is a real strength for an audit context.
-5. **Good data modelling.** Records carry a consistent schema (`approval` sub-object per stage, `linkedForms`, `managementNotes`, `comments`). The package-linking concept (tying an Invoice back to its originating Request and LPO) is genuinely thoughtful.
-6. **Thoughtful UX touches.** Password-expiry enforcement, first-login password change, print-ready forms, logo fallbacks, and clear inline error messages show attention to the end user.
-7. **Reporting foundation already exists.** The Executive Expenditure Report demonstrates the data is structured well enough to drive analytics — a strong base to build on.
-8. **Maintainable for its size.** `data.js` cleanly centralises all data operations behind a single `DataService`, which will make the recommended backend migration much easier.
+The front-end holds only the project URL and a **publishable key** — safe to expose, because Row-Level Security enforces every rule on the server.
 
 ---
 
-## 5. Critical Findings — Security & Data Protection
+## 🔐 Security Model
 
-> These findings are the reason this report exists. They should be read by management, not only by IT. Each is rated by severity.
-
-### 5.1 🔴 CRITICAL — The database and password file are on a **public** repository
-
-The repository `CuePointe/UBF-Procurement-System` is **public**. Because the "database" is just files in that repo, the following are downloadable **by anyone, with no login**, directly from `raw.githubusercontent.com`:
-
-- **`data/users.json`** — every staff member's email, role, and **password hash**.
-- **`data/requisitions.json`** — every procurement request, LPO, payment voucher, cheque number, amount, and vendor.
-
-**Impact:** confidentiality breach of staff credentials and of the Fund's financial and vendor data. Cheque numbers and payment particulars are already publicly visible in the live data. This alone makes the system unsuitable for real financial use until fixed.
-
-### 5.2 🔴 CRITICAL — Access control is cosmetic, not enforced
-
-Every logged-in user's browser stores a GitHub PAT with full **`repo`** scope. That token can read **and write and delete** every file in the repo. The role restrictions ("Staff can only see their own submissions", "only ED can approve") are enforced **only in JavaScript in the browser**. Anyone who opens the browser console — or simply reads the public code — can use the stored token to:
-
-- read all records regardless of role,
-- approve their own requisition,
-- rewrite or delete any record, including the audit history,
-- read or overwrite `users.json`.
-
-**Impact:** the segregation of duties that the workflow is designed to enforce can be bypassed entirely. For a payments system, this is the most serious structural issue.
-
-### 5.3 🟠 HIGH — Password hashing is weak (unsalted SHA-256)
-
-Passwords are hashed with a single round of **unsalted SHA-256**. Combined with 5.1 (the hashes are public), this means the hashes are exposed to fast offline dictionary and rainbow-table attacks. The default password `admin` and its well-known hash appear in the code and seed data, and several accounts still carry `mustChangePassword: true`.
-
-**Impact:** weak or reused staff passwords can be recovered from the public hash file.
-
-### 5.4 🟠 HIGH — Shared, long-lived, over-privileged token
-
-A single PAT is distributed to all staff and pasted into each device's `localStorage`. It is over-privileged (full `repo`), long-lived, shared (no per-user attribution at the API level), and exposed to any cross-site scripting. Revoking one person's access means rotating the token for everyone.
-
-### 5.5 🟡 MEDIUM — Concurrency / lost-update risk
-
-Writes use GitHub's optimistic-locking `sha`. If two users act on the record set at the same time, one write fails with a 409 conflict; the current UX surfaces this as a generic "refresh and try again". The whole `requisitions.json` file is also rewritten on every action, so this risk grows with usage.
-
-### 5.6 🟡 MEDIUM — Client-side "diagnostic" file-creation routine
-
-`index.html` contains a routine that, using the stored token, searches the user's repositories and auto-creates/overwrites `users.json` with default-password accounts. Shipped to the browser, this is both an attack surface and a potential accidental-reset hazard.
-
-### 5.7 🟢 LOW — Data integrity & validation
-
-Numeric fields (quantities, amounts) are stored as strings; item lists are stored as stringified JSON inside a field. There is little server-side validation (because there is no server). This is manageable but will complicate analytics.
+- **Passwords** are salted and hashed by Supabase Auth — never stored in the code or repository.
+- **Row-Level Security** guarantees staff can read and act on **only their own** records (plus the forms inside their own packages); management roles see all.
+- **Approvals** flow through a single server-side gatekeeper function that enforces *role × status* — a staff member physically cannot approve, and no role can skip a step. The database refuses invalid transitions.
+- **Attachments** live in a private storage bucket, accessible only to signed-in staff.
+- **Audit trail** — every status change, comment and note is appended immutably to each record's history with the responsible officer and timestamp.
+- **Sessions** are refreshed automatically and cleared on logout.
 
 ---
 
-## 6. Functional & Data-Science Assessment
+## 🛠️ System Administration
 
-**Data model:** genuinely good bones. Records are self-describing and the approval sub-structure makes stage-level reporting straightforward. Two improvements would materially raise analytic value:
+### Adding a new staff member
+Create the account in the Supabase project (Authentication → Users), setting the user's `full_name`, `role` and `title` in the account metadata. A matching profile is created automatically. Roles must be one of: `Staff`, `Admin Officer`, `Finance Officer`, `FAM`, `ED`.
 
-- **Type discipline:** store amounts and quantities as numbers, and item/particular lists as real JSON arrays rather than stringified strings. This removes fragile parsing from every report.
-- **Controlled vocabularies:** `department`, `accountCode`, `donorCode` etc. are free-text and already show inconsistency in the live data ("Administration" vs "Admin"; "ACT-2026-01" vs "ACT-2026"). Drop-downs backed by reference lists would make cross-tabs reliable.
+### Resetting a password
+Set the staff member's `must_change_password` flag to `true` in their profile (and issue a temporary password); they will be prompted to set a new password on next login.
 
-**Reporting:** the Executive Expenditure Report is a strong start. Once data types are cleaned up, the same dataset can support: cycle-time analysis (how long each stage takes — the timestamps are already captured), rejection-rate and bottleneck analysis, spend-by-vendor and spend-by-donor dashboards, and budget-vs-actual tracking. The raw material for a genuinely useful procurement-analytics layer is already being collected.
-
-**Audit trail:** the dual record-plus-Git-commit trail is a real asset for donor audits — provided the repository is made private and write access is properly controlled (Sections 5.1–5.2), otherwise the trail can be rewritten.
-
----
-
-## 7. Strategy & Marketing Perspective
-
-**Positioning.** The narrative — *"a paperless, serverless procurement system built in-house at zero cost"* — is a compelling story for a donor-funded conservation fund. It signals prudent stewardship, digital maturity, and local capability. That story is worth telling to your board and donors **once the security posture supports it**. Telling it before the fixes would be a reputational liability, because a data-protection incident on a public repo of financial records would badly undercut the same "responsible steward" message.
-
-**Reputational risk = strategic risk.** For UBF, the brand is trust. A leak of vendor payments or staff credentials from a system marketed as a modernisation win would do disproportionate damage. Security is therefore not a technical footnote here; it is core to the value proposition. **Recommendation: sequence the messaging behind the remediation.**
-
-**Adoption.** Concentrating support and administration on a single staff member (the developer) is a **key-person risk**. For sustained adoption, document the system, and ensure at least one backup administrator. This also protects the Fund if that individual is unavailable.
-
-**Growth potential.** If hardened, this system is a credible template for other conservation trusts and NGO funds in the region — a potential shared-good / thought-leadership asset for UBF ("how we digitised procurement for near-zero cost"). That is a real, ownable marketing angle, but it depends entirely on Track 1 below being completed first.
+### Deactivating a staff member
+Set `active` to `false` in their profile — they can no longer sign in, and their historical records remain intact for audit.
 
 ---
 
-## 8. Recommendations
+## 📞 Technical Support
 
-Recommendations are sequenced by urgency. Track 1 items are cheap, fast, and should not wait.
-
-### Track 1 — Immediate containment (this week, low effort, high impact)
-
-| # | Action | Why | Effort |
-|---|---|---|---|
-| 1 | **Make the repository private** | Removes public read access to hashes and financial data (fixes 5.1) | Minutes |
-| 2 | **Rotate / revoke the current GitHub token** and issue a fresh one | Assume the public token is compromised | Minutes |
-| 3 | **Force a password reset for all staff**; ban the default `admin` password; require ≥12-char passwords | Public hashes must be treated as breached (fixes 5.3 in part) | Hours |
-| 4 | **Remove the in-browser "diagnostic" auto-provisioning routine** from `index.html` | Eliminates the reset/attack surface (fixes 5.6) | Hours |
-| 5 | **Scope the token down** from full `repo` to the minimum needed, and set an expiry | Limits blast radius (mitigates 5.4) | Minutes |
-
-> Note: making the repo private will affect GitHub Pages hosting on a free plan. Confirm the hosting/plan implication before flipping it, or pair it with Track 2 hosting. This is the one dependency to plan for — it should not delay items 2–5.
-
-### Track 2 — Structural fix (1–3 months, the real solution)
-
-The durable fix is to stop using a public file repository as a database and to enforce access control on a server. Because `DataService` already isolates all data operations, this is an achievable, contained migration rather than a rewrite.
-
-**Recommended path: Supabase** (managed Postgres + authentication + row-level security, generous free tier):
-
-- Move `users.json` → Supabase Auth (proper salted password hashing, sessions, resets handled for you).
-- Move `requisitions.json` / `archives.json` → Postgres tables, with **Row-Level Security policies** that make the role rules (Staff sees own; only ED approves) enforced **on the server**, where they cannot be bypassed from the browser.
-- Re-point `DataService` at Supabase's client SDK. The rest of the UI can remain largely unchanged.
-- Keep the Git-commit audit trail idea by mirroring approved records, or use Postgres audit logging.
-
-This preserves the front-end investment, keeps costs at or near zero, and removes findings 5.1, 5.2, 5.3, and 5.4 at the root. *(A Supabase workspace is already available to this project, which lowers the barrier to a proof-of-concept.)*
-
-**Alternatives considered:** Cloudflare Workers + D1 (two auto-configuration PRs — #4, #6 — are already open on the repo and point in this direction) or Firebase. Any of these is acceptable; the non-negotiable requirement is **server-enforced access control**, not the specific vendor.
-
-### Track 3 — Enhancements (once secure)
-
-- Enforce numeric types and controlled vocabularies for clean analytics (Section 6).
-- Add procurement-analytics dashboards: stage cycle-time, bottlenecks, rejection rates, spend-by-vendor/donor, budget-vs-actual.
-- Add email/notification on stage transitions.
-- Document the system and appoint a **backup administrator** (removes key-person risk).
-- Optional: expose an anonymised "how we did it" case study as a UBF thought-leadership piece.
+**Tom Otieno**
+Email: t.otieno@ugandabiodiversityfund.org
+Role: Staff & System Developer
 
 ---
 
-## 9. Risk Register (summary)
+## 🏢 Organisation
 
-| ID | Risk | Severity | Likelihood | Recommended action | Track |
-|---|---|---|---|---|---|
-| 5.1 | Public repo exposes hashes & financial data | Critical | **Occurring now** | Make repo private | 1 |
-| 5.2 | Client-side-only access control bypassable | Critical | High | Server-enforced RLS | 2 |
-| 5.3 | Unsalted SHA-256 + public hashes | High | High | Reset passwords; proper auth | 1→2 |
-| 5.4 | Shared over-privileged long-lived token | High | High | Scope down; migrate off | 1→2 |
-| 5.5 | Concurrent-write lost updates | Medium | Medium | Move to a real DB | 2 |
-| 5.6 | In-browser auto-provisioning routine | Medium | Medium | Remove routine | 1 |
-| 5.7 | Weak typing / validation | Low | Medium | Types + vocabularies | 3 |
+**Uganda Biodiversity Fund (UBF)**
+Plot 425 Zzimwe Road, Kisugu, Kampala
+PO Box 26156, Kampala, Uganda
+Fixed Tel: +256-393-216-445
+Email: info@ugandabiodiversityfund.org
+Website: www.ugandabiodiversityfund.org
 
----
-
-## 10. Conclusion
-
-The UBF Procurement & Logistics System is a genuinely commendable piece of in-house work: it solved a real operational problem quickly and at near-zero cost, and the workflow, data model, and user experience are all sound. It has proven the concept convincingly.
-
-It is **not yet safe for production financial use**, for one root reason: it uses a **public code repository as a live database**, with access control enforced only in the browser. That is fixable — and importantly, fixable **without throwing away the work already done**. The immediate containment steps in Track 1 can be completed within days; the structural migration in Track 2 turns a clever prototype into a defensible institutional system over the next one to three months.
-
-**The single most important action is Recommendation #1: make the repository private, today.** Everything else can follow in sequence.
-
-Handled in this order, UBF ends up with a modern, low-cost, secure, auditable procurement platform — and a marketing and thought-leadership story it can tell with full confidence.
+*For now & the future*
 
 ---
 
-*Prepared as an internal advisory assessment. Findings reflect the state of the repository and live data as reviewed on 1 July 2026. This document contains no credentials, tokens, or secrets and is safe to circulate internally.*
+## 📄 Version History
+
+| Version | Date | Description |
+|---|---|---|
+| v1.0 | 2025 | Initial deployment — Request form + basic approval workflow |
 | v2.0 | 2025 | Password authentication, Travel Plan, Accountability form |
-| v3.0 | 2026 | Full procurement suite — Evaluation, LPO, GRN, Invoice, Executive Expenditure Report, Share Panel, Comments |
+| v3.0 | 2026 | Full procurement suite — Evaluation, LPO, GRN, Invoice, Executive Expenditure Report, Comments, Archive |
+| v4.0 | 2026 | Migration to a secure Supabase backend (server-enforced access control), modern UI refresh, Finance Officer review stage, "My Tasks", CSV export, package viewing, mobile improvements |
 
 ---
 
-*System developed and maintained by Digital Marketing Analyst: Thomas Otieno — Uganda Biodiversity Fund Digital Operations*
+*System developed and maintained by Thomas Otieno — Uganda Biodiversity Fund Digital Operations.*

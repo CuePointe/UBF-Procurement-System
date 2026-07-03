@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CuePointe Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600;700&family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --black:#0B0F0D;--panel:#111613;--panel-2:#161C18;--panel-3:#1a201c;
+  --gold:#F5A800;--green:#2C5F2E;--ledger:#39FF6A;--ledger-dim:rgba(57,255,106,0.10);
+  --brick:#C4402E;--brick-dim:rgba(196,64,46,0.10);
+  --blue:#4A9EFF;--orange:#E8681A;--stone:#9A9A92;
+  --white:#F4F1EA;--line:rgba(244,241,234,0.08);--line-s:rgba(244,241,234,0.14);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:'Barlow',sans-serif;background:var(--black);color:var(--white);font-size:14px}
+.mono{font-family:'IBM Plex Mono',monospace}
+
+/* ── LOGIN ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--black);background-image:linear-gradient(rgba(28,61,31,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(28,61,31,0.08) 1px,transparent 1px);background-size:60px 60px;position:fixed;inset:0;z-index:1000}
+.login-box{background:var(--panel);border:1px solid var(--line-s);padding:44px 40px;width:100%;max-width:420px;text-align:center}
+.login-logo{height:52px;margin:0 auto 22px}
+.login-title{font-family:'Bebas Neue';font-size:28px;letter-spacing:2px;margin-bottom:4px}
+.login-sub{font-family:'Barlow Condensed';font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--stone);margin-bottom:28px}
+.login-field{margin-bottom:14px;text-align:left}
+.login-field label{display:block;font-family:'Barlow Condensed';font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--stone);margin-bottom:6px}
+.login-field input{width:100%;background:var(--panel-2);border:1px solid var(--line-s);color:var(--white);padding:11px 14px;font-family:'IBM Plex Mono';font-size:13px;outline:none;transition:border-color .2s}
+.login-field input:focus{border-color:var(--gold)}
+.login-btn{width:100%;background:var(--gold);color:var(--black);padding:13px;border:none;cursor:pointer;font-family:'Barlow Condensed';font-weight:700;font-size:14px;letter-spacing:3px;text-transform:uppercase;transition:background .2s;margin-top:6px;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%)}
+.login-btn:hover{background:var(--orange)}
+.login-err{color:var(--brick);font-family:'IBM Plex Mono';font-size:12px;margin-top:10px;display:none}
+.login-version{font-family:'IBM Plex Mono';font-size:10px;color:var(--stone);margin-top:20px}
+
+/* ── APP SHELL ── */
+#app{display:none;flex-direction:row;min-height:100vh}
+#app.visible{display:flex}
+
+/* ── SIDEBAR ── */
+.sidebar{width:220px;min-height:100vh;background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;flex-shrink:0;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.sb-logo img{height:30px;width:auto}
+.sb-logo .sb-org{font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--gold);line-height:1.2}
+.sb-logo .sb-role{font-family:'IBM Plex Mono';font-size:9px;color:var(--stone)}
+.sb-sec{padding:12px 0 4px 16px;font-family:'Barlow Condensed';font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--stone)}
+.sb-link{display:flex;align-items:center;gap:9px;padding:9px 16px;cursor:pointer;transition:all .15s;border-left:3px solid transparent;font-family:'Barlow Condensed';font-weight:600;font-size:12px;letter-spacing:.5px;color:rgba(244,241,234,0.55)}
+.sb-link:hover{background:rgba(245,168,0,0.04);color:var(--white);border-left-color:rgba(245,168,0,0.25)}
+.sb-link.active{background:rgba(245,168,0,0.08);color:var(--gold);border-left-color:var(--gold)}
+.sb-link .ico{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.sb-badge{margin-left:auto;background:var(--brick);color:#fff;font-family:'IBM Plex Mono';font-size:9px;padding:2px 5px}
+.sb-badge.ok{background:var(--green)}
+.sb-footer{margin-top:auto;padding:14px 16px;border-top:1px solid var(--line)}
+.sb-footer .sf-user{font-family:'Barlow Condensed';font-size:12px;color:var(--white);margin-bottom:4px}
+.sb-footer .sf-meta{font-family:'IBM Plex Mono';font-size:10px;color:var(--stone);margin-bottom:10px}
+.sb-footer a{color:var(--gold);text-decoration:none;font-family:'Barlow Condensed';font-size:11px;letter-spacing:1px;cursor:pointer}
+.sb-footer a:hover{text-decoration:underline}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:50;gap:12px;flex-wrap:wrap}
+.topbar-title{font-family:'Bebas Neue';font-size:20px;color:var(--white);letter-spacing:1px}
+.topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.sync-status{font-family:'IBM Plex Mono';font-size:11px;color:var(--stone);display:flex;align-items:center;gap:6px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--stone)}
+.sync-dot.live{background:var(--ledger);animation:pulse 1.5s infinite}
+.sync-dot.saving{background:var(--gold);animation:pulse .6s infinite}
+.sync-dot.error{background:var(--brick)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.content{flex:1;overflow-y:auto;padding:24px}
+.page{display:none}.page.active{display:block}
+
+/* ── BUTTONS ── */
+.btn{padding:7px 16px;font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;transition:all .2s;border:none;display:inline-flex;align-items:center;gap:6px}
+.btn-gold{background:var(--gold);color:var(--black)}.btn-gold:hover{background:var(--orange)}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{opacity:.85}
+.btn-red{background:var(--brick);color:#fff}.btn-red:hover{opacity:.85}
+.btn-outline{background:transparent;border:1px solid var(--line-s);color:var(--stone)}.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-sm{padding:5px 11px;font-size:11px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── STAT CARDS ── */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.stat-card{background:var(--panel);border:1px solid var(--line);padding:18px 16px;border-bottom:3px solid var(--gold)}
+.stat-card.g{border-bottom-color:var(--ledger)}.stat-card.r{border-bottom-color:var(--brick)}.stat-card.b{border-bottom-color:var(--blue)}
+.sc-lbl{font-family:'Barlow Condensed';font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--stone);margin-bottom:7px}
+.sc-val{font-family:'IBM Plex Mono';font-weight:600;font-size:24px;color:var(--white);line-height:1}
+.sc-sub{font-family:'IBM Plex Mono';font-size:10px;margin-top:5px;color:var(--stone)}
+.sc-sub.up{color:var(--ledger)}.sc-sub.dn{color:var(--brick)}
+
+/* ── PANELS ── */
+.panel{background:var(--panel);border:1px solid var(--line);margin-bottom:20px}
+.ph{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.pt{font-family:'Barlow Condensed';font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--white)}
+.pb{padding:16px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.sec-tag{font-family:'Barlow Condensed';font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.sec-tag::before{content:'// '}
+
+/* ── TABLES ── */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:400px}
+thead tr{border-bottom:2px solid var(--gold);background:rgba(245,168,0,0.03)}
+th{font-family:'Barlow Condensed';font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);padding:10px 11px;text-align:left;white-space:nowrap}
+td{padding:9px 11px;border-bottom:1px solid var(--line);font-size:13px;color:rgba(244,241,234,0.8);vertical-align:middle}
+tr:hover td{background:rgba(245,168,0,0.015)}
+.tm{font-family:'IBM Plex Mono';font-size:12px}
+.tact{display:flex;gap:6px;flex-wrap:wrap}
+.empty-row td{text-align:center;padding:36px;color:var(--stone);font-family:'IBM Plex Mono';font-size:12px}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:2px 8px;font-family:'Barlow Condensed';font-weight:700;font-size:10px;letter-spacing:1px;text-transform:uppercase;border:1px solid}
+.bg{color:var(--ledger);border-color:rgba(57,255,106,0.3);background:var(--ledger-dim)}
+.br{color:#ff8a80;border-color:rgba(255,138,128,0.3);background:rgba(255,138,128,0.07)}
+.bo{color:var(--gold);border-color:rgba(245,168,0,0.3);background:rgba(245,168,0,0.06)}
+.bb{color:var(--blue);border-color:rgba(74,158,255,0.3);background:rgba(74,158,255,0.07)}
+.bs{color:var(--stone);border-color:rgba(154,154,146,0.2);background:rgba(154,154,146,0.05)}
+
+/* ── FORMS ── */
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg.s2{grid-column:span 2}.fg.s3{grid-column:span 3}
+label{font-family:'Barlow Condensed';font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--stone)}
+input,select,textarea{background:var(--panel-2);border:1px solid var(--line-s);color:var(--white);padding:8px 11px;font-family:'Barlow',sans-serif;font-size:13px;outline:none;transition:border-color .2s;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--gold)}
+select option{background:var(--panel-2)}
+textarea{resize:vertical;min-height:64px}
+.ff{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+
+/* ── MODAL ── */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:500;display:none;align-items:center;justify-content:center;padding:16px}
+.mo.open{display:flex}
+.mb{background:var(--panel);border:1px solid var(--line-s);width:100%;max-width:660px;max-height:92vh;display:flex;flex-direction:column}
+.mh{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.mt{font-family:'Bebas Neue';font-size:19px;letter-spacing:1px}
+.mc{background:none;border:none;color:var(--stone);font-size:20px;cursor:pointer;padding:2px;line-height:1}.mc:hover{color:var(--white)}
+.mbody{padding:18px;overflow-y:auto;flex:1}
+.mf{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+
+/* ── PROGRESS ── */
+.prog-row{display:flex;align-items:center;gap:10px;padding:7px 0}
+.pl{font-family:'Barlow Condensed';font-size:12px;color:var(--white);width:120px;flex-shrink:0}
+.pb2{flex:1;height:7px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden}
+.pf{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--ledger))}
+.pv{font-family:'IBM Plex Mono';font-size:11px;color:var(--gold);width:44px;text-align:right;flex-shrink:0}
+
+/* ── AUDIT ── */
+.audit-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.audit-row:last-child{border-bottom:none}
+.ai{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:1px}
+.ai.ok{background:var(--ledger-dim);border:1px solid rgba(57,255,106,.3)}
+.ai.warn{background:rgba(245,168,0,.1);border:1px solid rgba(245,168,0,.3)}
+.ai.err{background:var(--brick-dim);border:1px solid rgba(196,64,46,.3)}
+.at h5{font-family:'Barlow Condensed';font-weight:700;font-size:13px;margin-bottom:3px}
+.at p{font-size:12px;color:var(--stone);line-height:1.6}
+.afix{margin-top:5px;font-family:'IBM Plex Mono';font-size:11px;color:var(--gold)}
+
+/* ── GITHUB STATUS BAR ── */
+.gh-bar{background:rgba(74,158,255,0.06);border:1px solid rgba(74,158,255,0.2);padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.gh-bar p{font-size:12px;color:rgba(244,241,234,0.65);font-family:'IBM Plex Mono'}
+.gh-bar strong{color:var(--blue)}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--panel);border:1px solid var(--ledger);border-left:4px solid var(--ledger);padding:11px 18px;z-index:999;display:none;align-items:center;gap:8px;font-family:'Barlow Condensed';font-size:13px;max-width:380px}
+.toast.show{display:flex}.toast.err{border-color:var(--brick);border-left-color:var(--brick)}
+.toast.warn{border-color:var(--gold);border-left-color:var(--gold)}
+
+@media(max-width:860px){
+  .sidebar{display:none}
+  .stat-row{grid-template-columns:1fr 1fr}
+  .fg2,.fg3{grid-template-columns:1fr}
+  .fg.s2,.fg.s3{grid-column:span 1}
+  .two-col{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ════ LOGIN SCREEN ════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <img src="CuePointe_Logo.jpg" alt="CuePointe" class="login-logo">
+    <div class="login-title">ADMIN PANEL</div>
+    <div class="login-sub">CuePointe Action Pool · Staff Access Only</div>
+
+    <div class="login-field">
+      <label>Team Password</label>
+      <input type="password" id="login-pass" placeholder="Enter team password" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-field">
+      <label>GitHub Token (PAT)</label>
+      <input type="password" id="login-token" placeholder="ghp_xxxxxxxxxxxx" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="login-field">
+      <label>Your Name</label>
+      <input type="text" id="login-name" placeholder="e.g. Thomas Otieno" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <div class="login-err" id="login-err">Incorrect password. Try again.</div>
+
+    <div class="login-version mono">CuePointe Admin v1.0 · cuepointe.github.io</div>
+  </div>
+</div>
+
+<!-- ════ APP ════ -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sb-logo">
+      <img src="CuePointe_Logo.jpg" alt="CP">
+      <div><div class="sb-org">CuePointe</div><div class="sb-role mono">Admin Panel</div></div>
+    </div>
+
+    <div class="sb-sec">Operations</div>
+    <div class="sb-link active" onclick="nav('dashboard',this)"><span class="ico">📊</span> Dashboard</div>
+    <div class="sb-link" onclick="nav('events',this)"><span class="ico">🏆</span> Events</div>
+    <div class="sb-link" onclick="nav('players',this)"><span class="ico">🎱</span> Players</div>
+    <div class="sb-link" onclick="nav('agents',this)"><span class="ico">🤝</span> Agents</div>
+
+    <div class="sb-sec">Finance</div>
+    <div class="sb-link" onclick="nav('finance',this)"><span class="ico">💰</span> Transactions</div>
+    <div class="sb-link" onclick="nav('sponsors',this)"><span class="ico">🌍</span> Sponsors</div>
+    <div class="sb-link" onclick="nav('projections',this)"><span class="ico">📈</span> Projections</div>
+    <div class="sb-link" onclick="nav('talent-fund',this)"><span class="ico">🏅</span> Talent Fund</div>
+
+    <div class="sb-sec">Website</div>
+    <div class="sb-link" onclick="nav('site-content',this)"><span class="ico">✏️</span> Site Content</div>
+    <div class="sb-link" onclick="nav('rankings-mgr',this)"><span class="ico">🥇</span> Rankings</div>
+    <div class="sb-link" onclick="nav('news-mgr',this)"><span class="ico">📰</span> News</div>
+    <div class="sb-link" onclick="nav('seo',this)"><span class="ico">🔍</span> SEO Audit <span class="sb-badge">3</span></div>
+
+    <div class="sb-sec">Settings</div>
+    <div class="sb-link" onclick="nav('settings',this)"><span class="ico">⚙️</span> Settings</div>
+
+    <div class="sb-footer">
+      <div class="sf-user" id="sb-username">—</div>
+      <div class="sf-meta mono" id="sb-session">Session active</div>
+      <a onclick="doLogout()">Sign Out</a> &nbsp;·&nbsp;
+      <a href="https://cuepointe.github.io" target="_blank">Live Site ↗</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="page-title">Dashboard</div>
+      <div class="topbar-right">
+        <div class="sync-status">
+          <div class="sync-dot live" id="sync-dot"></div>
+          <span id="sync-label" class="mono">Connected to GitHub</span>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="pullFromGitHub()">⬇ Pull Latest</button>
+        <button class="btn btn-gold btn-sm" onclick="pushToGitHub()">🚀 Publish to Site</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══ DASHBOARD ══ -->
+      <div class="page active" id="page-dashboard">
+        <div class="gh-bar">
+          <p>Connected to <strong>CuePointe/cuepointe.github.io</strong> via GitHub API. Changes you publish update the live site within 30 seconds.</p>
+          <button class="btn btn-outline btn-sm" onclick="testConnection()">Test Connection</button>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card"><div class="sc-lbl">Total Events</div><div class="sc-val mono" id="d-events">—</div><div class="sc-sub" id="d-events-sub">Loading…</div></div>
+          <div class="stat-card g"><div class="sc-lbl">Total Revenue (UGX)</div><div class="sc-val mono" id="d-rev">—</div><div class="sc-sub up" id="d-rev-sub">—</div></div>
+          <div class="stat-card r"><div class="sc-lbl">Total Expenses (UGX)</div><div class="sc-val mono" id="d-exp">—</div><div class="sc-sub dn" id="d-exp-sub">—</div></div>
+          <div class="stat-card b"><div class="sc-lbl">Registered Players</div><div class="sc-val mono" id="d-players">—</div><div class="sc-sub" id="d-players-sub">—</div></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat-card"><div class="sc-lbl">Active Agents</div><div class="sc-val mono" id="d-agents">—</div><div class="sc-sub" id="d-agents-sub">—</div></div>
+          <div class="stat-card"><div class="sc-lbl">Commission Due (UGX)</div><div class="sc-val mono" id="d-comm">—</div><div class="sc-sub">—</div></div>
+          <div class="stat-card g"><div class="sc-lbl">Active Sponsors</div><div class="sc-val mono" id="d-sponsors">—</div><div class="sc-sub">—</div></div>
+          <div class="stat-card"><div class="sc-lbl">SEO Score</div><div class="sc-val mono">78<span style="font-size:13px;color:var(--stone)">/100</span></div><div class="sc-sub dn">2 errors to fix</div></div>
+        </div>
+        <div class="two-col">
+          <div class="panel">
+            <div class="ph"><div class="pt">Recent Events</div><button class="btn btn-outline btn-sm" onclick="nav('events',document.querySelector('[onclick*=events]'))">View All</button></div>
+            <div class="pb"><div class="tw"><table><thead><tr><th>ID</th><th>Type</th><th>Location</th><th>Status</th><th>Net (UGX)</th></tr></thead><tbody id="dash-events"></tbody></table></div></div>
+          </div>
+          <div class="panel">
+            <div class="ph"><div class="pt">Top Players (Live Rankings)</div><button class="btn btn-outline btn-sm" onclick="nav('rankings-mgr',document.querySelector('[onclick*=rankings]'))">Manage</button></div>
+            <div class="pb"><div class="tw"><table><thead><tr><th>#</th><th>Player</th><th>Area</th><th>Score</th></tr></thead><tbody id="dash-rankings"></tbody></table></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ EVENTS ══ -->
+      <div class="page" id="page-events">
+        <div class="panel">
+          <div class="ph"><div class="pt">Event Register</div><button class="btn btn-gold btn-sm" onclick="openM('m-event')">+ Add Event</button></div>
+          <div class="pb"><div class="tw"><table>
+            <thead><tr><th>ID</th><th>Date</th><th>Type</th><th>Venue</th><th>Location</th><th>Players</th><th>Revenue</th><th>Expenses</th><th>Net</th><th>Prize</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="events-tbody"></tbody>
+          </table></div></div>
+        </div>
+      </div>
+
+      <!-- ══ PLAYERS ══ -->
+      <div class="page" id="page-players">
+        <div class="panel">
+          <div class="ph">
+            <div class="pt">Player Register & Talent Metrics</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input type="text" placeholder="Search…" oninput="filterTable('players-tbody',this.value)" style="max-width:180px;padding:5px 10px;font-size:12px">
+              <button class="btn btn-gold btn-sm" onclick="openM('m-player')">+ Add Player</button>
+            </div>
+          </div>
+          <div class="pb"><div class="tw"><table>
+            <thead><tr><th>ID</th><th>Name</th><th>Age</th><th>Area</th><th>Phone</th><th>Tier</th><th>⚡</th><th>🎯</th><th>🖤</th><th>Consistency</th><th>Sport.</th><th>Endgame</th><th>Score</th><th>Events</th><th>Wins</th><th>Actions</th></tr></thead>
+            <tbody id="players-tbody"></tbody>
+          </table></div></div>
+        </div>
+      </div>
+
+      <!-- ══ AGENTS ══ -->
+      <div class="page" id="page-agents">
+        <div class="panel">
+          <div class="ph"><div class="pt">Agent & Mobilisation Register</div><button class="btn btn-gold btn-sm" onclick="openM('m-agent')">+ Add Agent</button></div>
+          <div class="pb">
+            <div class="stat-row" style="grid-template-columns:repeat(4,1fr)">
+              <div class="stat-card"><div class="sc-lbl">Total Agents</div><div class="sc-val mono" id="ag-total">—</div></div>
+              <div class="stat-card g"><div class="sc-lbl">Active</div><div class="sc-val mono" id="ag-active">—</div></div>
+              <div class="stat-card"><div class="sc-lbl">Players Referred</div><div class="sc-val mono" id="ag-referred">—</div></div>
+              <div class="stat-card"><div class="sc-lbl">Commission Due</div><div class="sc-val mono" id="ag-comm">—</div></div>
+            </div>
+            <div class="tw"><table>
+              <thead><tr><th>ID</th><th>Name</th><th>Phone</th><th>Area</th><th>Role</th><th>Active</th><th>Rate</th><th>Players</th><th>Fees Collected</th><th>Comm. Due</th><th>Notes</th><th>Actions</th></tr></thead>
+              <tbody id="agents-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ FINANCE ══ -->
+      <div class="page" id="page-finance">
+        <div class="panel">
+          <div class="ph">
+            <div class="pt">Finance Ledger</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <select onchange="filterByType('finance-tbody','type',this.value)" style="padding:5px 10px;font-size:12px">
+                <option value="">All Types</option><option>Income</option><option>Expense</option>
+              </select>
+              <button class="btn btn-gold btn-sm" onclick="openM('m-txn')">+ Add Transaction</button>
+            </div>
+          </div>
+          <div class="pb">
+            <div class="stat-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+              <div class="stat-card g"><div class="sc-lbl">Total Income</div><div class="sc-val mono" id="fin-in">—</div></div>
+              <div class="stat-card r"><div class="sc-lbl">Total Expenses</div><div class="sc-val mono" id="fin-out">—</div></div>
+              <div class="stat-card"><div class="sc-lbl">Net Balance</div><div class="sc-val mono" id="fin-net">—</div></div>
+            </div>
+            <div class="tw"><table>
+              <thead><tr><th>Date</th><th>Txn ID</th><th>Type</th><th>Source</th><th>Description</th><th>In (UGX)</th><th>Out (UGX)</th><th>Balance</th><th>Event</th><th>Approved</th><th>Actions</th></tr></thead>
+              <tbody id="finance-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SPONSORS ══ -->
+      <div class="page" id="page-sponsors">
+        <div class="panel">
+          <div class="ph"><div class="pt">Sponsorship & Partner Tracker</div><button class="btn btn-gold btn-sm" onclick="openM('m-sponsor')">+ Add Sponsor</button></div>
+          <div class="pb">
+            <div class="stat-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+              <div class="stat-card"><div class="sc-lbl">Total</div><div class="sc-val mono" id="sp-total">—</div></div>
+              <div class="stat-card g"><div class="sc-lbl">Active</div><div class="sc-val mono" id="sp-active">—</div></div>
+              <div class="stat-card"><div class="sc-lbl">Confirmed (UGX)</div><div class="sc-val mono" id="sp-conf">—</div></div>
+              <div class="stat-card"><div class="sc-lbl">Pending (UGX)</div><div class="sc-val mono" id="sp-pend">—</div></div>
+            </div>
+            <div class="tw"><table>
+              <thead><tr><th>ID</th><th>Company</th><th>Contact</th><th>Status</th><th>Tier</th><th>Value (UGX)</th><th>Duration</th><th>Next Review</th><th>Notes</th><th>Actions</th></tr></thead>
+              <tbody id="sponsors-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PROJECTIONS ══ -->
+      <div class="page" id="page-projections">
+        <div class="panel">
+          <div class="ph"><div class="pt">5-Year Financial Projections (UGX '000)</div></div>
+          <div class="pb"><div class="tw"><table>
+            <thead><tr><th>Line Item</th><th>Year 1</th><th>Year 2</th><th>Year 3</th><th>Year 4</th><th>Year 5</th></tr></thead>
+            <tbody>
+              <tr style="background:rgba(57,255,106,.03)"><td colspan="6" style="font-family:'Barlow Condensed';font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--stone);padding:7px 11px">INCOME</td></tr>
+              <tr><td>Knockout Revenue</td><td class="tm">3,200</td><td class="tm">4,400</td><td class="tm">6,912</td><td class="tm">8,400</td><td class="tm">11,648</td></tr>
+              <tr><td>League Revenue</td><td class="tm">640</td><td class="tm">800</td><td class="tm">1,728</td><td class="tm">2,016</td><td class="tm">3,840</td></tr>
+              <tr><td>Membership Revenue</td><td class="tm">4,000</td><td class="tm">8,000</td><td class="tm">17,500</td><td class="tm">25,000</td><td class="tm">45,000</td></tr>
+              <tr><td>Sponsorship Income</td><td class="tm">2,000</td><td class="tm">5,000</td><td class="tm">10,000</td><td class="tm">20,000</td><td class="tm">40,000</td></tr>
+              <tr><td>Merchandise Income</td><td class="tm">500</td><td class="tm">1,000</td><td class="tm">2,000</td><td class="tm">4,000</td><td class="tm">8,000</td></tr>
+              <tr style="border-top:2px solid var(--gold);background:rgba(245,168,0,.03)"><td style="font-weight:600">TOTAL INCOME</td><td class="tm" style="color:var(--ledger);font-weight:600">10,340</td><td class="tm" style="color:var(--ledger)">19,200</td><td class="tm" style="color:var(--ledger)">38,140</td><td class="tm" style="color:var(--ledger)">59,416</td><td class="tm" style="color:var(--ledger)">108,488</td></tr>
+              <tr style="background:rgba(196,64,46,.03)"><td colspan="6" style="font-family:'Barlow Condensed';font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--stone);padding:7px 11px">EXPENSES</td></tr>
+              <tr><td>Venue & Equipment</td><td class="tm">500</td><td class="tm">800</td><td class="tm">1,200</td><td class="tm">2,000</td><td class="tm">3,000</td></tr>
+              <tr><td>Marketing & Promo</td><td class="tm">1,000</td><td class="tm">1,500</td><td class="tm">2,500</td><td class="tm">4,000</td><td class="tm">6,000</td></tr>
+              <tr><td>Prize Pools</td><td class="tm">800</td><td class="tm">1,200</td><td class="tm">2,000</td><td class="tm">3,500</td><td class="tm">6,000</td></tr>
+              <tr><td>Staff & Coordination</td><td class="tm">600</td><td class="tm">900</td><td class="tm">1,500</td><td class="tm">2,500</td><td class="tm">4,000</td></tr>
+              <tr><td>Digital Platform</td><td class="tm">300</td><td class="tm">400</td><td class="tm">600</td><td class="tm">800</td><td class="tm">1,200</td></tr>
+              <tr><td>Talent Fund</td><td class="tm">200</td><td class="tm">400</td><td class="tm">700</td><td class="tm">1,200</td><td class="tm">2,000</td></tr>
+              <tr><td>Admin & Misc</td><td class="tm">200</td><td class="tm">300</td><td class="tm">400</td><td class="tm">500</td><td class="tm">700</td></tr>
+              <tr style="border-top:2px solid var(--brick)"><td style="font-weight:600">TOTAL EXPENSES</td><td class="tm" style="color:var(--brick);font-weight:600">3,600</td><td class="tm" style="color:var(--brick)">5,500</td><td class="tm" style="color:var(--brick)">8,900</td><td class="tm" style="color:var(--brick)">14,500</td><td class="tm" style="color:var(--brick)">22,900</td></tr>
+              <tr style="border-top:3px solid var(--gold)"><td style="font-family:'Barlow Condensed';font-size:13px;font-weight:700">NET PROFIT</td><td class="tm" style="font-size:17px;color:var(--ledger);font-weight:700">6,740</td><td class="tm" style="color:var(--ledger)">13,700</td><td class="tm" style="color:var(--ledger)">29,240</td><td class="tm" style="color:var(--ledger)">44,916</td><td class="tm" style="color:var(--ledger)">85,588</td></tr>
+            </tbody>
+          </table></div></div>
+        </div>
+      </div>
+
+      <!-- ══ TALENT FUND ══ -->
+      <div class="page" id="page-talent-fund">
+        <div class="panel">
+          <div class="ph"><div class="pt">Talent Fund Ledger</div><button class="btn btn-gold btn-sm" onclick="openM('m-fund-txn')">+ Add Transaction</button></div>
+          <div class="pb">
+            <div class="stat-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+              <div class="stat-card g"><div class="sc-lbl">Total Raised</div><div class="sc-val mono" id="tf-raised">—</div></div>
+              <div class="stat-card"><div class="sc-lbl">Disbursed</div><div class="sc-val mono" id="tf-disburse">—</div></div>
+              <div class="stat-card"><div class="sc-lbl">Balance</div><div class="sc-val mono" id="tf-balance">—</div></div>
+              <div class="stat-card"><div class="sc-lbl">Players Supported</div><div class="sc-val mono" id="tf-players">—</div></div>
+            </div>
+            <div class="tw"><table>
+              <thead><tr><th>Date</th><th>Description</th><th>Sub-text</th><th>Amount</th><th>Type</th><th>Program</th><th>Status</th><th>Balance</th><th>Actions</th></tr></thead>
+              <tbody id="fund-tbody"></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SITE CONTENT ══ -->
+      <div class="page" id="page-site-content">
+        <div class="gh-bar"><p>Changes here are <strong>published directly to cuepointe.github.io</strong> when you click "Publish to Site" in the top bar.</p></div>
+        <div class="panel">
+          <div class="ph"><div class="pt">Homepage — Schedule Entries</div><button class="btn btn-gold btn-sm" onclick="openM('m-sched')">+ Add Event to Schedule</button></div>
+          <div class="pb"><div class="tw"><table>
+            <thead><tr><th>Event Name</th><th>Date</th><th>Venue</th><th>Entry Fee</th><th>Prize Pool</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="sched-tbody"></tbody>
+          </table></div></div>
+        </div>
+        <div class="panel">
+          <div class="ph"><div class="pt">News Articles (Homepage & news.html)</div><button class="btn btn-gold btn-sm" onclick="openM('m-article')">+ New Article</button></div>
+          <div class="pb"><div class="tw"><table>
+            <thead><tr><th>Headline</th><th>Category</th><th>Date</th><th>Status</th><th>Media Files</th><th>Actions</th></tr></thead>
+            <tbody id="news-tbody"></tbody>
+          </table></div></div>
+        </div>
+      </div>
+
+      <!-- ══ RANKINGS ══ -->
+      <div class="page" id="page-rankings-mgr">
+        <div class="gh-bar"><p>Ranking scores are calculated automatically. Click <strong>Publish to Site</strong> to push <code style="background:rgba(255,255,255,.06);padding:1px 6px">players.json</code> live to GitHub.</p></div>
+        <div class="panel">
+          <div class="ph"><div class="pt">Live Rankings</div><button class="btn btn-outline btn-sm" onclick="openM('m-match')">+ Record Match Result</button></div>
+          <div class="pb"><div class="tw"><table>
+            <thead><tr><th>#</th><th>Player</th><th>Area</th><th>Events</th><th>Wins</th><th>Win %</th><th>⚡</th><th>🎯</th><th>🖤</th><th>Score</th></tr></thead>
+            <tbody id="rankings-tbody"></tbody>
+          </table></div></div>
+        </div>
+      </div>
+
+      <!-- ══ NEWS ══ -->
+      <div class="page" id="page-news-mgr">
+        <div class="panel">
+          <div class="ph"><div class="pt">News & Media Manager</div><button class="btn btn-gold btn-sm" onclick="openM('m-article')">+ New Article</button></div>
+          <div class="pb"><div class="tw"><table>
+            <thead><tr><th>Headline</th><th>Category</th><th>Date</th><th>Status</th><th>Media</th><th>Actions</th></tr></thead>
+            <tbody id="news2-tbody"></tbody>
+          </table></div></div>
+        </div>
+      </div>
+
+      <!-- ══ SEO ══ -->
+      <div class="page" id="page-seo">
+        <div class="stat-row">
+          <div class="stat-card g"><div class="sc-lbl">Overall Score</div><div class="sc-val mono">78<span style="font-size:12px;color:var(--stone)">/100</span></div><div class="sc-sub">Good, but fixable</div></div>
+          <div class="stat-card"><div class="sc-lbl">Desktop Speed</div><div class="sc-val mono">99<span style="font-size:12px;color:var(--stone)">/100</span></div><div class="sc-sub up">0.8s load ✓</div></div>
+          <div class="stat-card"><div class="sc-lbl">Mobile Speed</div><div class="sc-val mono">89<span style="font-size:12px;color:var(--stone)">/100</span></div><div class="sc-sub">3.0s — improvable</div></div>
+          <div class="stat-card r"><div class="sc-lbl">Errors / Warnings</div><div class="sc-val mono">2 / 3</div><div class="sc-sub dn">Needs attention</div></div>
+        </div>
+        <div class="two-col">
+          <div>
+            <div class="panel"><div class="ph"><div class="pt">🔴 Errors — Fix Now</div></div><div class="pb">
+              <div class="audit-row"><div class="ai err">✗</div><div class="at"><h5>Meta Title Too Long + Special Characters</h5><p>71 chars — Google truncates at 65. Contains | # – '</p><div class="afix">Fix → "CuePointe Action Pool - Uganda Youth Cue-Sports Platform" (57 chars)</div></div></div>
+              <div class="audit-row"><div class="ai err">✗</div><div class="at"><h5>Meta Description Too Long</h5><p>192 chars — Google cuts at 160.</p><div class="afix">Fix → Trim to under 160 chars. Remove "Kampala" repetition.</div></div></div>
+            </div></div>
+            <div class="panel"><div class="ph"><div class="pt">🟡 Warnings — Fix Soon</div></div><div class="pb">
+              <div class="audit-row"><div class="ai warn">!</div><div class="at"><h5>No XML Sitemap</h5><p>Google can't efficiently crawl all pages without it.</p><div class="afix">Fix → Create sitemap.xml, upload to repo root</div></div></div>
+              <div class="audit-row"><div class="ai warn">!</div><div class="at"><h5>No robots.txt</h5><p>No crawl rules — draft/admin pages could be indexed.</p><div class="afix">Fix → Create robots.txt with sitemap reference</div></div></div>
+              <div class="audit-row"><div class="ai warn">!</div><div class="at"><h5>No Favicon</h5><p>Missing in browser tabs and Google results.</p><div class="afix">Fix → Generate at favicon.io, upload to repo root</div></div></div>
+            </div></div>
+          </div>
+          <div>
+            <div class="panel"><div class="ph"><div class="pt">✅ Passing</div></div><div class="pb">
+              <div class="audit-row"><div class="ai ok">✓</div><div class="at"><h5>Schema.org Structured Data</h5><p>SportsOrganization schema valid.</p></div></div>
+              <div class="audit-row"><div class="ai ok">✓</div><div class="at"><h5>Open Graph Protocol</h5><p>og:title, og:description, og:image all present.</p></div></div>
+              <div class="audit-row"><div class="ai ok">✓</div><div class="at"><h5>Mobile Friendly</h5><p>Viewport correct. Tap elements optimal.</p></div></div>
+              <div class="audit-row"><div class="ai ok">✓</div><div class="at"><h5>SSL / HTTPS</h5><p>Valid GitHub Pages certificate.</p></div></div>
+              <div class="audit-row"><div class="ai ok">✓</div><div class="at"><h5>Desktop Speed 99/100</h5><p>0.8s — excellent.</p></div></div>
+              <div class="audit-row"><div class="ai ok">✓</div><div class="at"><h5>Alt Text on Images</h5><p>Logo has descriptive alt text.</p></div></div>
+            </div></div>
+            <div class="panel"><div class="ph"><div class="pt">Action Checklist</div></div><div class="pb">
+              <div style="display:flex;flex-direction:column;gap:9px">
+                <label style="display:flex;gap:8px;align-items:center;cursor:pointer;font-family:'Barlow';font-size:13px;color:var(--white);text-transform:none;letter-spacing:0"><input type="checkbox"> Fix meta title</label>
+                <label style="display:flex;gap:8px;align-items:center;cursor:pointer;font-family:'Barlow';font-size:13px;color:var(--white);text-transform:none;letter-spacing:0"><input type="checkbox"> Fix meta description</label>
+                <label style="display:flex;gap:8px;align-items:center;cursor:pointer;font-family:'Barlow';font-size:13px;color:var(--white);text-transform:none;letter-spacing:0"><input type="checkbox"> Upload sitemap.xml</label>
+                <label style="display:flex;gap:8px;align-items:center;cursor:pointer;font-family:'Barlow';font-size:13px;color:var(--white);text-transform:none;letter-spacing:0"><input type="checkbox"> Upload robots.txt</label>
+                <label style="display:flex;gap:8px;align-items:center;cursor:pointer;font-family:'Barlow';font-size:13px;color:var(--white);text-transform:none;letter-spacing:0"><input type="checkbox"> Upload favicon files</label>
+                <label style="display:flex;gap:8px;align-items:center;cursor:pointer;font-family:'Barlow';font-size:13px;color:var(--white);text-transform:none;letter-spacing:0"><input type="checkbox"> Connect Google Search Console</label>
+                <label style="display:flex;gap:8px;align-items:center;cursor:pointer;font-family:'Barlow';font-size:13px;color:var(--white);text-transform:none;letter-spacing:0"><input type="checkbox"> Verify Google Analytics GA4</label>
+                <label style="display:flex;gap:8px;align-items:center;cursor:pointer;font-family:'Barlow';font-size:13px;color:var(--white);text-transform:none;letter-spacing:0"><input type="checkbox"> Add Facebook Pixel</label>
+              </div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SETTINGS ══ -->
+      <div class="page" id="page-settings">
+        <div class="two-col">
+          <div class="panel"><div class="ph"><div class="pt">Organisation Details</div></div><div class="pb">
+            <div class="fg2">
+              <div class="fg s2"><label>Organisation Name</label><input type="text" id="cfg-org" value="CuePointe Action Pool"></div>
+              <div class="fg"><label>Phone / WhatsApp</label><input type="text" id="cfg-phone" value="+256 772 282 676"></div>
+              <div class="fg"><label>Email</label><input type="text" id="cfg-email" value="cuepointe@gmail.com"></div>
+              <div class="fg"><label>Founder / Director</label><input type="text" id="cfg-founder" value="Otieno Thomas"></div>
+              <div class="fg"><label>Base Location</label><input type="text" id="cfg-base" value="Kabalagala, Kampala"></div>
+              <div class="fg"><label>Season Year</label><input type="text" id="cfg-season" value="2026"></div>
+            </div>
+            <div class="ff"><button class="btn btn-gold btn-sm" onclick="saveSettings()">Save & Publish</button></div>
+          </div></div>
+          <div class="panel"><div class="ph"><div class="pt">Access & Security</div></div><div class="pb">
+            <div class="fg2">
+              <div class="fg s2"><label>Current Team Password</label><input type="password" id="cfg-oldpass" placeholder="Current password"></div>
+              <div class="fg"><label>New Password</label><input type="password" id="cfg-newpass" placeholder="New password"></div>
+              <div class="fg"><label>Confirm Password</label><input type="password" id="cfg-confpass" placeholder="Confirm"></div>
+            </div>
+            <div class="ff"><button class="btn btn-outline btn-sm" onclick="changePassword()">Update Password</button></div>
+            <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--line)">
+              <div class="sec-tag">GitHub Configuration</div>
+              <p style="font-size:12px;color:var(--stone);margin-bottom:10px;line-height:1.7">The PAT token you entered at login is used to publish changes. To rotate it, sign out and sign back in with the new token.</p>
+              <div class="fg"><label>Repo (read-only)</label><input type="text" value="CuePointe/cuepointe.github.io" disabled style="opacity:.5"></div>
+            </div>
+          </div></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ════ MODALS ════ -->
+<div class="mo" id="m-event"><div class="mb">
+  <div class="mh"><div class="mt">Add Event</div><button class="mc" onclick="closeM('m-event')">✕</button></div>
+  <div class="mbody"><div class="fg2">
+    <div class="fg"><label>Event ID *</label><input type="text" id="ev-id" placeholder="EVT-005" class="tm"></div>
+    <div class="fg"><label>Date</label><input type="date" id="ev-date"></div>
+    <div class="fg"><label>Type</label><select id="ev-type"><option>Knockout</option><option>League</option><option>Championship</option><option>Community</option></select></div>
+    <div class="fg"><label>Status</label><select id="ev-status"><option>Planned</option><option>Completed</option><option>Cancelled</option></select></div>
+    <div class="fg"><label>Venue</label><input type="text" id="ev-venue"></div>
+    <div class="fg"><label>Location</label><input type="text" id="ev-loc" placeholder="Area, Kampala"></div>
+    <div class="fg"><label>Players</label><input type="number" id="ev-players" value="0" class="tm"></div>
+    <div class="fg"><label>Entry Fee (UGX)</label><input type="number" id="ev-fee" value="5000" class="tm"></div>
+    <div class="fg"><label>Revenue (UGX)</label><input type="number" id="ev-rev" value="0" class="tm"></div>
+    <div class="fg"><label>Expenses (UGX)</label><input type="number" id="ev-exp" value="0" class="tm"></div>
+    <div class="fg"><label>Prize Pool (UGX)</label><input type="number" id="ev-prize" value="0" class="tm"></div>
+    <div class="fg s2"><label>Notes</label><input type="text" id="ev-notes"></div>
+  </div></div>
+  <div class="mf"><button class="btn btn-outline" onclick="closeM('m-event')">Cancel</button><button class="btn btn-gold" onclick="addEvent()">Add Event</button></div>
+</div></div>
+
+<div class="mo" id="m-player"><div class="mb">
+  <div class="mh"><div class="mt">Register Player</div><button class="mc" onclick="closeM('m-player')">✕</button></div>
+  <div class="mbody"><div class="fg2">
+    <div class="fg"><label>Player ID *</label><input type="text" id="pl-id" placeholder="CP-0001" class="tm"></div>
+    <div class="fg"><label>Full Name *</label><input type="text" id="pl-name"></div>
+    <div class="fg"><label>Age</label><input type="number" id="pl-age" class="tm"></div>
+    <div class="fg"><label>Area</label><input type="text" id="pl-area"></div>
+    <div class="fg"><label>Phone</label><input type="tel" id="pl-phone" class="tm"></div>
+    <div class="fg"><label>Date Joined</label><input type="date" id="pl-joined"></div>
+    <div class="fg"><label>Tier</label><select id="pl-tier"><option>Standard</option><option>Premium</option><option>Elite</option></select></div>
+    <div class="fg"><label>Consistency (%)</label><input type="number" id="pl-cons" value="0" min="0" max="100" class="tm"></div>
+    <div class="fg"><label>Sportsmanship (1–10)</label><input type="number" id="pl-sport" value="5" min="1" max="10" class="tm"></div>
+    <div class="fg"><label>Events Played</label><input type="number" id="pl-ev" value="0" class="tm"></div>
+    <div class="fg"><label>⚡ Fast Finish</label><select id="pl-fast"><option value="0">No</option><option value="1">Yes</option></select></div>
+    <div class="fg"><label>🎯 Flawless Game</label><select id="pl-flaw"><option value="0">No</option><option value="1">Yes</option></select></div>
+    <div class="fg"><label>🖤 Break Achievement</label><select id="pl-brk"><option value="0">No</option><option value="1">Yes</option></select></div>
+    <div class="fg"><label>Endgame Mastery</label><select id="pl-end"><option value="0">No</option><option value="1">Yes</option></select></div>
+    <div class="fg s2"><label>Notes</label><textarea id="pl-notes"></textarea></div>
+  </div></div>
+  <div class="mf"><button class="btn btn-outline" onclick="closeM('m-player')">Cancel</button><button class="btn btn-gold" onclick="addPlayer()">Register Player</button></div>
+</div></div>
+
+<div class="mo" id="m-agent"><div class="mb">
+  <div class="mh"><div class="mt">Add Agent</div><button class="mc" onclick="closeM('m-agent')">✕</button></div>
+  <div class="mbody"><div class="fg2">
+    <div class="fg"><label>Agent ID</label><input type="text" id="ag-id" placeholder="AG-007" class="tm"></div>
+    <div class="fg"><label>Full Name *</label><input type="text" id="ag-name"></div>
+    <div class="fg"><label>Phone</label><input type="tel" id="ag-phone" class="tm"></div>
+    <div class="fg"><label>WhatsApp</label><select id="ag-wa"><option value="Y">Yes</option><option value="N">No</option></select></div>
+    <div class="fg"><label>Area</label><input type="text" id="ag-area"></div>
+    <div class="fg"><label>Role</label><select id="ag-role"><option>Agent</option><option>Partner</option></select></div>
+    <div class="fg"><label>Affiliated Venue</label><input type="text" id="ag-venue"></div>
+    <div class="fg"><label>Active</label><select id="ag-active"><option value="Y">Yes</option><option value="N">No</option></select></div>
+    <div class="fg"><label>Commission Type</label><select id="ag-ctype"><option>Per Player / Flat</option><option>Flat</option></select></div>
+    <div class="fg"><label>Rate (%)</label><input type="number" id="ag-rate" value="10" class="tm"></div>
+    <div class="fg s2"><label>Notes</label><input type="text" id="ag-notes"></div>
+  </div></div>
+  <div class="mf"><button class="btn btn-outline" onclick="closeM('m-agent')">Cancel</button><button class="btn btn-gold" onclick="addAgent()">Add Agent</button></div>
+</div></div>
+
+<div class="mo" id="m-txn"><div class="mb">
+  <div class="mh"><div class="mt">Add Transaction</div><button class="mc" onclick="closeM('m-txn')">✕</button></div>
+  <div class="mbody"><div class="fg2">
+    <div class="fg"><label>Transaction ID *</label><input type="text" id="tx-id" placeholder="CP-KOT/0003" class="tm"></div>
+    <div class="fg"><label>Date *</label><input type="date" id="tx-date"></div>
+    <div class="fg"><label>Type</label><select id="tx-type"><option>Expense</option><option>Income</option></select></div>
+    <div class="fg"><label>Source</label><input type="text" id="tx-src"></div>
+    <div class="fg s2"><label>Description *</label><input type="text" id="tx-desc"></div>
+    <div class="fg"><label>Amount In (UGX)</label><input type="number" id="tx-in" value="0" class="tm"></div>
+    <div class="fg"><label>Amount Out (UGX)</label><input type="number" id="tx-out" value="0" class="tm"></div>
+    <div class="fg"><label>Event Linked</label><input type="text" id="tx-ev" class="tm" placeholder="EVT-001"></div>
+    <div class="fg"><label>Approved By</label><input type="text" id="tx-appr"></div>
+  </div></div>
+  <div class="mf"><button class="btn btn-outline" onclick="closeM('m-txn')">Cancel</button><button class="btn btn-gold" onclick="addTxn()">Add Transaction</button></div>
+</div></div>
+
+<div class="mo" id="m-sponsor"><div class="mb">
+  <div class="mh"><div class="mt">Add Sponsor</div><button class="mc" onclick="closeM('m-sponsor')">✕</button></div>
+  <div class="mbody"><div class="fg2">
+    <div class="fg"><label>Sponsor ID</label><input type="text" id="sp-id" class="tm"></div>
+    <div class="fg"><label>Company / Name *</label><input type="text" id="sp-name"></div>
+    <div class="fg"><label>Contact Person</label><input type="text" id="sp-cont"></div>
+    <div class="fg"><label>Status</label><select id="sp-stat"><option>Prospect</option><option>Active</option><option>Pending</option><option>Lapsed</option></select></div>
+    <div class="fg"><label>Tier</label><select id="sp-tier"><option>Gold</option><option>Silver</option><option>Bronze</option><option>Community</option></select></div>
+    <div class="fg"><label>Value (UGX)</label><input type="number" id="sp-val" class="tm"></div>
+    <div class="fg"><label>Duration</label><input type="text" id="sp-dur" placeholder="3 months, Annual…"></div>
+    <div class="fg"><label>Next Review</label><input type="date" id="sp-rev"></div>
+    <div class="fg s2"><label>Benefits Agreed</label><input type="text" id="sp-ben"></div>
+    <div class="fg s2"><label>Notes</label><textarea id="sp-notes" style="min-height:50px"></textarea></div>
+  </div></div>
+  <div class="mf"><button class="btn btn-outline" onclick="closeM('m-sponsor')">Cancel</button><button class="btn btn-gold" onclick="addSponsor()">Add Sponsor</button></div>
+</div></div>
+
+<div class="mo" id="m-match"><div class="mb">
+  <div class="mh"><div class="mt">Record Match Result</div><button class="mc" onclick="closeM('m-match')">✕</button></div>
+  <div class="mbody"><div class="fg2">
+    <div class="fg"><label>Event ID</label><input type="text" id="mr-ev" class="tm" placeholder="EVT-004"></div>
+    <div class="fg"><label>Date</label><input type="date" id="mr-date"></div>
+    <div class="fg"><label>Winner Player ID *</label><input type="text" id="mr-win" class="tm" placeholder="CP-0001"></div>
+    <div class="fg"><label>Loser Player ID</label><input type="text" id="mr-lose" class="tm" placeholder="CP-0002"></div>
+    <div class="fg"><label>⚡ Fast Finish</label><select id="mr-fast"><option value="">None</option><option value="winner">Winner</option><option value="loser">Loser</option></select></div>
+    <div class="fg"><label>🎯 Flawless Game</label><select id="mr-flaw"><option value="">None</option><option value="winner">Winner</option><option value="loser">Loser</option></select></div>
+    <div class="fg"><label>🖤 Break Achievement</label><select id="mr-brk"><option value="">None</option><option value="winner">Winner</option><option value="loser">Loser</option></select></div>
+    <div class="fg"><label>Prize Paid (UGX)</label><input type="number" id="mr-prize" value="0" class="tm"></div>
+    <div class="fg s2"><label>Notes</label><input type="text" id="mr-notes"></div>
+  </div></div>
+  <div class="mf"><button class="btn btn-outline" onclick="closeM('m-match')">Cancel</button><button class="btn btn-gold" onclick="recordMatch()">Save & Update Rankings</button></div>
+</div></div>
+
+<div class="mo" id="m-article"><div class="mb">
+  <div class="mh"><div class="mt">New Article</div><button class="mc" onclick="closeM('m-article')">✕</button></div>
+  <div class="mbody"><div class="fg2">
+    <div class="fg s2"><label>Headline *</label><input type="text" id="art-title"></div>
+    <div class="fg"><label>Category</label><select id="art-cat"><option>Tournament</option><option>League</option><option>Rankings</option><option>Players</option><option>Community</option><option>Women</option><option>Sponsors</option><option>Announcement</option></select></div>
+    <div class="fg"><label>Publish Date</label><input type="date" id="art-date"></div>
+    <div class="fg"><label>Author</label><input type="text" id="art-author" value="CuePointe Staff"></div>
+    <div class="fg"><label>Status</label><select id="art-stat"><option>Published</option><option>Draft</option></select></div>
+    <div class="fg s2"><label>Excerpt</label><textarea id="art-exc"></textarea></div>
+    <div class="fg s2"><label>Media (comma-separated paths)</label><input type="text" id="art-media" placeholder="images/news/article-1.jpg, images/news/article-2.jpg" class="tm"><p style="font-size:11px;color:var(--stone);margin-top:4px">Each file becomes a slideshow slide on news.html</p></div>
+  </div></div>
+  <div class="mf"><button class="btn btn-outline" onclick="closeM('m-article')">Cancel</button><button class="btn btn-green" onclick="addArticle()">Publish Article</button></div>
+</div></div>
+
+<div class="mo" id="m-sched"><div class="mb">
+  <div class="mh"><div class="mt">Add Schedule Entry</div><button class="mc" onclick="closeM('m-sched')">✕</button></div>
+  <div class="mbody"><div class="fg2">
+    <div class="fg s2"><label>Event Name *</label><input type="text" id="sc-name" placeholder="Weekly Knockout #19"></div>
+    <div class="fg"><label>Date & Time</label><input type="text" id="sc-date" placeholder="April 12, 2026 · 4PM"></div>
+    <div class="fg"><label>Venue</label><input type="text" id="sc-venue" placeholder="Kabalagala Base"></div>
+    <div class="fg"><label>Entry Fee</label><input type="text" id="sc-fee" value="UGX 5,000"></div>
+    <div class="fg"><label>Prize Pool</label><input type="text" id="sc-prize" value="UGX 80,000"></div>
+    <div class="fg"><label>Status</label><select id="sc-stat"><option>Open</option><option>Upcoming</option><option>Closed</option><option>Featured</option></select></div>
+  </div></div>
+  <div class="mf"><button class="btn btn-outline" onclick="closeM('m-sched')">Cancel</button><button class="btn btn-gold" onclick="addSchedule()">Add to Schedule</button></div>
+</div></div>
+
+<div class="mo" id="m-fund-txn"><div class="mb">
+  <div class="mh"><div class="mt">Add Fund Transaction</div><button class="mc" onclick="closeM('m-fund-txn')">✕</button></div>
+  <div class="mbody"><div class="fg2">
+    <div class="fg"><label>Date *</label><input type="date" id="ft-date"></div>
+    <div class="fg"><label>Type</label><select id="ft-type"><option value="in">In (Received)</option><option value="out">Out (Disbursed)</option></select></div>
+    <div class="fg s2"><label>Description *</label><input type="text" id="ft-desc"></div>
+    <div class="fg"><label>Sub-text</label><input type="text" id="ft-sub" placeholder="Venue, sponsor name, event…"></div>
+    <div class="fg"><label>Amount (UGX)</label><input type="number" id="ft-amt" value="0" class="tm"></div>
+    <div class="fg"><label>Program</label><select id="ft-prog"><option value="prize">Prize Pool</option><option value="outreach">Youth Outreach</option><option value="ops">Operations</option><option value="equip">Equipment</option></select></div>
+    <div class="fg"><label>Status</label><select id="ft-stat"><option value="received">Received</option><option value="disbursed">Disbursed</option><option value="pending">Pending</option></select></div>
+  </div></div>
+  <div class="mf"><button class="btn btn-outline" onclick="closeM('m-fund-txn')">Cancel</button><button class="btn btn-gold" onclick="addFundTxn()">Add Transaction</button></div>
+</div></div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span id="toast-txt"></span></div>
+
+<script>
+/* ════════════════════════════════
+   CONFIGURATION — edit these
+════════════════════════════════ */
+const REPO_OWNER = 'CuePointe';
+const REPO_NAME  = 'cuepointe.github.io';
+const BRANCH     = 'main'; // change to 'master' if needed
+
+/* Team password — change this to your actual password */
+const TEAM_PASSWORD = 'CuePointe2026!';
+
+/* ════════════════════════════════
+   STATE
+════════════════════════════════ */
+let GH_TOKEN = '';
+let CURRENT_USER = '';
+let DB = {
+  events:[], players:[], agents:[], transactions:[], sponsors:[],
+  articles:[], schedule:[], fund_transactions:[],
+  settings:{ org:'CuePointe Action Pool', phone:'+256 772 282 676',
+    email:'cuepointe@gmail.com', founder:'Otieno Thomas',
+    base:'Kabalagala, Kampala', season:'2026' }
+};
+
+/* Pre-populate from workbook */
+function seedData() {
+  if (DB.agents.length) return;
+  DB.agents = [
+    {id:'AG-001',name:'Dihan',phone:'+256 743 000000',wa:'Y',area:'Katwe',role:'Agent',venue:'',active:'Y',ctype:'Per Player / Flat',rate:10,referred:8,fees:80000,comm:8000,notes:''},
+    {id:'AG-002',name:'Kiwewa',phone:'+256 743 000001',wa:'Y',area:'Katwe',role:'Agent',venue:'',active:'Y',ctype:'Per Player / Flat',rate:10,referred:0,fees:0,comm:0,notes:'Confirm player count'},
+    {id:'AG-003',name:'Ssentongo Ushaka',phone:'+256 705 922906',wa:'Y',area:'Katwe',role:'Agent',venue:'',active:'Y',ctype:'Per Player / Flat',rate:10,referred:0,fees:0,comm:0,notes:''},
+    {id:'AG-004',name:'Morris',phone:'+256 759 165123',wa:'Y',area:'Kibuye',role:'Partner',venue:'Kamapa Pool Arena',active:'Y',ctype:'Flat',rate:0,referred:0,fees:0,comm:0,notes:'Flat rate — confirm'},
+    {id:'AG-005',name:'Bashir',phone:'+256 744 008113',wa:'Y',area:'Katwe',role:'Agent',venue:'',active:'Y',ctype:'Flat',rate:0,referred:0,fees:0,comm:0,notes:'Flat rate — confirm'},
+    {id:'AG-006',name:'Ana',phone:'+256 703 254094',wa:'N',area:'Katwe',role:'Agent',venue:'',active:'N',ctype:'Per Player / Flat',rate:10,referred:0,fees:0,comm:0,notes:'Inactive — follow up'},
+  ];
+  DB.transactions = [
+    {id:'CP-KOT/0001',date:'2025-12-27',type:'Expense',source:'Investment',desc:'Marketing & Mobilization – EVT-001',amtIn:0,amtOut:700000,balance:-700000,event:'EVT-001',approved:'Otieno Thomas'},
+    {id:'KOT/0002',date:'2026-01-03',type:'Expense',source:'Investment',desc:'Marketing & Mobilization – EVT-002',amtIn:0,amtOut:300000,balance:-1000000,event:'EVT-002',approved:'Otieno Thomas'},
+  ];
+  DB.events = [
+    {id:'EVT-001',date:'2025-12-27',type:'Knockout',venue:'TBC',location:'Katwe, Kampala',players:0,fee:5000,revenue:0,expenses:700000,net:-700000,prize:0,status:'Completed',notes:'Marketing phase'},
+    {id:'EVT-002',date:'2026-01-03',type:'Knockout',venue:'TBC',location:'Katwe, Kampala',players:0,fee:5000,revenue:0,expenses:300000,net:-300000,prize:0,status:'Completed',notes:'Marketing phase'},
+    {id:'EVT-003',date:'',type:'Knockout',venue:'',location:'Katwe, Kampala',players:0,fee:5000,revenue:0,expenses:0,net:0,prize:0,status:'Planned',notes:''},
+    {id:'EVT-004',date:'',type:'Knockout',venue:'Kamapa Pool Arena',location:'Kibuye, Kampala',players:8,fee:5000,revenue:40000,expenses:0,net:40000,prize:20000,status:'Completed',notes:'AG-001 referral'},
+  ];
+  DB.fund_transactions = [
+    {date:'2026-06-14',desc:'Weekly Knockout #18 Prize Payout',sub:'Kabalagala Base',amount:80000,type:'out',program:'prize',status:'disbursed',balance:1610000},
+    {date:'2026-06-10',desc:'Gold Sponsor — Nile Beverages Ltd',sub:'Quarterly contribution',amount:1500000,type:'in',program:'prize',status:'received',balance:1690000},
+  ];
+}
+
+/* ════════════════════════════════
+   LOGIN
+════════════════════════════════ */
+function doLogin() {
+  const pass  = document.getElementById('login-pass').value.trim();
+  const token = document.getElementById('login-token').value.trim();
+  const name  = document.getElementById('login-name').value.trim() || 'Staff';
+  const err   = document.getElementById('login-err');
+  if (pass !== TEAM_PASSWORD) { err.style.display='block'; err.textContent='Incorrect password.'; return; }
+  if (!token) { err.style.display='block'; err.textContent='GitHub token is required.'; return; }
+  GH_TOKEN = token;
+  CURRENT_USER = name;
+  err.style.display = 'none';
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('sb-username').textContent = name;
+  document.getElementById('sb-session').textContent = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) + ' · ' + new Date().toLocaleDateString('en-GB');
+  seedData();
+  pullFromGitHub();
+}
+
+function doLogout() {
+  GH_TOKEN = ''; CURRENT_USER = '';
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-token').value = '';
+}
+
+/* ════════════════════════════════
+   GITHUB API
+════════════════════════════════ */
+function setSyncStatus(state, msg) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.className = 'sync-dot ' + state;
+  lbl.textContent = msg;
+}
+
+async function ghGet(path) {
+  const r = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}?ref=${BRANCH}`, {
+    headers:{ Authorization:'Bearer '+GH_TOKEN, Accept:'application/vnd.github+json' }
+  });
+  if (!r.ok) throw new Error(r.status + ' ' + r.statusText);
+  return r.json();
+}
+
+async function ghPut(path, content, message, sha) {
+  const body = { message, content: btoa(unescape(encodeURIComponent(content))), branch: BRANCH };
+  if (sha) body.sha = sha;
+  const r = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${path}`, {
+    method:'PUT', headers:{ Authorization:'Bearer '+GH_TOKEN, Accept:'application/vnd.github+json', 'Content-Type':'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!r.ok) { const e = await r.json(); throw new Error(e.message || r.statusText); }
+  return r.json();
+}
+
+async function pullFromGitHub() {
+  setSyncStatus('saving','Pulling from GitHub…');
+  try {
+    /* Pull players.json */
+    const pf = await ghGet('players.json');
+    const raw = decodeURIComponent(escape(atob(pf.content.replace(/\n/g,''))));
+    const parsed = JSON.parse(raw);
+    const arr = Array.isArray(parsed) ? parsed : (parsed.players || []);
+    if (arr.length) {
+      DB.players = arr.map(p => ({
+        id: p.id||'', name: p.name||'', age: p.age||'', area: p.area||'',
+        phone: p.phone||'', joined: p.joined||'', tier: p.tier||'Standard',
+        events: parseInt(p.events)||0, wins: parseInt(p.wins)||0,
+        consistency: parseInt(p.consistency)||0, sportsmanship: parseInt(p.sportsmanship)||5,
+        fast: parseInt(p.fast)||0, flawless: parseInt(p.flawless)||0,
+        breakAch: parseInt(p.breakAch)||0, endgame: parseInt(p.endgame)||0,
+        notes: p.notes||'', score: parseInt(p.score)||calcScore(p)
+      }));
+    }
+    setSyncStatus('live','Synced with GitHub');
+    toast('Pulled latest data from GitHub.');
+  } catch(e) {
+    setSyncStatus('error','Sync error — check token');
+    toast('Pull failed: ' + e.message, 'err');
+  }
+  refreshAll();
+}
+
+async function pushToGitHub() {
+  setSyncStatus('saving','Publishing to GitHub…');
+  const btn = document.querySelector('[onclick="pushToGitHub()"]');
+  if (btn) { btn.disabled=true; btn.textContent='Publishing…'; }
+  try {
+    /* Build players.json */
+    const playersJson = JSON.stringify({
+      players: DB.players.map(p => ({
+        id: p.id, name: p.name, age: String(p.age||''), area: p.area||'',
+        phone: p.phone||'', joined: p.joined||'', tier: p.tier||'Standard',
+        events: String(p.events||0), wins: String(p.wins||0),
+        consistency: String(p.consistency||0), sportsmanship: String(p.sportsmanship||5),
+        fast: String(p.fast||0), flawless: String(p.flawless||0),
+        breakAch: String(p.breakAch||0), endgame: String(p.endgame||0),
+        score: String(p.score||0), notes: p.notes||'',
+        traits: [p.fast?'⚡':'',p.flawless?'🎯':'',p.breakAch?'🖤':'',p.endgame?'🏅':''].filter(Boolean).join(' ')
+      }))
+    }, null, 2);
+
+    /* Get current SHA */
+    let sha;
+    try { const cur = await ghGet('players.json'); sha = cur.sha; } catch(e) {}
+    await ghPut('players.json', playersJson, `Admin update by ${CURRENT_USER} — ${new Date().toISOString().slice(0,16)}`, sha);
+
+    /* Build admin_data.json for backup */
+    const adminJson = JSON.stringify({ lastUpdated: new Date().toISOString(), updatedBy: CURRENT_USER, events: DB.events, agents: DB.agents, transactions: DB.transactions, sponsors: DB.sponsors, articles: DB.articles, schedule: DB.schedule, fund_transactions: DB.fund_transactions, settings: DB.settings }, null, 2);
+    let adminSha;
+    try { const cur2 = await ghGet('admin_data.json'); adminSha = cur2.sha; } catch(e) {}
+    await ghPut('admin_data.json', adminJson, `Admin data backup by ${CURRENT_USER}`, adminSha);
+
+    setSyncStatus('live','Published · ' + new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}));
+    toast('✓ Published to cuepointe.github.io — live in ~30 seconds.');
+  } catch(e) {
+    setSyncStatus('error','Publish failed');
+    toast('Publish failed: ' + e.message, 'err');
+  }
+  if (btn) { btn.disabled=false; btn.textContent='🚀 Publish to Site'; }
+}
+
+async function testConnection() {
+  setSyncStatus('saving','Testing…');
+  try {
+    const r = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`, {
+      headers:{ Authorization:'Bearer '+GH_TOKEN }
+    });
+    const d = await r.json();
+    if (d.full_name) { setSyncStatus('live','Connected · ' + d.full_name); toast('✓ Connected to ' + d.full_name); }
+    else { setSyncStatus('error','Connection failed'); toast('Token error: ' + (d.message||'Unknown'), 'err'); }
+  } catch(e) { setSyncStatus('error','Network error'); toast('Network error: ' + e.message, 'err'); }
+}
+
+/* ════════════════════════════════
+   NAVIGATION
+════════════════════════════════ */
+const PAGE_TITLES = {
+  dashboard:'Dashboard',events:'Event Register',players:'Player Register',agents:'Agent Register',
+  finance:'Finance Ledger',sponsors:'Sponsorship Tracker',projections:'5-Year Projections',
+  'talent-fund':'Talent Fund','site-content':'Site Content','rankings-mgr':'Rankings Manager',
+  'news-mgr':'News Manager',seo:'SEO Audit',settings:'Settings'
+};
+function nav(id, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(l=>l.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('page-title').textContent = PAGE_TITLES[id]||id;
+}
+
+/* ════════════════════════════════
+   MODALS
+════════════════════════════════ */
+function openM(id) { document.getElementById(id).classList.add('open'); }
+function closeM(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open')}));
+
+/* ════════════════════════════════
+   TOAST
+════════════════════════════════ */
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-txt').textContent = msg;
+  t.className = 'toast show' + (type?' '+type:'');
+  setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+/* ════════════════════════════════
+   SCORE CALCULATION
+════════════════════════════════ */
+function calcScore(p) {
+  return Math.round(
+    (parseInt(p.consistency)||0) * 0.35 +
+    (parseInt(p.sportsmanship)||0) * 3 +
+    (parseInt(p.fast)||0) * 10 +
+    (parseInt(p.flawless)||0) * 15 +
+    (parseInt(p.breakAch)||0) * 25 +
+    (parseInt(p.endgame)||0) * 10 +
+    (parseInt(p.events)||0) * 2
+  );
+}
+
+/* ════════════════════════════════
+   ADD / EDIT RECORDS
+════════════════════════════════ */
+function g(id) { return document.getElementById(id); }
+function gv(id) { return g(id) ? g(id).value.trim() : ''; }
+function gi(id) { return parseInt(gv(id))||0; }
+
+function addEvent() {
+  const id = gv('ev-id'); if (!id) { toast('Event ID required','err'); return; }
+  DB.events.push({ id, date:gv('ev-date'), type:gv('ev-type'), venue:gv('ev-venue'),
+    location:gv('ev-loc'), players:gi('ev-players'), fee:gi('ev-fee'),
+    revenue:gi('ev-rev'), expenses:gi('ev-exp'), net:gi('ev-rev')-gi('ev-exp'),
+    prize:gi('ev-prize'), status:gv('ev-status'), notes:gv('ev-notes') });
+  closeM('m-event'); refreshAll(); toast('Event '+id+' added.');
+}
+
+function addPlayer() {
+  const id=gv('pl-id'), name=gv('pl-name');
+  if (!id||!name) { toast('Player ID and name required','err'); return; }
+  const p = { id, name, age:gv('pl-age'), area:gv('pl-area'), phone:gv('pl-phone'),
+    joined:gv('pl-joined'), tier:gv('pl-tier'), events:gi('pl-ev'), wins:0,
+    consistency:gi('pl-cons'), sportsmanship:gi('pl-sport'),
+    fast:gi('pl-fast'), flawless:gi('pl-flaw'), breakAch:gi('pl-brk'), endgame:gi('pl-end'),
+    notes:gv('pl-notes') };
+  p.score = calcScore(p);
+  DB.players.push(p); closeM('m-player'); refreshAll(); toast('Player '+name+' registered.');
+}
+
+function addAgent() {
+  const name=gv('ag-name'); if (!name) { toast('Name required','err'); return; }
+  DB.agents.push({ id:gv('ag-id')||'AG-'+(DB.agents.length+1).toString().padStart(3,'0'),
+    name, phone:gv('ag-phone'), wa:gv('ag-wa'), area:gv('ag-area'),
+    role:gv('ag-role'), venue:gv('ag-venue'), active:gv('ag-active'),
+    ctype:gv('ag-ctype'), rate:gi('ag-rate'), referred:0, fees:0, comm:0, notes:gv('ag-notes') });
+  closeM('m-agent'); refreshAll(); toast('Agent '+name+' added.');
+}
+
+function addTxn() {
+  const id=gv('tx-id'), desc=gv('tx-desc');
+  if (!id||!desc) { toast('ID and description required','err'); return; }
+  const runBal = DB.transactions.length ? DB.transactions[DB.transactions.length-1].balance : 0;
+  const net = gi('tx-in') - gi('tx-out');
+  DB.transactions.push({ id, date:gv('tx-date'), type:gv('tx-type'), source:gv('tx-src'),
+    desc, amtIn:gi('tx-in'), amtOut:gi('tx-out'), balance:runBal+net,
+    event:gv('tx-ev'), approved:gv('tx-appr') });
+  closeM('m-txn'); refreshAll(); toast('Transaction added.');
+}
+
+function addSponsor() {
+  const name=gv('sp-name'); if (!name) { toast('Company name required','err'); return; }
+  DB.sponsors.push({ id:gv('sp-id')||'SP-'+(DB.sponsors.length+1).toString().padStart(3,'0'),
+    name, contact:gv('sp-cont'), status:gv('sp-stat'), tier:gv('sp-tier'),
+    value:gi('sp-val'), duration:gv('sp-dur'), review:gv('sp-rev'),
+    benefits:gv('sp-ben'), notes:gv('sp-notes') });
+  closeM('m-sponsor'); refreshAll(); toast('Sponsor '+name+' added.');
+}
+
+function recordMatch() {
+  const wid=gv('mr-win'); if (!wid) { toast('Winner ID required','err'); return; }
+  const w=DB.players.find(p=>p.id===wid);
+  const l=DB.players.find(p=>p.id===gv('mr-lose'));
+  if (!w) { toast('Winner not found in player register','err'); return; }
+  w.wins=(w.wins||0)+1; w.events=(w.events||0)+1;
+  if (l) l.events=(l.events||0)+1;
+  const fast=gv('mr-fast'), flaw=gv('mr-flaw'), brk=gv('mr-brk');
+  if (fast==='winner'&&w) w.fast=1; if (fast==='loser'&&l) l.fast=1;
+  if (flaw==='winner'&&w) w.flawless=1; if (flaw==='loser'&&l) l.flawless=1;
+  if (brk==='winner'&&w) w.breakAch=1; if (brk==='loser'&&l) l.breakAch=1;
+  w.score=calcScore(w); if(l) l.score=calcScore(l);
+  closeM('m-match'); refreshAll(); toast('Match recorded. Rankings updated.');
+}
+
+function addArticle() {
+  const title=gv('art-title'); if (!title) { toast('Headline required','err'); return; }
+  const a = { title, category:gv('art-cat'), date:gv('art-date'), author:gv('art-author'),
+    status:gv('art-stat'), excerpt:gv('art-exc'),
+    media:gv('art-media').split(',').map(s=>s.trim()).filter(Boolean) };
+  DB.articles.push(a); closeM('m-article'); refreshAll(); toast('Article published.');
+}
+
+function addSchedule() {
+  const name=gv('sc-name'); if (!name) { toast('Event name required','err'); return; }
+  DB.schedule.push({ name, date:gv('sc-date'), venue:gv('sc-venue'),
+    fee:gv('sc-fee'), prize:gv('sc-prize'), status:gv('sc-stat') });
+  closeM('m-sched'); refreshAll(); toast('Schedule entry added.');
+}
+
+function addFundTxn() {
+  const desc=gv('ft-desc'), amt=gi('ft-amt');
+  if (!desc) { toast('Description required','err'); return; }
+  const prev = DB.fund_transactions.length ? DB.fund_transactions[0].balance : 0;
+  const bal = gv('ft-type')==='in' ? prev+amt : prev-amt;
+  DB.fund_transactions.unshift({ date:gv('ft-date'), desc, sub:gv('ft-sub'),
+    amount:amt, type:gv('ft-type'), program:gv('ft-prog'), status:gv('ft-stat'), balance:bal });
+  closeM('m-fund-txn'); refreshAll(); toast('Fund transaction added.');
+}
+
+function deleteRow(arr, idx) {
+  if (!confirm('Delete this record?')) return;
+  arr.splice(idx,1); refreshAll();
+}
+
+function saveSettings() {
+  DB.settings.org=gv('cfg-org'); DB.settings.phone=gv('cfg-phone');
+  DB.settings.email=gv('cfg-email'); DB.settings.founder=gv('cfg-founder');
+  DB.settings.base=gv('cfg-base'); DB.settings.season=gv('cfg-season');
+  pushToGitHub(); toast('Settings saved and published.');
+}
+
+function changePassword() {
+  toast('Password changes require editing the TEAM_PASSWORD constant in admin.html.','warn');
+}
+
+/* ════════════════════════════════
+   RENDER TABLES
+════════════════════════════════ */
+function fmt(n){return (n||0).toLocaleString();}
+function color(n){return n>=0?'var(--ledger)':'var(--brick)';}
+function sign(n){return n>=0?'+':'';}
+const badgeMap = {
+  Completed:'bs',Planned:'bo',Cancelled:'br',Active:'bg',Prospect:'bo',
+  Pending:'bo',Lapsed:'br',Published:'bg',Draft:'bs',
+  Open:'bg',Upcoming:'bo',Closed:'bs',Featured:'bb',
+  Tournament:'bo',League:'bg',Community:'bb',Women:'bb',Sponsors:'bb',Announcement:'bo',
+  in:'bg',out:'br',received:'bb',disbursed:'bg',pending:'bo',
+  Gold:'bo',Silver:'bs',Bronze:'bs','Community Partner':'bg',
+};
+
+function mkBadge(t){return`<span class="badge ${badgeMap[t]||'bs'}">${t}</span>`;}
+function emptyRow(cols,msg='No records yet.'){return`<tr class="empty-row"><td colspan="${cols}">${msg}</td></tr>`;}
+
+function renderEvents(){
+  const t=document.getElementById('events-tbody');
+  t.innerHTML = DB.events.length ? DB.events.map((e,i)=>`<tr>
+    <td class="tm">${e.id}</td><td class="tm">${e.date||'—'}</td><td>${e.type}</td>
+    <td>${e.venue||'—'}</td><td>${e.location}</td><td>${e.players}</td>
+    <td class="tm" style="color:${color(e.revenue)}">${fmt(e.revenue)}</td>
+    <td class="tm" style="color:var(--brick)">${fmt(e.expenses)}</td>
+    <td class="tm" style="color:${color(e.net)}">${sign(e.net)}${fmt(e.net)}</td>
+    <td class="tm">${fmt(e.prize)}</td>
+    <td>${mkBadge(e.status)}</td>
+    <td><div class="tact"><button class="btn btn-red btn-sm" onclick="deleteRow(DB.events,${i});renderEvents()">✕</button></div></td>
+  </tr>`).join('') : emptyRow(12);
+}
+
+function renderPlayers(){
+  const t=document.getElementById('players-tbody');
+  t.innerHTML = DB.players.length ? DB.players.map((p,i)=>`<tr>
+    <td class="tm">${p.id}</td><td>${p.name}</td><td class="tm">${p.age||'—'}</td>
+    <td>${p.area||'—'}</td><td class="tm">${p.phone||'—'}</td>
+    <td>${mkBadge(p.tier||'Standard')}</td>
+    <td style="text-align:center">${p.fast?'⚡':'—'}</td>
+    <td style="text-align:center">${p.flawless?'🎯':'—'}</td>
+    <td style="text-align:center">${p.breakAch?'🖤':'—'}</td>
+    <td class="tm">${p.consistency}%</td><td class="tm">${p.sportsmanship}/10</td>
+    <td style="text-align:center">${p.endgame?'✓':'—'}</td>
+    <td class="tm" style="color:var(--gold);font-weight:600">${p.score}</td>
+    <td class="tm">${p.events}</td><td class="tm">${p.wins||0}</td>
+    <td><div class="tact"><button class="btn btn-red btn-sm" onclick="deleteRow(DB.players,${i});renderPlayers();renderRankings()">✕</button></div></td>
+  </tr>`).join('') : emptyRow(16,'No players registered yet. Click "+ Add Player".');
+}
+
+function renderAgents(){
+  const total=DB.agents.length, active=DB.agents.filter(a=>a.active==='Y').length;
+  const referred=DB.agents.reduce((s,a)=>s+(a.referred||0),0);
+  const comm=DB.agents.reduce((s,a)=>s+(a.comm||0),0);
+  g('ag-total').textContent=total; g('ag-active').textContent=active;
+  g('ag-referred').textContent=referred; g('ag-comm').textContent=fmt(comm);
+  const t=document.getElementById('agents-tbody');
+  t.innerHTML = DB.agents.length ? DB.agents.map((a,i)=>`<tr>
+    <td class="tm">${a.id}</td><td>${a.name}</td><td class="tm">${a.phone||'—'}</td>
+    <td>${a.area||'—'}</td><td>${a.role}</td>
+    <td>${mkBadge(a.active==='Y'?'Active':'Lapsed')}</td>
+    <td class="tm">${a.rate?a.rate+'%':'TBC'}</td>
+    <td>${a.referred||0}</td><td class="tm">${fmt(a.fees)}</td>
+    <td class="tm" style="color:${a.comm?'var(--gold)':'inherit'}">${fmt(a.comm)}</td>
+    <td>${a.notes||'—'}</td>
+    <td><button class="btn btn-red btn-sm" onclick="deleteRow(DB.agents,${i});renderAgents()">✕</button></td>
+  </tr>`).join('') : emptyRow(12);
+}
+
+function renderFinance(){
+  const inc=DB.transactions.reduce((s,t)=>s+(t.amtIn||0),0);
+  const exp=DB.transactions.reduce((s,t)=>s+(t.amtOut||0),0);
+  const net=inc-exp;
+  g('fin-in').textContent=fmt(inc); g('fin-out').textContent=fmt(exp);
+  g('fin-net').textContent=(net<0?'−':'')+fmt(Math.abs(net));
+  g('fin-net').style.color=color(net);
+  const t=document.getElementById('finance-tbody');
+  t.innerHTML = DB.transactions.length ? DB.transactions.map((tx,i)=>`<tr>
+    <td class="tm">${tx.date||'—'}</td><td class="tm">${tx.id}</td>
+    <td>${mkBadge(tx.type)}</td><td>${tx.source||'—'}</td><td>${tx.desc}</td>
+    <td class="tm" style="color:var(--ledger)">${tx.amtIn?'+'+fmt(tx.amtIn):'—'}</td>
+    <td class="tm" style="color:var(--brick)">${tx.amtOut?fmt(tx.amtOut):'—'}</td>
+    <td class="tm" style="color:${color(tx.balance)}">${sign(tx.balance)}${fmt(tx.balance)}</td>
+    <td class="tm">${tx.event||'—'}</td><td>${tx.approved||'—'}</td>
+    <td><button class="btn btn-red btn-sm" onclick="deleteRow(DB.transactions,${i});renderFinance()">✕</button></td>
+  </tr>`).join('') : emptyRow(11);
+}
+
+function renderSponsors(){
+  const active=DB.sponsors.filter(s=>s.status==='Active');
+  const conf=active.reduce((s,sp)=>s+sp.value,0);
+  const pend=DB.sponsors.filter(s=>s.status==='Pending').reduce((s,sp)=>s+sp.value,0);
+  g('sp-total').textContent=DB.sponsors.length; g('sp-active').textContent=active.length;
+  g('sp-conf').textContent=fmt(conf); g('sp-pend').textContent=fmt(pend);
+  g('d-sponsors').textContent=active.length;
+  const t=document.getElementById('sponsors-tbody');
+  t.innerHTML = DB.sponsors.length ? DB.sponsors.map((s,i)=>`<tr>
+    <td class="tm">${s.id}</td><td>${s.name}</td><td>${s.contact||'—'}</td>
+    <td>${mkBadge(s.status)}</td><td>${mkBadge(s.tier)}</td>
+    <td class="tm">${fmt(s.value)}</td><td>${s.duration||'—'}</td>
+    <td class="tm">${s.review||'—'}</td><td>${s.notes||'—'}</td>
+    <td><button class="btn btn-red btn-sm" onclick="deleteRow(DB.sponsors,${i});renderSponsors()">✕</button></td>
+  </tr>`).join('') : emptyRow(10,'No sponsors added yet. Click "+ Add Sponsor".');
+}
+
+function renderRankings(){
+  const sorted=[...DB.players].sort((a,b)=>b.score-a.score);
+  const colors=['var(--gold)','#C0C0C0','#CD7F32'];
+  const t=document.getElementById('rankings-tbody');
+  t.innerHTML = sorted.length ? sorted.map((p,i)=>`<tr>
+    <td style="font-family:'IBM Plex Mono';font-size:18px;font-weight:700;color:${colors[i]||'rgba(244,241,234,.3)'}">${i+1}</td>
+    <td>${p.name}</td><td>${p.area||'—'}</td>
+    <td class="tm">${p.events}</td><td class="tm">${p.wins||0}</td>
+    <td class="tm">${p.events>0?Math.round(((p.wins||0)/p.events)*100):0}%</td>
+    <td>${p.fast?'⚡':'—'}</td><td>${p.flawless?'🎯':'—'}</td><td>${p.breakAch?'🖤':'—'}</td>
+    <td class="tm" style="color:var(--gold);font-size:17px;font-weight:700">${p.score}</td>
+  </tr>`).join('') : emptyRow(10,'No players yet.');
+  /* dashboard top 3 */
+  const dt=document.getElementById('dash-rankings');
+  if (dt) dt.innerHTML = sorted.slice(0,5).map((p,i)=>`<tr>
+    <td style="font-family:'IBM Plex Mono';color:${colors[i]||'var(--stone)'};font-weight:700">${i+1}</td>
+    <td>${p.name}</td><td>${p.area||'—'}</td>
+    <td class="tm" style="color:var(--gold)">${p.score}</td>
+  </tr>`).join('') || emptyRow(4);
+}
+
+function renderArticles(){
+  const catColors={Tournament:'bo',League:'bg',Community:'bb',Rankings:'bs',Players:'bs',Sponsors:'bb',Women:'bb',Announcement:'bo'};
+  const rows = DB.articles.map((a,i)=>`<tr>
+    <td>${a.title}</td><td><span class="badge ${catColors[a.category]||'bs'}">${a.category}</span></td>
+    <td class="tm">${a.date||'—'}</td><td>${mkBadge(a.status)}</td>
+    <td class="tm">${a.media.length} file(s)</td>
+    <td><div class="tact">
+      <button class="btn btn-red btn-sm" onclick="deleteRow(DB.articles,${i});renderArticles()">Delete</button>
+    </div></td>
+  </tr>`).join('');
+  ['news-tbody','news2-tbody'].forEach(id=>{const t=g(id);if(t)t.innerHTML=rows||emptyRow(6);});
+}
+
+function renderSchedule(){
+  const t=g('sched-tbody'); if (!t) return;
+  t.innerHTML = DB.schedule.length ? DB.schedule.map((s,i)=>`<tr>
+    <td>${s.name}</td><td class="tm">${s.date||'—'}</td><td>${s.venue||'—'}</td>
+    <td class="tm">${s.fee}</td><td class="tm">${s.prize}</td><td>${mkBadge(s.status)}</td>
+    <td><button class="btn btn-red btn-sm" onclick="deleteRow(DB.schedule,${i});renderSchedule()">✕</button></td>
+  </tr>`).join('') : emptyRow(7,'No schedule entries. Click "+ Add Event to Schedule".');
+}
+
+function renderFund(){
+  const raised=DB.fund_transactions.filter(t=>t.type==='in').reduce((s,t)=>s+t.amount,0);
+  const disburse=DB.fund_transactions.filter(t=>t.type==='out').reduce((s,t)=>s+t.amount,0);
+  const bal=raised-disburse;
+  if(g('tf-raised')) g('tf-raised').textContent=fmt(raised);
+  if(g('tf-disburse')) g('tf-disburse').textContent=fmt(disburse);
+  if(g('tf-balance')) g('tf-balance').textContent=fmt(bal);
+  if(g('tf-players')) g('tf-players').textContent='—';
+  const t=g('fund-tbody'); if (!t) return;
+  t.innerHTML = DB.fund_transactions.length ? DB.fund_transactions.map((f,i)=>`<tr>
+    <td class="tm">${f.date||'—'}</td><td>${f.desc}</td><td style="color:var(--stone)">${f.sub||'—'}</td>
+    <td class="tm" style="color:${f.type==='in'?'var(--ledger)':'var(--brick)'}">${f.type==='in'?'+':'-'}${fmt(f.amount)}</td>
+    <td>${mkBadge(f.type)}</td><td><span class="badge bs">${f.program}</span></td>
+    <td>${mkBadge(f.status)}</td><td class="tm">${fmt(f.balance)}</td>
+    <td><button class="btn btn-red btn-sm" onclick="deleteRow(DB.fund_transactions,${i});renderFund()">✕</button></td>
+  </tr>`).join('') : emptyRow(9);
+}
+
+function renderDash(){
+  g('d-events').textContent = DB.events.length;
+  const comp=DB.events.filter(e=>e.status==='Completed').length;
+  g('d-events-sub').textContent = comp+' completed · '+(DB.events.length-comp)+' planned';
+  const rev=DB.events.reduce((s,e)=>s+(e.revenue||0),0);
+  const exp2=DB.events.reduce((s,e)=>s+(e.expenses||0),0);
+  g('d-rev').textContent=fmt(rev); g('d-rev-sub').textContent='Total across all events';
+  g('d-exp').textContent=fmt(exp2); g('d-exp-sub').textContent='Net: '+(rev-exp2>=0?'+':'')+fmt(rev-exp2);
+  g('d-players').textContent=DB.players.length;
+  g('d-players-sub').textContent=DB.players.length?'Registered players':'Add players to populate';
+  g('d-agents').textContent=DB.agents.filter(a=>a.active==='Y').length;
+  g('d-agents-sub').textContent=DB.agents.length+' total agents';
+  const comm=DB.agents.reduce((s,a)=>s+(a.comm||0),0);
+  g('d-comm').textContent=fmt(comm);
+  const dt=g('dash-events');
+  if (dt) dt.innerHTML = DB.events.slice(0,5).map(e=>`<tr>
+    <td class="tm">${e.id}</td><td>${e.type}</td><td>${e.location}</td>
+    <td>${mkBadge(e.status)}</td>
+    <td class="tm" style="color:${color(e.net)}">${sign(e.net)}${fmt(e.net)}</td>
+  </tr>`).join('') || emptyRow(5);
+}
+
+function filterTable(tbodyId, query) {
+  document.querySelectorAll('#'+tbodyId+' tr').forEach(tr=>{
+    tr.style.display = tr.textContent.toLowerCase().includes(query.toLowerCase()) ? '' : 'none';
+  });
+}
+function filterByType(tbodyId, col, val) {
+  document.querySelectorAll('#'+tbodyId+' tr').forEach(tr=>{
+    tr.style.display = (!val || tr.textContent.includes(val)) ? '' : 'none';
+  });
+}
+
+function refreshAll() {
+  renderDash(); renderEvents(); renderPlayers(); renderAgents();
+  renderFinance(); renderSponsors(); renderRankings();
+  renderArticles(); renderSchedule(); renderFund();
+}
+</script>
+</body>
+</html>

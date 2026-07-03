@@ -1523,10 +1523,10 @@ function filterHist(){
   var sv=($id('history-filter-status')||{}).value||'';
   var ft=($id('history-filter-type')||{}).value||'';
   var sq=(($id('history-filter-search')||{}).value||'').toLowerCase();
-  var showLinked=($id('history-show-linked')||{}).checked;
   renderHistTable(_allRecs.filter(function(r){
-    /* Exclude linked/child forms unless user explicitly wants to see them */
-    if(r.isLinkedForm&&!showLinked)return false;
+    /* Forms that belong to a package are only ever viewed inside that package,
+       never as independent rows in the audit history. */
+    if(r.isLinkedForm)return false;
     var d=(r.data&&r.data.description)||r.id||'';
     return(!sv||r.status===sv)&&(!ft||r.formType===ft)&&(!sq||r.id.toLowerCase().indexOf(sq)!==-1||d.toLowerCase().indexOf(sq)!==-1||(r.submittedByName||'').toLowerCase().indexOf(sq)!==-1);
   }));
@@ -1535,7 +1535,7 @@ async function initHist(){
   if(!$id('history-container'))return;
   if(!enforceAuth())return;navbar();wireLogout();wireModal();wireModalEvents();
   var ld=$id('history-loading');if(ld)ld.style.display='block';
-  try{var recs=await DS.getAllRequisitions();_allRecs=Array.isArray(recs)?recs:[];renderHistTable(_allRecs);}
+  try{var recs=await DS.getAllRequisitions();_allRecs=Array.isArray(recs)?recs:[];renderHistTable(_allRecs.filter(function(r){return !r.isLinkedForm;}));}
   catch(err){showBanner(err.message||'Failed.','error');}
   finally{if(ld)ld.style.display='none';}
   var fs=$id('history-filter-status'),ft=$id('history-filter-type'),fq=$id('history-filter-search');

@@ -1,51 +1,66 @@
-# Uganda Biodiversity Fund — Logistics & Procurement System
+# Uganda Biodiversity Fund — Procurement & Logistics System
 
 > **"For now & the future"**
-> 
-> A fully serverless, paperless procurement management system built natively on GitHub Pages — no backend server, no database fees, no maintenance overhead.
+>
+> A secure, paperless procurement and logistics platform for the Uganda Biodiversity Fund — a lightweight web front-end backed by a managed database with server-enforced access control and a complete, tamper-evident audit trail.
 
 ---
 
 ## 🌿 About This System
 
-The **UBF Logistics & Procurement System** is a web-based internal portal developed for the Uganda Biodiversity Fund to digitise, streamline and audit all procurement and logistics workflows. It replaces manual paper-based processes with a structured, role-based digital approval chain that is accessible to all staff from any device with a browser.
+The **UBF Procurement & Logistics System** is the Fund's internal portal for raising, reviewing, approving and archiving all procurement and logistics paperwork. It replaces manual, paper-based processes with a structured, role-based digital approval chain accessible from any device with a browser.
 
-All data is stored securely inside this GitHub repository. All approvals, submissions, comments and attachments are permanently recorded as Git commits — creating a tamper-proof audit trail.
+Every submission, approval, comment and attachment is recorded with a timestamp and the responsible officer, producing an **auditor-ready** history for every transaction.
 
 ---
 
 ## 🔗 Live Portal
 
 ```
-https://cuepointe.github.io/UBF-Request-Portal/
+https://cuepointe.github.io/UBF-Procurement-System/
 ```
 
 ---
 
 ## ✨ Key Features
 
-- **Secure login** — email + password authentication with 90-day password expiry
-- **Role-based access** — each staff member sees only what their role permits
-- **5-step approval workflow** — Submit → Prepare → Review → Clear → Approve
-- **7 official UBF form templates** — all strictly following existing paper templates
-- **Executive Expenditure Report** — live financial dashboard auto-generated from all submissions
-- **Comments & replies** — threaded discussion on every submission
-- **File attachments** — upload and attach supporting documents to any record
-- **Share & Forward** — copy summaries, attach files and forward submissions with notes
-- **Print / Download** — every form is print-ready with one click
-- **Full audit trail** — every action is permanently recorded with timestamp and user
-- **100% serverless** — runs entirely on GitHub Pages, zero hosting cost
+- **Secure login** — email + password via managed authentication (salted, hashed); first-time users are forced to set their own password.
+- **Server-enforced role-based access** — who can see and do what is decided by the database, not the browser, so the rules cannot be bypassed.
+- **Approval workflow** — Submit → Prepare → Review → Clear → Approve, with rejection (and edit-and-resubmit) at any stage.
+- **7 official UBF form templates** — faithful to the existing paper forms, print- and PDF-ready.
+- **Packages** — bundle related forms (e.g. Request + LPO + Payment Voucher) into one submission; every form in a package is viewable inline for auditors.
+- **"My Tasks"** — every user sees exactly what needs their action on the dashboard.
+- **Executive Expenditure Report** — live financial dashboard with charts, breakdowns, and one-click **Excel/CSV export**.
+- **Document Archive** — approved packages auto-filed, searchable, organised into folders by management.
+- **Comments, management notes & attachments** — threaded discussion and supporting documents on every record.
+- **Full audit trail** — every action permanently recorded with timestamp and user.
+- **Responsive & mobile-friendly** — usable from a phone in the field.
 
 ---
 
-## 👥 Staff Roles & Permissions
+## 👥 Staff Roles & Approval Chain
 
-| Role | Staff Member | Permissions |
-|---|---|---|
-| **Staff** | David Okullu, Posiano Musiime, Owen Atuhaire, Tom Otieno | Submit forms, view own submissions, comment, attach files |
-| **Admin Officer** | Susan Abonyo | All of the above + view all submissions + **Prepare** step |
-| **FAM** | Winnie Nabatanzi | All of the above + **Review** and **Clear** steps + Evaluation, LPO, Invoice |
-| **ED** | Ivan Amanigaruhanga | All of the above + **Final Approval** + Executive Expenditure Report |
+| Role | Responsibility in the workflow |
+|---|---|
+| **Staff** | Raise Requests, Travel Plans and Accountability forms; view and account for their own submissions |
+| **Admin Officer** | **Prepares** submitted requests; may also raise management forms |
+| **Finance Officer** | **Reviews** prepared requests |
+| **FAM** (Finance & Administration Manager) | **Clears** reviewed requests; manages the Document Archive |
+| **ED** (Executive Director) | **Approves** cleared requests; full oversight and Executive Expenditure Report |
+
+### Approval chain
+
+```
+┌──────────┬────────────────┬─────────────────┬──────────────┬──────────────┐
+│  Staff   │ Admin Officer  │ Finance Officer │     FAM      │      ED      │
+│ Submits  │   Prepares     │    Reviews      │   Clears     │   Approves   │
+│ PENDING  │   PREPARED     │    REVIEWED     │   CLEARED    │   APPROVED   │
+└──────────┴────────────────┴─────────────────┴──────────────┴──────────────┘
+```
+
+At any stage a submission can be **Rejected** with a written reason; the original submitter can then edit and resubmit it.
+
+> If no active Finance Officer is assigned, the FAM performs the Review step as well, so work never stalls.
 
 ---
 
@@ -56,126 +71,83 @@ https://cuepointe.github.io/UBF-Request-Portal/
 | Request for Goods / Services | All Staff | Official procurement request |
 | Travel Business Plan | All Staff | Travel advance request with route breakdown |
 | Advance Accountability & Expense Report | All Staff | Post-travel expense accountability |
-| Evaluation Report | Admin Officer, FAM, ED | Supplier price comparison and recommendation |
-| Local Purchase Order (LPO) | Admin Officer, FAM, ED | Official purchase order issued to vendor |
-| Goods Received Note (GRN) | Admin Officer, FAM, ED | Confirmation of goods received |
-| Invoice / Payment Voucher | Admin Officer, FAM, ED | Cheque payment authorisation |
-
----
-
-## 🔄 Approval Workflow
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                  PROCUREMENT APPROVAL CHAIN                  │
-├──────────┬──────────────┬──────────────┬──────────────────────┤
-│  Staff   │ Admin Officer│     FAM      │         ED           │
-│ Submits  │   Prepares   │   Reviews    │      Approves        │
-│          │              │   & Clears   │                      │
-│ PENDING  │  PREPARED    │  REVIEWED    │      APPROVED        │
-│          │              │  → CLEARED   │                      │
-└──────────┴──────────────┴──────────────┴──────────────────────┘
-```
-
-At any stage, a submission can be **Rejected** with a written reason. Rejected submissions can be edited and resubmitted by the original submitter.
-
----
-
-## 📊 Executive Expenditure Report
-
-Available to Admin Officer, FAM and ED. Automatically generates:
-
-- Total committed, approved, pending and rejected expenditure (UGX)
-- Monthly expenditure trend with visual bar charts
-- Breakdown by form type, department, donor and approval status
-- Approved expenditures register
-- Travel advances and accountability tracking
-- Full transaction register with filters by date, type, status and department
+| Evaluation Report | Management | Supplier price comparison and recommendation (add/remove supplier columns) |
+| Local Purchase Order (LPO) | Management | Official purchase order issued to a vendor |
+| Goods Received Note (GRN) | Management | Confirmation of goods received |
+| Invoice / Payment Voucher | Management | Cheque payment authorisation |
 
 ---
 
 ## 🗂️ System Architecture
 
 ```
-UBF-Request-Portal/
+UBF-Procurement-System/
 │
-├── index.html               Login page
-├── dashboard.html           Main dashboard with stats and submissions table
-├── form.html                Request for Goods / Services form
-├── travel-plan.html         Travel Business Plan form
+├── index.html               Login (email + password)
+├── dashboard.html           Dashboard: My Tasks, stats, submissions
+├── form.html                Request for Goods / Services (+ package builder)
+├── travel-plan.html         Travel Business Plan
 ├── accountability.html      Advance Accountability & Expense Report
 ├── evaluation.html          Procurement Evaluation Report
 ├── lpo.html                 Local Purchase Order
 ├── grn.html                 Goods Received Note
 ├── invoice.html             Invoice / Payment Voucher
-├── expenditure-report.html  Executive Expenditure Report
+├── expenditure-report.html  Executive Expenditure Report (charts + CSV)
+├── archives.html            Document Archive
 ├── history.html             Full audit history
+├── help.html                User guide
 │
-├── data.js                  GitHub API layer — all data read/write operations
+├── data.js                  Data layer — talks to the Supabase backend
 ├── script.js                UI router and event handlers
-├── style.css                UBF branded stylesheet
+├── form-renderer.js         Form rendering + PDF generation
+├── style.css                UBF-branded stylesheet
 │
-└── data/
-    ├── requisitions.json    Live database — all form submissions
-    └── users.json           Staff accounts and hashed passwords
+├── ubf-logo.png             Brand logo
+├── favicon.ico              Browser tab icon
+└── apple-touch-icon.png     iOS home-screen icon
 ```
 
-**Technology Stack:**
-- Frontend: Pure HTML5, CSS3, Vanilla JavaScript
-- Database: GitHub Contents API (JSON flat-file)
-- Authentication: SHA-256 password hashing via Web Crypto API
-- Hosting: GitHub Pages (free, zero infrastructure)
-- Storage: GitHub repository (1 GB limit, effectively unlimited for this use case)
+### Technology stack
+
+| Layer | Technology |
+|---|---|
+| Front-end | HTML5, CSS3, vanilla JavaScript — no build step, no framework |
+| Backend | **Supabase** — managed PostgreSQL, Authentication & Storage |
+| Access control | PostgreSQL **Row-Level Security** + `SECURITY DEFINER` workflow functions |
+| Auth | Supabase Auth (bcrypt-salted passwords, JWT sessions) |
+| File storage | Supabase Storage (private bucket) |
+| Hosting | GitHub Pages (static front-end) |
+| Fonts | Plus Jakarta Sans |
+
+The front-end holds only the project URL and a **publishable key** — safe to expose, because Row-Level Security enforces every rule on the server.
 
 ---
 
-## 🔐 Security
+## 🔐 Security Model
 
-- Passwords are hashed using **SHA-256** in the browser before any comparison — plain text passwords are never stored or transmitted
-- Each password expires every **90 days** — staff are forced to set a new password on expiry
-- Sessions expire after **8 hours** of inactivity
-- The GitHub Personal Access Token (PAT) is stored in browser `localStorage` and is never embedded in source code
-- All API calls go directly to `api.github.com` over HTTPS
-- Role-based filtering ensures staff can only see their own submissions
+- **Passwords** are salted and hashed by Supabase Auth — never stored in the code or repository.
+- **Row-Level Security** guarantees staff can read and act on **only their own** records (plus the forms inside their own packages); management roles see all.
+- **Approvals** flow through a single server-side gatekeeper function that enforces *role × status* — a staff member physically cannot approve, and no role can skip a step. The database refuses invalid transitions.
+- **Attachments** live in a private storage bucket, accessible only to signed-in staff.
+- **Audit trail** — every status change, comment and note is appended immutably to each record's history with the responsible officer and timestamp.
+- **Sessions** are refreshed automatically and cleared on logout.
 
 ---
 
 ## 🛠️ System Administration
 
-### Adding a New Staff Member
+### Adding a new staff member
+Create the account in the Supabase project (Authentication → Users), setting the user's `full_name`, `role` and `title` in the account metadata. A matching profile is created automatically. Roles must be one of: `Staff`, `Admin Officer`, `Finance Officer`, `FAM`, `ED`.
 
-1. Open `data/users.json` in this repository
-2. Add a new entry following this format:
+### Resetting a password
+Set the staff member's `must_change_password` flag to `true` in their profile (and issue a temporary password); they will be prompted to set a new password on next login.
 
-```json
-{
-  "email": "newstaff@ugandabiodiversityfund.org",
-  "name": "Full Name",
-  "role": "Staff",
-  "title": "Job Title",
-  "passwordHash": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
-  "passwordExpiry": "2026-12-31",
-  "mustChangePassword": true,
-  "active": true
-}
-```
-
-3. Also add the email and role to the `STAFF` object in `data.js`
-4. The default password hash above corresponds to `admin` — the new staff member will be forced to change it on first login
-
-### Resetting a Password
-
-Edit `data/users.json`, set `mustChangePassword` to `true` and `passwordExpiry` to a past date. The staff member will be prompted to set a new password on next login.
-
-### Deactivating a Staff Member
-
-Set `"active": false` in their entry in `data/users.json`.
+### Deactivating a staff member
+Set `active` to `false` in their profile — they can no longer sign in, and their historical records remain intact for audit.
 
 ---
 
 ## 📞 Technical Support
-
-For technical issues with the portal, contact the system administrator:
 
 **Tom Otieno**
 Email: t.otieno@ugandabiodiversityfund.org
@@ -202,8 +174,9 @@ Website: www.ugandabiodiversityfund.org
 |---|---|---|
 | v1.0 | 2025 | Initial deployment — Request form + basic approval workflow |
 | v2.0 | 2025 | Password authentication, Travel Plan, Accountability form |
-| v3.0 | 2026 | Full procurement suite — Evaluation, LPO, GRN, Invoice, Executive Expenditure Report, Share Panel, Comments |
+| v3.0 | 2026 | Full procurement suite — Evaluation, LPO, GRN, Invoice, Executive Expenditure Report, Comments, Archive |
+| v4.0 | 2026 | Migration to a secure Supabase backend (server-enforced access control), modern UI refresh, Finance Officer review stage, "My Tasks", CSV export, package viewing, mobile improvements |
 
 ---
 
-*System developed and maintained by Digital Marketing Analyst: Thomas Otieno — Uganda Biodiversity Fund Digital Operations*
+*System developed and maintained by Thomas Otieno — Uganda Biodiversity Fund Digital Operations.*
